@@ -1,0 +1,1202 @@
+/* 🌌 Background */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background-size: 400% 400%;
+    animation: bgShift 12s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #fff;
+}
+
+/* 🌟 Drag & Drop Upload Zone */
+.file-input-wrapper {
+    border: 2px dashed rgba(0, 255, 200, 0.5);
+    border-radius: 16px;
+    padding: 40px;
+    cursor: pointer;
+    background: rgba(15, 25, 40, 0.6);
+    transition: all 0.4s ease;
+    margin: 25px auto;
+    text-align: center;
+    color: #00ffcc;
+    font-weight: bold;
+    box-shadow: 0 0 18px rgba(0, 255, 200, 0.2),
+        inset 0 0 12px rgba(0, 255, 200, 0.15);
+    animation: glowPulse 3s infinite ease-in-out;
+}
+
+/* Glow animation */
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 28px rgba(0, 255, 200, 0.8);
+    }
+
+    100% {
+        box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+    }
+}
+
+/* Hover / Dragging effect */
+.file-input-wrapper:hover,
+.file-input-wrapper.dragover {
+    border-color: #00ffcc;
+    background: rgba(0, 255, 200, 0.1);
+    transform: scale(1.03);
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.9);
+}
+
+/* Label Text */
+.file-label span {
+    font-size: 15px;
+    color: #00ffcc;
+    text-shadow: 0 0 12px #00ffcc, 0 0 20px #0077ff;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+/* Add icon style */
+.file-label::before {
+    content: "📂";
+    font-size: 22px;
+    display: block;
+    margin-bottom: 6px;
+    text-shadow: 0 0 12px #00ffcc;
+}
+
+/* 🌟 File preview container */
+#filePreview div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(0, 255, 200, 0.08);
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 10px 0;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.25),
+        inset 0 0 8px rgba(0, 255, 200, 0.15);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: fadeIn 0.4s ease;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* 🌟 File name text */
+#filePreview div span {
+    flex: 1;
+    /* ✅ take available space */
+    min-width: 0;
+    /* ✅ allows shrinking */
+    white-space: nowrap;
+    /* ✅ single line */
+    overflow: hidden;
+    /* ✅ hide overflow */
+    text-overflow: ellipsis;
+    /* ✅ show … */
+    color: #00ffcc;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ffcc, 0 0 15px #0077ff;
+}
+
+/* Remove button */
+#filePreview .remove-btn {
+    flex-shrink: 0;
+    /* ✅ never shrink */
+    margin-left: 10px;
+}
+
+/* ❌ Remove Button */
+#filePreview .remove-btn {
+    flex-shrink: 0;
+    /* ✅ don’t shrink */
+    margin-left: 10px;
+    background: linear-gradient(90deg, #ff4b2b, #ff1a75);
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(255, 50, 100, 0.6);
+    transition: 0.3s ease;
+}
+
+#filePreview .remove-btn:hover {
+    background: linear-gradient(90deg, #ff1744, #d50000);
+    transform: scale(1.08);
+    box-shadow: 0 0 18px rgba(255, 0, 100, 1);
+}
+
+/* Scrollbar styling */
+#filePreview::-webkit-scrollbar {
+    width: 6px;
+}
+
+#filePreview::-webkit-scrollbar-thumb {
+    background: #00ffcc;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #00ffcc;
+}
+
+#filePreview::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+/* 🌟 Global Upload Status */
+#progressContainer {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #00ffcc;
+    font-family: monospace;
+    text-align: left;
+}
+
+/* Global progress bar wrapper */
+.global-progress {
+    width: 100%;
+    height: 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 10px 0;
+    overflow: hidden;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.4);
+}
+
+.global-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffcc, #00ffaa, #00ccff);
+    border-radius: 10px;
+    transition: width 0.3s linear;
+    box-shadow: 0 0 15px rgba(0, 255, 200, 0.8);
+}
+
+/* 📦 Per-file wrapper */
+.file-progress-card {
+    margin: 15px 0;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(0, 255, 200, 0.06);
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 200, 0.2);
+    animation: fadeIn 0.4s ease;
+}
+
+.file-progress-card h4 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+}
+
+/* 📊 Chunk container */
+.chunk-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.chunk-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 6px 0;
+    font-size: 12px;
+    color: #eee;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 8px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 6px rgba(0, 255, 200, 0.2);
+}
+
+/* 🔋 Chunk bar */
+.chunk-bar {
+    flex: 1;
+    margin-left: 10px;
+    height: 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    box-shadow: inset 0 0 6px rgba(0, 255, 200, 0.3);
+}
+
+.chunk-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ffcc, #00ffaa, #0077ff);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.7);
+}
+
+/* 🌌 Compact Neon Alert (instead of fullscreen overlay) */
+.custom-alert {
+    position: fixed;
+    top: -120px;
+    /* start hidden above */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    width: auto;
+    max-width: 400px;
+    transition: top 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+}
+
+/* Show state */
+.custom-alert.show {
+    top: 40px;
+    /* slide down */
+    opacity: 1;
+}
+
+/* Alert Box */
+.custom-alert-box {
+    background: rgba(20, 20, 20, 0.95);
+    border: 2px solid #00e5ff;
+    padding: 18px 24px;
+    border-radius: 12px;
+    text-align: center;
+    color: #eee;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    min-width: 260px;
+    box-shadow: 0 0 20px #00e5ff, 0 0 40px #00ff7f;
+    animation: popIn 0.3s ease;
+}
+
+/* Buttons */
+.custom-alert-box button {
+    margin-top: 12px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #00e5ff, #00ff7f);
+    color: #111;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00ffcc;
+    transition: transform 0.2s;
+}
+
+.custom-alert-box button:hover {
+    transform: scale(1.08);
+}
+
+/* 🔥 Animations */
+@keyframes popIn {
+    from {
+        transform: translateY(-20px) scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* 🌌 Storage Section */
+#storageBox {
+    margin-top: 20px;
+    text-align: center;
+    color: #00ffcc;
+    font-weight: bold;
+    text-shadow: 0 0 12px #00ffcc;
+}
+
+.circle-progress {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 15px auto;
+}
+
+.circle-progress svg {
+    width: 120px;
+    height: 120px;
+    transform: rotate(-90deg);
+    /* Start progress from top */
+}
+
+circle {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+}
+
+circle.bg {
+    stroke: rgba(0, 255, 200, 0.15);
+}
+
+circle.progress {
+    stroke: url(#gradient);
+    stroke-dasharray: 339.292;
+    /* 2πr → 2*π*54 */
+    stroke-dashoffset: 339.292;
+    transition: stroke-dashoffset 0.6s ease;
+    filter: drop-shadow(0 0 8px #00ffcc);
+}
+
+.storage-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-shadow: 0 0 12px #00ffcc;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+#storagePercent {
+    font-size: 20px;
+    font-weight: bold;
+    display: block;
+    color: #00ffcc;
+}
+
+#storageUsed {
+    font-size: 12px;
+    color: #bbb;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* Animations */
+@keyframes popUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Scrollbar */
+.chunk-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chunk-list::-webkit-scrollbar-thumb {
+    background: #00ffcc;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #00ffcc;
+}
+
+.chunk-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* 🌟 General Button Style */
+button,
+.view-files-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Upload Button */
+#uploadBtn {
+    background: linear-gradient(90deg, #00ff99, #00ccff);
+    color: #111;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.6);
+}
+
+#uploadBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px #00ffcc;
+}
+
+/* Cancel Button */
+#cancelBtn {
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 65, 108, 0.6);
+}
+
+#cancelBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px #ff4b2b;
+}
+
+/* Logout Button */
+#logoutBtn {
+    background: linear-gradient(90deg, #ff8c00, #ff4b2b);
+    color: #fff;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.6);
+}
+
+#logoutBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 18px #ff6600;
+}
+
+/* Profile Button (make it a neon circle) */
+#profilePic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #00ffcc;
+    box-shadow: 0 0 15px #00ffcc;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#profilePic:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #00ffcc;
+}
+
+/* View Files Button */
+.view-files-btn {
+    display: inline-block;
+    margin-top: 15px;
+    text-decoration: none;
+    background: linear-gradient(90deg, #00ffcc, #00ffa3);
+    color: #111;
+    padding: 10px 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.6);
+}
+
+.view-files-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px #00ffcc;
+}
+
+@keyframes bgShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* 🌟 Main Container */
+main {
+    width: 95%;
+    max-width: 800px;
+    background: rgba(15, 25, 40, 0.9);
+    border-radius: 20px;
+    padding: 30px 25px;
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.5),
+        inset 0 0 12px rgba(0, 255, 200, 0.2);
+    backdrop-filter: blur(14px);
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 18px;
+    text-shadow: 0 0 12px #00ffcc, 0 0 20px #00ccff;
+    color: #00ffcc;
+}
+
+/* 👤 Profile Section */
+#profile-container {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+#profile-container img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid #00ffcc;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.7);
+    object-fit: cover;
+    transition: 0.3s;
+}
+
+#profile-container img:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 18px #00ffcc;
+}
+
+#profile-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+}
+
+/* Dropdown */
+#profile-dropdown {
+    position: absolute;
+    top: 55px;
+    right: 0;
+    background: rgba(10, 20, 30, 0.95);
+    border: 1px solid #00ffcc;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 0 15px rgba(0, 255, 200, 0.6);
+    display: none;
+    flex-direction: column;
+    min-width: 160px;
+    z-index: 10;
+    animation: fadeIn 0.3s ease;
+}
+
+#profile-dropdown button {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#profile-dropdown button:hover {
+    background: rgba(0, 255, 200, 0.25);
+    color: #00ffcc;
+    border-radius: 6px;
+}
+
+/* Loader */
+#loadingIndicator {
+    margin: 18px auto;
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: rgba(0, 255, 200, 0.08);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+#loadingIndicator span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #00ffcc;
+    animation: pulse 1s infinite ease-in-out;
+}
+
+#loadingIndicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+#loadingIndicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* File List */
+.file-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 255, 200, 0.07);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin: 10px 0;
+    font-size: 14px;
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.file-list li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+}
+
+.file-info {
+    flex: 1;
+    margin-left: 10px;
+    text-align: left;
+}
+
+.file-info strong {
+    color: #00ffcc;
+}
+
+.file-list a {
+    background: linear-gradient(90deg, #00ffcc, #00ffa3);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #111;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.file-list a:hover {
+    box-shadow: 0 0 12px #00ffcc;
+}
+
+/* Sort Dropdown */
+#sortSelect {
+    background: rgba(0, 255, 200, 0.1);
+    border: 1px solid #00ffcc;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #00ffcc;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+}
+
+/* Navigation */
+nav a {
+    display: inline-block;
+    margin-top: 20px;
+    background: linear-gradient(90deg, #00ffcc, #00ffa3);
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #111;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    box-shadow: 0 0 18px #00ffcc;
+    transform: scale(1.05);
+}
+
+/* 🌌 Profile Modal Neon Fix */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(6px);
+}
+
+.modal-content {
+    background: rgba(15, 25, 35, 0.95);
+    padding: 25px;
+    border-radius: 18px;
+    width: 380px;
+    max-width: 95%;
+    text-align: center;
+    box-shadow: 0 0 25px #00ffcc;
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    animation: scaleUp 0.4s ease;
+    color: #fff;
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 24px;
+    color: #ff4b2b;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.avatar-glow {
+    display: inline-block;
+    padding: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00ffcc, #0077ff);
+    box-shadow: 0 0 20px #00ffcc;
+    margin-bottom: 10px;
+}
+
+.avatar-glow img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #111;
+    object-fit: cover;
+}
+
+.glow-text {
+    color: #00ffcc;
+    font-weight: bold;
+    text-shadow: 0 0 12px #00ffcc;
+}
+
+.edit-field {
+    margin: 8px 0;
+    width: 95%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.edit-field:focus {
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 10px #00ffcc;
+}
+
+.modal-actions {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modal-actions button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+#copyUidBtn {
+    background: linear-gradient(90deg, #00ffcc, #00ffa3);
+    color: #111;
+}
+
+#saveProfileBtn {
+    background: linear-gradient(90deg, #007bff, #00ccff);
+    color: #fff;
+}
+
+#resetPassBtn,
+#submitResetPassBtn {
+    background: linear-gradient(90deg, #ffcc00, #ff8800);
+    color: #111;
+}
+
+#closeProfileBtn,
+#cancelResetPassBtn {
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    color: #fff;
+}
+
+.modal-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.7);
+}
+
+/* 🌌 Floating Neon Storage Widget */
+/* Right section: Storage (card aligned lower & right) */
+#storageBox {
+    flex: 1;
+    background: rgba(10, 20, 30, 0.85);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4),
+        inset 0 0 10px rgba(0, 255, 200, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+
+    /* 🔥 Position tweak */
+    align-self: flex-start;
+    /* keep at top of flex row */
+    margin-top: 60px;
+    /* push it lower (adjust this value) */
+    margin-left: auto;
+    /* stick to right corner */
+    width: 200px;
+    /* make it neat, not too wide */
+}
+
+
+/* Glow hover effect */
+#storageBox:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 35px #00ffcc, 0 0 55px #00ccff;
+}
+
+/* Title */
+#storageBox h3 {
+    font-size: 36px;
+    margin-bottom: 12px;
+    color: #00ffcc;
+    text-shadow: 0 0 12px #00ffcc, 0 0 18px #0077ff;
+}
+
+/* Progress Circle */
+.circle-progress {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.circle-progress svg {
+    width: 120px;
+    height: 120px;
+    transform: rotate(-90deg);
+}
+
+circle {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+}
+
+circle.bg {
+    stroke: rgba(0, 255, 200, 0.15);
+}
+
+circle.progress {
+    stroke: url(#gradient);
+    stroke-dasharray: 339.292;
+    stroke-dashoffset: 339.292;
+    transition: stroke-dashoffset 0.6s ease;
+    filter: drop-shadow(0 0 8px #00ffcc);
+}
+
+/* Storage text inside circle */
+.storage-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-shadow: 0 0 12px #00ffcc;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+#storagePercent {
+    font-size: 20px;
+    font-weight: bold;
+    display: block;
+    color: #00ffcc;
+}
+
+#storageUsed {
+    font-size: 12px;
+    color: #bbb;
+}
+
+/* 🌟 Profile Modal */
+#userModal .modal-content {
+    background: rgba(15, 25, 35, 0.95);
+    padding: 25px;
+    border-radius: 16px;
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 0 25px #00ffcc;
+    border: 1px solid rgba(0, 255, 200, 0.3);
+    animation: scaleUp 0.4s ease;
+    color: #fff;
+}
+
+#userModal h3 {
+    color: #00ffcc;
+    margin-bottom: 15px;
+    text-shadow: 0 0 12px #00ffcc;
+}
+
+/* Profile avatar */
+#userModal img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #00ffcc;
+    box-shadow: 0 0 15px #00ffcc;
+    margin-bottom: 12px;
+}
+
+/* Inputs */
+#userModal input,
+#userModal select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+}
+
+#userModal input:focus {
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 12px #00ffcc;
+}
+
+/* Buttons */
+#userModal .modal-actions {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+#userModal .modal-actions button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#copyUid {
+    background: linear-gradient(90deg, #00ffcc, #00ffa3);
+    color: #111;
+}
+
+#saveProfile {
+    background: linear-gradient(90deg, #007bff, #00ccff);
+    color: #fff;
+}
+
+#changePass {
+    background: linear-gradient(90deg, #ffcc00, #ff8800);
+    color: #111;
+}
+
+#closeModal {
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    color: #fff;
+}
+
+#userModal .modal-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.7);
+}
+
+/* Two-column layout */
+.upload-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 25px;
+}
+
+/* Left section */
+.upload-section {
+    flex: 2;
+    text-align: center;
+}
+
+/* Right section: Storage */
+#storageBox {
+    flex: 1;
+    background: rgba(10, 20, 30, 0.85);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4),
+        inset 0 0 10px rgba(0, 255, 200, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* Hover glow for cool effect */
+#storageBox:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px #00ffcc, 0 0 40px #00ccff;
+}
+
+/* 🔔 Custom Confirm Alert */
+.custom-confirm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    backdrop-filter: blur(6px);
+}
+
+.custom-confirm-box {
+    background: rgba(15, 25, 35, 0.95);
+    border: 2px solid #00ffcc;
+    border-radius: 14px;
+    padding: 20px 30px;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 0 25px #00ffcc;
+    animation: scaleUp 0.3s ease;
+    max-width: 350px;
+}
+
+.custom-confirm-box p {
+    margin-bottom: 18px;
+    font-size: 16px;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.confirm-actions button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.confirm-ok {
+    background: linear-gradient(90deg, #00ffcc, #00ffaa);
+    color: #111;
+}
+
+.confirm-ok:hover {
+    box-shadow: 0 0 12px #00ffcc;
+}
+
+.confirm-cancel {
+    background: linear-gradient(90deg, #ff4b2b, #ff1a75);
+    color: #fff;
+}
+
+.confirm-cancel:hover {
+    box-shadow: 0 0 12px #ff4b2b;
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* File name text */
+/* File preview container */
+#filePreview div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(0, 255, 200, 0.08);
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 10px 0;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.25),
+        inset 0 0 8px rgba(0, 255, 200, 0.15);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: fadeIn 0.4s ease;
+    max-width: 100%;
+    overflow: hidden;
+    /* ✅ ensures children won’t overflow */
+}
+
+/* File name text */
+#filePreview div span {
+    flex: 1;
+    /* take available space */
+    min-width: 0;
+    /* ✅ IMPORTANT: allows ellipsis inside flex */
+    color: #00ffcc;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00ffcc, 0 0 15px #0077ff;
+    white-space: nowrap;
+    /* don’t wrap */
+    overflow: hidden;
+    /* hide extra */
+    text-overflow: ellipsis;
+    /* show ... */
+}
+
+/* Remove button */
+#filePreview .remove-btn {
+    flex-shrink: 0;
+    /* ✅ never shrink */
+    margin-left: 10px;
+}

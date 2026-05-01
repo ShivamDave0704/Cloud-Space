@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>💳 CloudSpace+ Payment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="upload.css">
+    
+
+    <style>
+        /* 🌌 Background */
+        body {
+    margin: 0;
+    min-height: 100vh;            /* allow growth */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-family: "Poppins", sans-serif;
+    background: radial-gradient(circle at center, #03141d, #072432, #021014);
+    color: #e0faff;
+
+    overflow-x: hidden;           /* block horizontal scroll */
+    overflow-y: auto;             /* ENABLE vertical scroll */
+    padding: 30px 0;              /* breathing space */
+}
+
+        /* ⚡ Floating Particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00ffee;
+            border-radius: 50%;
+            animation: float 10s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-10vh) translateX(10vw);
+                opacity: 0;
+            }
+        }
+
+        /* 💳 Payment Card */
+        .card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 40px 45px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+    max-width: 430px;
+    width: 90%;
+    position: relative;
+    animation: fadeIn 0.6s ease-out;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+
+    max-height: 90vh;       /* 🔥 KEY LINE */
+    overflow-y: auto;       /* 🔥 SCROLL INSIDE CARD */
+}
+.card::-webkit-scrollbar {
+    width: 6px;
+}
+
+.card::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #00ffcc;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px #00ffff;
+        }
+
+        .hint {
+            color: #baffff;
+            font-size: 14px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        /* 🧾 QR Section */
+        .qr-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 16px;
+            margin: 20px auto;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .qr {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background: transparent;
+            object-fit: contain;
+            display: block;
+        }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffff;
+            margin-top: 10px;
+        }
+
+        hr {
+            opacity: 0.15;
+            margin: 25px 0;
+            border: none;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        /* 🧾 Proof Form */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input,
+        textarea {
+            padding: 10px 14px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            outline: none;
+            font-family: inherit;
+            transition: 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .submit-btn {
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            color: #000;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .back-btn {
+            margin-top: 16px;
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 255, 255, 0.15);
+            box-shadow: 0 0 12px #00ffcc;
+        }
+
+        #status {
+            font-size: 14px;
+            color: #00ffff;
+            margin-top: 8px;
+            min-height: 22px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #b0faff;
+            margin-top: 18px;
+            opacity: 0.8;
+        }
+
+        /* ⚡ Neon Circle Glow */
+        .neon-circle {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.4), transparent 70%);
+            animation: pulse 5s infinite ease-in-out;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        /* 🧠 Verification Tracker */
+        .verification-status {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .step {
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 4px solid transparent;
+            text-align: left;
+            color: #baffff;
+            transition: 0.4s;
+        }
+
+        .step.active {
+            border-left: 4px solid #00ffcc;
+            background: rgba(0, 255, 255, 0.25);
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        /* 🔍 Popup */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            padding: 20px 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            display: none;
+            z-index: 10;
+        }
+
+        .loader {
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            margin: auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .coupon-section {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .coupon-section input {
+            flex: 1;
+        }
+
+        .coupon-section button {
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .coupon-section button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .method-select {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 15px;
+            color: #00ffcc;
+            font-size: 15px;
+        }
+
+        .method-select input {
+            accent-color: #00ffcc;
+            transform: scale(1.3);
+            margin-right: 8px;
+        }
+
+        #bankSelect {
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #00ffcc;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            font-family: inherit;
+            width: 80%;
+        }
+
+        #bankSelect:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+        }
+        /* 🌑 Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+/* 💳 Card Modal */
+.card-modal {
+    width: 360px;
+    padding: 26px;
+    border-radius: 20px;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 255, 255, 0.15),
+        rgba(0, 0, 0, 0.6)
+    );
+    border: 1px solid rgba(0, 255, 255, 0.35);
+    box-shadow:
+        0 0 25px rgba(0, 255, 255, 0.35),
+        0 0 60px rgba(0, 255, 255, 0.15);
+    animation: modalPop 0.35s ease;
+    color: #eaffff;
+}
+
+/* ✨ Animation */
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.card-title {
+    margin: 0;
+    font-size: 20px;
+    color: #00ffcc;
+    text-shadow: 0 0 12px #00ffff;
+}
+
+.card-sub {
+    font-size: 13px;
+    color: #baffff;
+    margin-bottom: 14px;
+}
+
+/* 🧾 Inputs */
+.card-modal input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: #fff;
+    outline: none;
+}
+
+.card-modal input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+}
+
+.card-row {
+    display: flex;
+    gap: 10px;
+}
+
+/* 🎛 Buttons */
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.card-status {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #baffff;
+    min-height: 18px;
+}
+.coupon-section {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  align-items: center;
+  justify-content: center;
+}
+
+.coupon-section input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,255,255,0.4);
+  background: rgba(0,0,0,0.35);
+  color: #00ffcc;
+  font-size: 14px;
+  width: 180px;
+  outline: none;
+}
+
+.coupon-section button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  background: linear-gradient(135deg,#00ffcc,#0077ff);
+  color: #001;
+  box-shadow: 0 0 12px rgba(0,255,255,0.6);
+}
+
+.coupon-section button:hover {
+  transform: scale(1.05);
+}
+
+.coupon-section .hint {
+  width: 100%;
+  text-align: center;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+    </style>
+</head>
+
+<body>
+    <div class="neon-circle" style="top:10%; left:20%;"></div>
+    <div class="neon-circle" style="bottom:10%; right:15%;"></div>
+
+    <div class="card">
+        <h2 id="title">💎 Pay for Plan</h2>
+        <!-- 💳 Payment Method Selector -->
+
+<div id="verifyUpiMsg" style="margin-top:8px;font-size:13px;color:#baffff;"></div>
+
+<div class="method-select">
+    <!-- UPI ID -->
+    <label class="method-card">
+        <input type="radio" name="method" value="upi" >
+        <span class="icon">💸</span>
+        <span class="text">UPI ID</span>
+    </label>
+
+    <!-- QR Code -->
+    <label class="method-card">
+        <input type="radio" name="method" value="qr" checked>
+        <span class="icon">📱</span>
+        <span class="text">QR Code</span>
+    </label>
+
+    <!-- Card (was NetBanking) -->
+    <label class="method-card">
+        <input type="radio" name="method" value="card">
+        <span class="icon">💳</span>
+        <span class="text">Card</span>
+    </label>
+</div>
+
+<!-- 🔹 NOTICE / QR SECTION -->
+<h4 id="systemNotice">
+<b>
+⚠️ <strong>System Update in Progress</strong><br><br>
+🔌 UPI & NetBanking are temporarily Unavailable due to technical issues.<br>
+We’re optimizing things for you ⚡<br><br>
+📢 <strong>Quick Alternative:</strong><br>
+Scan the QR below and pay securely via your Mobile UPI app 🚀
+</b>
+</h4> 
+
+<div id="upiSection">
+    <p class="hint">Scan the QR with your UPI app or tap if on mobile.</p>
+    <div class="qr-box" id="qrBox">
+        <img id="qrImg" class="qr" src="" alt="UPI QR Code">
+    </div>
+    <div class="price">Amount: ₹<span id="amount">0</span></div>
+    <p id="upiInfo" class="hint"></p>
+</div>
+
+<!-- 🔐 UPI VERIFY SECTION (ONLY FOR UPI RADIO) -->
+<div id="upiVerifySection" style="margin-top:10px; display:none; gap:8px; justify-content:center; align-items:center;">
+  <input id="manualUpi" placeholder="Enter UPI ID to verify (optional)"
+         style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.03);
+                border:1px solid rgba(0,255,255,0.12);color:#fff;width:60%;">
+  <button id="verifyUpiBtn" class="submit-btn" style="padding:8px 12px;">Verify</button>
+</div>
+<!-- 🔹 Card: bank selection removed — card modal will open when 'Card' is selected -->
+                <div id="netbankingSection" style="display:none;">
+                        <p class="hint">Card payments open directly via the Card modal.</p>
+                </div>
+
+<!-- In-page Card Modal -->
+<div id="cardModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:9999;"> 
+    <div style="width:420px;background:linear-gradient(135deg,#04303a,#072a2f);padding:18px;border-radius:12px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.6)">
+        <h3 style="margin:0 0 8px;">💳 Card Payment</h3>
+        <p style="margin:0 0 12px;opacity:0.9;font-size:13px;">Enter card details (simulated)</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <input id="cardNumber" placeholder="Card Number (16 digits)" style="padding:10px;border-radius:8px;border:none;">
+            <input id="cardName" placeholder="Cardholder Name" style="padding:10px;border-radius:8px;border:none;">
+            <div style="display:flex;gap:8px">
+                <input id="cardExpiry" placeholder="MM/YY" style="flex:1;padding:10px;border-radius:8px;border:none;">
+                <input id="cardCvv" placeholder="CVV" style="width:100px;padding:10px;border-radius:8px;border:none;">
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                <button id="cardCancelBtn" style="background:#ff6b6b;border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Cancel</button>
+                <button id="cardSubmitBtn" style="background:linear-gradient(90deg,#00ffcc,#00aa88);border:none;padding:10px 14px;border-radius:8px;cursor:pointer">Save Card</button>
+            </div>
+            <div id="cardModalStatus" style="margin-top:8px;font-size:13px;opacity:0.9"></div>
+        </div>
+    </div>
+</div>
+<!-- 💳 Card Payment UI is in-page modal -->
+<!-- 💸 Discount Coupon 
+            <div class="coupon-section">
+                <input type="text" id="couponCode" placeholder="Enter Discount Code">
+                <button type="button" id="applyCouponBtn">Apply</button>
+                <p id="couponMsg" class="hint"></p>
+            </div>-->
+        <!-- 💸 Discount Coupon -->
+<div class="coupon-section">
+  <input
+    type="text"
+    id="couponCode"
+    name="coupon"
+    placeholder="Enter Discount Code"
+  />
+
+  <button
+    type="button"
+    id="applyCouponBtn"
+  >
+    ✅ Apply
+  </button>
+
+  <p id="couponMsg" class="hint"></p>
+</div>
+
+<hr>        
+        <!-- 🧾 Proof Submission Form -->
+        <h3 style="color:#00ffcc; text-shadow:0 0 10px #00ffff;">🧾 Submit Payment Proof</h3>
+        <form id="proofForm" enctype="multipart/form-data">
+            <input type="text" id="upi_txn_id" name="upi_txn_id" placeholder="Enter UPI Transaction ID (UTR)" required>
+            <input type="file" name="screenshot" accept="image/*" required>
+            <textarea name="notes" id="notes" placeholder="Any note (optional)"></textarea>
+            <input type="hidden" id="uid" name="uid">
+            <input type="hidden" name="method" id="paymentMethod" value="qr">
+            <input type="hidden" name="card_last4" id="card_last4">
+            <input type="hidden" name="card_name" id="card_name">
+            <input type="hidden" name="card_expiry" id="card_expiry">
+            <input type="hidden" id="plan" name="plan">
+            <button type="submit" class="submit-btn">📤 Submit Proof</button>
+
+           
+
+        </form>
+
+        <div id="status"></div>
+
+        <!-- ✅ Verification Tracker -->
+        <div class="verification-status" id="verificationSteps">
+            <div class="step active" id="step1">🧾 Proof Submitted</div>
+            <div class="step" id="step2">🔍 Under Review</div>
+            <div class="step" id="step3">✅ Verified</div>
+        </div>
+
+        <!-- 🔙 Back & Footer -->
+        <button class="back-btn" onclick="window.location.href='upload.html'">⬅️ Back to Upload</button>
+        <div class="footer">Your plan will activate once admin verifies via email confirmation ✅</div>
+    </div>
+
+    <!-- 🧠 Popup -->
+    <div id="verifyingPopup" class="popup">
+        <div class="loader"></div>
+        <p id="popupMsg">Analyzing your payment proof with AI 🤖...</p>
+    </div>
+    
+    
+    
+    
+    <script>
+        // ===== LOGIN CHECK =====
+        const token = localStorage.getItem("token"); // JWT from login
+        if (!token) {
+            alert("⚠️ You must be logged in to access the payment page!");
+            window.location.href = "login.html"; // redirect to login
+        }
+        // 🌍 Auto-detect API base
+        const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:5000"
+            : window.location.origin;
+
+        // ✨ Background particles
+        for (let i = 0; i < 25; i++) {
+            const p = document.createElement("div");
+            p.classList.add("particle");
+            p.style.left = Math.random() * 100 + "vw";
+            p.style.animationDuration = 8 + Math.random() * 5 + "s";
+            document.body.appendChild(p);
+        }
+
+        // 🔑 Setup UID + PLAN
+        const uid = localStorage.getItem("uid") || ("USR-" + Math.floor(Math.random() * 1e8));
+        localStorage.setItem("uid", uid);
+
+        const params = new URLSearchParams(location.search);
+        const plan = params.get("plan") || "silver";
+
+        document.getElementById("uid").value = uid;
+        document.getElementById("plan").value = plan;
+        document.getElementById("title").innerText = `💎 Pay for ${plan.toUpperCase()} Plan`;
+
+        let upiUri = "";
+        let checkInterval = null;
+
+        // 🌐 Fetch QR from backend
+        async function fetchQr() {
+            try {
+                const res = await fetch(`${API}/create-qr`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ uid, plan })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById("qrImg").src = data.qrDataUrl;
+                    document.getElementById("amount").innerText = data.amount;
+                    upiUri = data.upiUri;
+                    document.getElementById("upiInfo").innerText =
+                        "UPI ID: " + (upiUri.match(/pa=([^&]+)/)?.[1] || "Unavailable");
+                } else {
+                    document.getElementById("status").innerText = "⚠️ " + (data.msg || "Failed to generate QR.");
+                }
+            } catch (e) {
+                document.getElementById("status").innerText = "❌ Can't reach CloudSpace+ server.";
+            }
+        }
+        fetchQr();
+
+
+        // 🧠 Payment Method Toggle
+        //document.querySelectorAll('input[name="method"]').forEach(radio => {
+           // radio.addEventListener('change', (e) => {
+               // const method = e.target.value;
+               // document.getElementById("upiSection").style.display = method === "upi" ? "block" : "none";
+               // document.getElementById("netbankingSection").style.display = method === "netbanking" ? "block" : "none";
+            //});
+        //});
+
+
+        
+        
+
+        // NetBanking flow removed. Selecting 'Card' will open the card modal directly.
+
+// In-page card modal: open/close and submit handlers
+function openCardModal() {
+    const m = document.getElementById('cardModal');
+    if (!m) return;
+    m.style.display = 'flex';
+    setTimeout(()=>{ const el=document.getElementById('cardNumber'); if(el) el.focus(); }, 50);
+}
+
+function closeCardModal() {
+    const m = document.getElementById('cardModal');
+    if (!m) return;
+    m.style.display = 'none';
+    // clear modal inputs
+    ['cardNumber','cardName','cardExpiry','cardCvv','cardModalStatus'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value!==undefined?el.value='':el.innerText=''; });
+}
+
+document.addEventListener('click', (e)=>{
+    if (e.target && e.target.id === 'cardCancelBtn') closeCardModal();
+});
+
+document.addEventListener('click', (e)=>{
+    if (e.target && e.target.id === 'cardSubmitBtn') {
+        const cardNumber = document.getElementById('cardNumber').value.trim();
+        const cardName = document.getElementById('cardName').value.trim();
+        const expiry = document.getElementById('cardExpiry').value.trim();
+        const statusEl = document.getElementById('cardModalStatus');
+        if (!cardNumber || !cardName || !expiry) {
+            if (statusEl) statusEl.innerText = '⚠️ Please fill all card fields';
+            return;
+        }
+
+        document.getElementById('paymentMethod').value = 'card';
+        document.getElementById('card_last4').value = cardNumber.slice(-4);
+        document.getElementById('card_name').value = cardName;
+        document.getElementById('card_expiry').value = expiry;
+
+        if (statusEl) statusEl.innerText = '✅ Card noted. Please upload payment proof.';
+        const mainStatus = document.getElementById('status');
+        if (mainStatus) { mainStatus.innerText = '✅ Card noted. Please upload payment proof.'; mainStatus.style.color = '#00ff88'; }
+
+        setTimeout(()=> closeCardModal(), 500);
+    }
+});
+
+
+/*
+//---- UPI verify logic ----
+ document.getElementById("verifyUpiBtn").addEventListener("click", async () => { 
+  const upi = document.getElementById("manualUpi").value.trim();
+  if (!upi) return alert("Enter UPI ID to verify.");
+
+  const msgEl = document.getElementById("verifyUpiMsg");
+  msgEl.innerText = "Verifying UPI...";
+  try {
+    const res = await fetch(`${API}/verify-upi?upi=${encodeURIComponent(upi)}`, {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    if (!data || !data.success) {
+      msgEl.innerText = "Verification failed: " + (data?.msg || "Unknown");
+      msgEl.style.color = "#ff6b6b";
+      return;
+    }
+
+    // Good UX: green if matches configured UPI, yellow if format ok, red if invalid
+    if (data.matchesConfigured) {
+      msgEl.innerText = "✅ Verified: This UPI matches the receiver's UPI (exact).";
+      msgEl.style.color = "#00ff88";
+    } else if (data.validFormat) {
+      msgEl.innerText = "ℹ️ Format looks valid, but not an exact match to receiver. Proceed with caution.";
+      msgEl.style.color = "#ffd166";
+    } else {
+      msgEl.innerText = "❌ Invalid UPI format.";
+      msgEl.style.color = "#ff6b6b";
+    }
+
+    // If valid, prefill upiUri (useful on some flows)
+    if (data.exists) {
+      // optionally set upiUri used when clicking QR. We won't auto-pay, just help the user.
+      upiUri = `upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent("CloudSpace Payment")}&am=${document.getElementById("amount").innerText}&cu=INR`;
+      document.getElementById("upiInfo").innerText = `UPI ID: ${upi} (verified)`;
+    }
+  } catch (err) {
+    console.error("verify-upi error:", err);
+    msgEl.innerText = "Network error verifying UPI.";
+    msgEl.style.color = "#ff6b6b";
+  }
+});
+*/
+//---- UPI verify logic ----
+document.getElementById("verifyUpiBtn").addEventListener("click", () => {
+    const upi = document.getElementById("manualUpi").value.trim();
+    if (!upi) return alert("Enter UPI ID");
+
+    const amount = document.getElementById("amount").innerText || "0";
+
+    openUpiAppSafely(upi, amount);
+});
+
+
+        // 📱 Tap QR for UPI app
+        document.getElementById("qrBox").addEventListener("click", () => {
+            if (/Android|iPhone/i.test(navigator.userAgent)) {
+                window.location.href = upiUri;
+            } else {
+                alert("📱 Please scan this QR using your mobile UPI app.");
+            }
+        });
+
+        // 🧠 Proof Submission
+        const form = document.getElementById("proofForm");
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            showPopup("Analyzing your payment proof 🤖...");
+        
+            const formData = new FormData(form);
+            // Get the selected payment method from radio buttons
+            const selectedMethod = document.querySelector('input[name="method"]:checked')?.value || "qr";
+            formData.set("method", selectedMethod);
+        // 🔥 FORCE ADD COUPON (even if input disabled/readonly)
+        const couponCode = document.getElementById("couponCode")?.value.trim() || "";
+        
+        formData.set("coupon", couponCode);
+        const status = document.getElementById("status");
+            status.innerText = "⏳ Uploading proof...";
+            status.style.color = "#00ffff";
+
+            try {
+                const res = await fetch(`${API}/submit-proof`, { method: "POST", body: formData });
+                const data = await res.json();
+                hidePopup();
+
+                if (data.success) {
+                    status.innerText = "✅ Proof submitted successfully! Awaiting verification...";
+                    form.reset();
+                    updateStep(1);
+                    startAutoCheck();
+                } else {
+                    status.innerText = "❌ " + (data.msg || "Error submitting proof.");
+                }
+            } catch {
+                hidePopup();
+                status.innerText = "⚠️ Network error, please try again.";
+            }
+        });
+
+        // 🎬 Popup Controls
+        function showPopup(message = "Analyzing your payment proof with AI 🤖...") {
+            const popup = document.getElementById("verifyingPopup");
+            const msg = document.getElementById("popupMsg");
+            msg.innerText = message;
+            popup.style.display = "block";
+        }
+
+        function hidePopup() {
+            document.getElementById("verifyingPopup").style.display = "none";
+        }
+
+        // 💎 Step Animation
+        function updateStep(stepIndex) {
+            const steps = document.querySelectorAll(".step");
+            steps.forEach((step, i) => {
+                step.classList.toggle("active", i === stepIndex);
+                if (i < stepIndex) step.style.opacity = "1";
+            });
+        }
+
+        // 🔁 Auto-check every 8s
+        function startAutoCheck() {
+            if (checkInterval) clearInterval(checkInterval);
+
+            checkInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API}/check-status?uid=${uid}`);
+                    const data = await res.json();
+
+                    if (data.status === "pending") {
+                        updateStep(1);
+                        document.getElementById("status").innerText = "🔍 Under admin review...";
+                    } else if (data.status === "approved" || data.verified) {
+                        updateStep(2);
+                        document.getElementById("status").innerText = "✅ Payment Verified! Check your email 📧";
+                        document.getElementById("status").style.color = "#00ff88";
+                        showSuccessPopup();
+                        clearInterval(checkInterval);
+                    } else if (data.status === "rejected") {
+                        document.getElementById("status").innerText = "❌ Payment Rejected. Please reupload proof.";
+                        document.getElementById("status").style.color = "#ff4b4b";
+                        showFailurePopup();
+                        clearInterval(checkInterval);
+                    }
+                } catch (e) {
+                    console.warn("⚠️ Server unreachable for status check.");
+                }
+            }, 8000);
+        }
+
+        // ✅ Success Popup
+        function showSuccessPopup() {
+    const popup = document.getElementById("verifyingPopup");
+    popup.innerHTML = `
+        <div style="font-size:42px;">✅</div>
+        <p style="color:#00ffcc;font-size:16px;">Payment Verified Successfully!</p>
+        <p style="font-size:13px;color:#baffff;">Redirecting to your dashboard…</p>
+    `;
+    popup.style.display = "block";
+
+    setTimeout(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedPlan = urlParams.get("plan") || "free";
+        const uid = localStorage.getItem("uid") || "guest";
+        
+        // 🎯 Redirect to plan-specific upload page with UID for plan verification
+        const token = localStorage.getItem('token') || '';
+        if (selectedPlan === "ultra") {
+            window.location.href = "ultra-upload.html?uid=" + encodeURIComponent(uid) + (token ? ('&token=' + encodeURIComponent(token)) : '');  // ✅ ULTRA users
+        } else if (selectedPlan === "platinum") {
+            window.location.href = "platinum-ui-upload.html?uid=" + encodeURIComponent(uid) + (token ? ('&token=' + encodeURIComponent(token)) : '');  // ✅ PLATINUM users
+        } else if (selectedPlan === "gold" || selectedPlan === "silver") {
+            window.location.href = "upload.html?uid=" + encodeURIComponent(uid) + (token ? ('&token=' + encodeURIComponent(token)) : '');  // Gold & Silver users
+        } else {
+            window.location.href = "upload.html?uid=" + encodeURIComponent(uid);  // Default fallback
+        }
+    }, 3000);
+}
+        // ❌ Failure Popup
+        function showFailurePopup() {
+            const popup = document.getElementById("verifyingPopup");
+            popup.innerHTML = `
+                    <div style="font-size:40px;">⚠️</div>
+                    <p style="color:#ff6b6b;font-size:16px;">Payment Verification Failed</p>
+                    <p style="font-size:13px;color:#ffbdbd;">Please reupload your payment proof or contact support.</p>
+                `;
+            popup.style.display = "block";
+            setTimeout(() => popup.style.display = "none", 6000);
+        }
+        // ⚡ Discount Code Logic
+     document.getElementById("applyCouponBtn").addEventListener("click", async () => {
+            const couponCode = document.getElementById("couponCode").value.trim();
+            if (!couponCode) return alert("Enter a coupon code!");
+
+            const uid = localStorage.getItem("uid");
+            const plan = params.get("plan") || "silver";
+
+            try {
+                const res = await fetch(`${API}/create-qr`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ uid, plan, coupon: couponCode })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById("qrImg").src = data.qrDataUrl; // NEW QR with discounted amount
+                    document.getElementById("amount").innerText = data.amount; // update amount
+                    document.getElementById("upiInfo").innerText =
+                        data.discountPercent > 0
+                            ? `UPI ID: ${data.upiUri.match(/pa=([^&]+)/)?.[1]} | ${data.discountPercent}% discount applied!`
+                            : `UPI ID: ${data.upiUri.match(/pa=([^&]+)/)?.[1] || "Unavailable"}`;
+
+                    const msg = document.getElementById("couponMsg");
+                    msg.innerText = data.discountPercent > 0
+                        ? `🎉 Coupon applied! You saved ${data.discountPercent}%`
+                        : "⚠️ Invalid coupon code";
+                    msg.style.color = data.discountPercent > 0 ? "#00ff88" : "#ff4b4b";
+                } else {
+                    alert(data.msg || "Failed to apply coupon");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Network error, please try again");
+            }
+        });  
+
+
+        // 🧠 Payment Method Toggle Logic
+//const radios = document.querySelectorAll('input[name="method"]');
+//const upiSection = document.getElementById('upiSection');
+//const title = document.getElementById('title');
+//
+//radios.forEach(radio => {
+//    radio.addEventListener('change', () => {
+//
+//        if (radio.value === 'upi' && radio.checked) {
+//            // UPI ID selected → HIDE QR
+//            upiSection.style.display = 'none';
+//            title.style.display = 'block';
+//
+//        } else if (radio.value === 'qr' && radio.checked) {
+//            // QR selected → SHOW QR
+//            upiSection.style.display = 'block';
+//            title.style.display = 'block';
+//
+//        } else {
+//            // NetBanking → hide QR
+//            upiSection.style.display = 'none';
+//            title.style.display = 'block';
+//        }
+//    });
+//});
+
+const radios = document.querySelectorAll('input[name="method"]');
+    const qrSection = document.getElementById("upiSection");          // QR
+    const netbankingSection = document.getElementById("netbankingSection");
+const upiVerifySection = document.getElementById("upiVerifySection");
+
+function updatePaymentUI(method) {
+    // Hide everything first
+    qrSection.style.display = "none";
+    netbankingSection.style.display = "none";
+    upiVerifySection.style.display = "none";
+
+    if (method === "qr") {
+        qrSection.style.display = "block";
+    } 
+    else if (method === "card") {
+        // Open card modal immediately when 'Card' is selected
+        openCardModal();
+    }
+    else if (method === "upi") {
+        upiVerifySection.style.display = "flex";
+    }
+}
+
+// Disable UPI ID and Card (previously NetBanking) options
+document.querySelector('input[value="upi"]').disabled = false;
+document.querySelector('input[value="qr"]').disabled = false;
+document.querySelector('input[value="card"]').disabled = false;
+
+// Radio change
+radios.forEach(radio => {
+    radio.addEventListener("change", e => {
+        updatePaymentUI(e.target.value);
+    });
+});
+
+// Initial state (page load)
+const selected = document.querySelector('input[name="method"]:checked')?.value;
+if (selected) updatePaymentUI(selected);
+
+// ---- UPI Open Logic ----
+function openUpiAppSafely(upiId, amount) {
+    if (!upiId.includes("@")) {
+        alert("Invalid UPI ID format");
+        return;
+    }
+
+    const payUrl =
+        `upi://pay?pa=${encodeURIComponent(upiId)}` +
+        `&pn=CloudSpace` +
+        `&am=${encodeURIComponent(amount)}` +
+        `&cu=INR`;
+
+    // Android intent WITHOUT forcing any app
+    const intentUrl =
+        `intent://pay?pa=${encodeURIComponent(upiId)}` +
+        `&pn=CloudSpace&am=${encodeURIComponent(amount)}` +
+        `&cu=INR#Intent;scheme=upi;end`;
+
+    if (/Android/i.test(navigator.userAgent)) {
+        // ✅ Step 1: Let Android decide the correct UPI app
+        window.location.href = payUrl;
+
+        // ✅ Step 2: Fallback intent (no package = no Play Store error)
+        setTimeout(() => {
+            window.location.href = intentUrl;
+        }, 1200);
+    } else {
+        alert("Please complete payment using your mobile UPI app.");
+    }
+}
+
+
+    </script>
+</body>
+
+</html>

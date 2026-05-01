@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 JSON Dashboard - Cloud Space</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg1: #0f172a;
+            --bg2: #111827;
+            --card: rgba(255, 255, 255, 0.06);
+            --card-strong: rgba(255, 255, 255, 0.08);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --accent: #8b5cf6;
+            --accent-2: #22d3ee;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #fbbf24;
+            --info: #38bdf8;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 20% 20%, #1e293b 0%, transparent 25%),
+                        radial-gradient(circle at 80% 0%, #0ea5e9 0%, transparent 28%),
+                        radial-gradient(circle at 50% 100%, #7c3aed 0%, transparent 30%),
+                        linear-gradient(135deg, #0f172a 0%, #0b1220 100%);
+            background-size: cover;
+            min-height: 100vh;
+            padding: 24px;
+            color: var(--text);
+        }
+        .container { max-width: 1800px; margin: 0 auto; }
+        header {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(34, 211, 238, 0.15));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 22px 30px;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(14px);
+        }
+        header h1 { font-size: 28px; color: #e0e7ff; display: flex; align-items: center; gap: 10px; letter-spacing: 0.3px; }
+        .header-controls { display: flex; gap: 15px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%); color: white; box-shadow: 0 8px 20px rgba(34, 211, 238, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #e5e7eb; border: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+        .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .btn-success:hover { box-shadow: 0 8px 20px rgba(34, 197, 94, 0.25); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-danger:hover { box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25); }
+        .btn-warning { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1f2937; }
+        .btn-warning:hover { box-shadow: 0 8px 20px rgba(251, 191, 36, 0.25); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            text-align: center;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-6px); border-color: rgba(255, 255, 255, 0.18); }
+        .stat-card .icon { font-size: 38px; margin-bottom: 8px; opacity: 0.9; }
+        .stat-card .value { font-size: 32px; font-weight: 800; color: #e0e7ff; margin-bottom: 4px; }
+        .stat-card .label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .search-bar {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 18px 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .panels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+            gap: 26px;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            backdrop-filter: blur(14px);
+        }
+        .panel-header {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(34, 211, 238, 0.4));
+            color: #e0f2fe;
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-header h2 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        .panel-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        .panel-content {
+            padding: 24px;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+        .panel-content::-webkit-scrollbar { width: 8px; }
+        .panel-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .panel-content::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .data-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 18px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .data-item:hover { border-color: rgba(255, 255, 255, 0.18); transform: translateY(-2px); }
+        .data-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .data-item-title { font-weight: 600; color: #333; font-size: 16px; }
+        .data-item-actions { display: flex; gap: 8px; }
+        .data-item-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-inactive { background: #f8d7da; color: #721c24; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-approved { background: #d4edda; color: #155724; }
+        .badge-rejected { background: #f8d7da; color: #721c24; }
+        .json-viewer {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .json-key { color: #f92672; }
+        .json-string { color: #a6e22e; }
+        .json-number { color: #ae81ff; }
+        .json-boolean { color: #66d9ef; }
+        .json-null { color: #999; }
+        .edit-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 2px solid #667eea;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Consolas', monospace;
+        }
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .loading { text-align: center; padding: 50px; color: white; }
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .expand-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .json-collapsed { max-height: 150px; overflow: hidden; position: relative; }
+        .json-collapsed::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(transparent, #2d2d2d);
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .pill-success { background: rgba(34, 197, 94, 0.12); color: #bbf7d0; }
+        .pill-danger { background: rgba(239, 68, 68, 0.12); color: #fecdd3; }
+        .pill-warning { background: rgba(251, 191, 36, 0.14); color: #fef3c7; }
+        .pill-info { background: rgba(56, 189, 248, 0.12); color: #cffafe; }
+        .pill-muted { background: rgba(255, 255, 255, 0.07); color: #e5e7eb; }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .kv {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+        .kv-label { font-size: 12px; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; }
+        .kv-value { font-size: 14px; color: var(--text); font-weight: 700; margin-top: 2px; }
+        .card-highlight { border: 1px solid rgba(250, 204, 21, 0.5); box-shadow: 0 10px 26px rgba(250, 204, 21, 0.15); }
+        .toast {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.85), rgba(34, 211, 238, 0.85));
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.25s ease;
+        }
+        @media (max-width: 768px) {
+            .panels-grid { grid-template-columns: 1fr; }
+            .stats-overview { grid-template-columns: repeat(2, 1fr); }
+        }
+        /* Cool Alert System */
+        .cool-alert {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(20, 20, 30, 0.95);
+            color: #fff;
+            padding: 18px 28px;
+            border-radius: 14px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.6);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000;
+            font-weight: 600;
+        }
+        .cool-alert.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .cool-alert.success {
+            border-left: 5px solid #22c55e;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.7);
+        }
+        .cool-alert.error {
+            border-left: 5px solid #ef4444;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+        }
+        .cool-alert.warning {
+            border-left: 5px solid #fbbf24;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.7);
+        }
+        .cool-alert .icon {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="coolAlertContainer"></div>
+    <div class="container">
+        <header>
+            <h1>📊 JSON Dashboard - Full Editor</h1>
+            <div class="header-controls">
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+                <a href="admin.html" class="btn btn-secondary">← Back</a>
+            </div>
+        </header>
+
+        <div id="loadingState" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading JSON data...</p>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="icon">👥</div>
+                    <div class="value" id="totalUsers">0</div>
+                    <div class="label">Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">💰</div>
+                    <div class="value" id="totalPurchases">0</div>
+                    <div class="label">Purchases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🛡️</div>
+                    <div class="value" id="totalProofs">0</div>
+                    <div class="label">Proofs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🟢</div>
+                    <div class="value" id="activePlans">0</div>
+                    <div class="label">Active Plans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <div class="value" id="planTypes">0</div>
+                    <div class="label">Plan Types</div>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Search across all data..." />
+            </div>
+
+            <div class="panels-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>👥 Users</h2>
+                        <span class="panel-badge" id="usersBadge">0</span>
+                    </div>
+                    <div class="panel-content" id="usersContent"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>💰 Purchases</h2>
+                        <span class="panel-badge" id="purchasesBadge">0</span>
+                    </div>
+                    <div class="panel-content" id="purchasesContent"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>🛡️ Payment Proofs</h2>
+                        <span class="panel-badge" id="proofsBadge">0</span>
+                    </div>
+                    <div class="panel-content" id="proofsContent"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>🟢 Active Plans</h2>
+                        <span class="panel-badge" id="planActiveBadge">0</span>
+                    </div>
+                    <div class="panel-content" id="planActiveContent"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>💵 Plan Pricing</h2>
+                        <span class="panel-badge" id="planPriceBadge">0</span>
+                    </div>
+                    <div class="panel-content" id="planPriceContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify.min.js"></script>
+    <script>
+        let allData = {};
+        let filteredData = {};
+
+        // Cool Alert System Function
+        function showCoolAlert(message, type = 'success') {
+            const container = document.getElementById('coolAlertContainer') || document.body;
+            const alert = document.createElement('div');
+            alert.className = `cool-alert ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            
+            alert.innerHTML = `
+                <span class="icon">${icons[type] || icons.success}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(alert);
+            
+            setTimeout(() => alert.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 400);
+            }, 4000);
+        }
+
+        window.addEventListener('DOMContentLoaded', verifyAdminAndLoad);
+
+        async function verifyAdminAndLoad() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showCoolAlert('❌ Admin access required. Please login.', 'error');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+                return;
+            }
+
+            try {
+                const meResponse = await fetch('/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!meResponse.ok) {
+                    showCoolAlert('❌ Session expired. Please login again.', 'error');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    return;
+                }
+
+                const me = await meResponse.json();
+                if (me.role !== 'admin' && me.role !== 'superadmin') {
+                    showCoolAlert('⚠️ This page is for admins only.', 'warning');
+                    setTimeout(() => window.location.href = 'upload.html', 2000);
+                    return;
+                }
+
+                loadData();
+            } catch (error) {
+                console.error('Admin verification failed:', error);
+                showCoolAlert('❌ Authentication error. Please login again.', 'error');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch('/api/admin/all-json-data', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                allData = await response.json();
+                filteredData = JSON.parse(JSON.stringify(allData));
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+                updateStats();
+                renderAllPanels();
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loadingState').innerHTML = `<div style="color: white;"><h3>❌ Error</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+        function refreshData() {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            loadData();
+        }
+
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = allData.users?.length || 0;
+            document.getElementById('totalPurchases').textContent = allData.purchases?.length || 0;
+            document.getElementById('totalProofs').textContent = allData.proofs?.length || 0;
+            const activePlansCount = allData.planActive?.reduce((sum, user) => sum + (user.plans?.filter(p => p.status?.planActive)?.length || 0), 0) || 0;
+            document.getElementById('activePlans').textContent = activePlansCount;
+            document.getElementById('planTypes').textContent = Object.keys(allData.planPrice?.plans || {}).length;
+        }
+
+        function renderAllPanels() {
+            renderUsers();
+            renderPurchases();
+            renderProofs();
+            renderPlanActive();
+            renderPlanPrice();
+        }
+
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') json = JSON.stringify(json, null, 2);
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'json-key' : 'json-string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function createCollapsibleJSON(data, id) {
+            return `
+                <div id="${id}-viewer" class="json-viewer json-collapsed">${syntaxHighlight(data)}</div>
+                <button class="expand-btn" onclick="toggleJSON('${id}')">Show Full JSON</button>
+            `;
+        }
+
+        function toggleJSON(id) {
+            const viewer = document.getElementById(`${id}-viewer`);
+            const btn = viewer.nextElementSibling;
+            if (viewer.classList.contains('json-collapsed')) {
+                viewer.classList.remove('json-collapsed');
+                btn.textContent = 'Collapse';
+            } else {
+                viewer.classList.add('json-collapsed');
+                btn.textContent = 'Show Full JSON';
+            }
+        }
+
+        function renderUsers() {
+            const users = filteredData.users || [];
+            document.getElementById('usersBadge').textContent = users.length;
+            const content = document.getElementById('usersContent');
+
+            if (users.length === 0) {
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#9ca3af;">No users</div>';
+                return;
+            }
+
+            content.innerHTML = users.map((user, i) => {
+                const statusPill = user.blocked ? '<span class="pill pill-danger">🚫 Blocked</span>' : '<span class="pill pill-success">✅ Active</span>';
+                const verifiedPill = user.verified ? '<span class="pill pill-success">Verified</span>' : '<span class="pill pill-warning">Not Verified</span>';
+                const passwordStatus = user.password ? '<span class="pill pill-info">🔓 Password shown</span>' : '<span class="pill pill-muted">No password stored</span>';
+                return `
+                <div class="data-item" id="user-${i}">
+                    <div class="data-item-header">
+                        <div>
+                            <span class="data-item-title">${user.username || 'N/A'} <span style="color:var(--muted);">(${user.email || 'N/A'})</span></span>
+                            ${statusPill}
+                            ${verifiedPill}
+                            ${passwordStatus}
+                        </div>
+                        <div class="data-item-actions">
+                            <span class="pill pill-muted">${user.role || 'user'}</span>
+                            <button class="btn btn-warning btn-sm" onclick="editUser(${i})">✏️ Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.email}')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="data-grid">
+                        <div class="kv"><div class="kv-label">UID</div><div class="kv-value">${user.uid || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Phone</div><div class="kv-value">${user.phone || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Created</div><div class="kv-value">${user.created_at ? new Date(user.created_at).toLocaleString() : '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Profile Pic</div><div class="kv-value">${user.profilePic || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Password</div><div class="kv-value">${user.password || '—'}</div></div>
+                    </div>
+                    ${createCollapsibleJSON(user, `user-${i}-json`)}
+                </div>`;
+            }).join('');
+        }
+
+        function editUser(i) {
+            const user = filteredData.users[i];
+            document.getElementById(`user-${i}`).innerHTML = `
+                <div class="edit-form">
+                    <h3 style="margin-bottom:15px;">✏️ Edit: ${user.email}</h3>
+                    <div class="form-group">
+                        <label>Full JSON</label>
+                        <textarea id="edit-user-json" rows="15">${JSON.stringify(user, null, 2)}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="saveUser(${i})">💾 Save</button>
+                        <button class="btn btn-secondary" onclick="renderUsers()">❌ Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function saveUser(i) {
+            const user = filteredData.users[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById('edit-user-json').value);
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/update-user', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email, updatedData })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('User updated!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        async function deleteUser(email) {
+            if (!confirm(`Delete ${email}?`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/delete-user', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('User deleted!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        function renderPurchases() {
+            const purchases = filteredData.purchases || [];
+            document.getElementById('purchasesBadge').textContent = purchases.length;
+            const content = document.getElementById('purchasesContent');
+
+            if (purchases.length === 0) {
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No purchases</div>';
+                return;
+            }
+
+            content.innerHTML = purchases.map((p, i) => {
+                const statusPill = p.isBlocked ? '<span class="pill pill-danger">Blocked</span>' : (p.isActive ? '<span class="pill pill-success">Active</span>' : '<span class="pill pill-warning">Inactive</span>');
+                return `
+                <div class="data-item" id="purchase-${i}">
+                    <div class="data-item-header">
+                        <div>
+                            <span class="data-item-title">${p.username || 'N/A'} <span style="color:var(--muted);">(${p.email || 'N/A'})</span></span>
+                            ${statusPill}
+                            <span class="pill pill-muted">${p.plan || 'N/A'}</span>
+                        </div>
+                        <div class="data-item-actions">
+                            <button class="btn btn-warning btn-sm" onclick="editPurchase(${i})">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePurchase('${p.transactionId}')">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="data-grid">
+                        <div class="kv"><div class="kv-label">Transaction</div><div class="kv-value">${p.transactionId || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Proof Id</div><div class="kv-value">${p.proofId || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Payment</div><div class="kv-value">${p.paymentMethod || '—'} ${p.cardLast4 ? `(****${p.cardLast4})` : ''}</div></div>
+                        <div class="kv"><div class="kv-label">Amount</div><div class="kv-value">₹${p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Discount</div><div class="kv-value">₹${p.amountDiscount || 0} (${p.discountApplied || 0}%)</div></div>
+                        <div class="kv"><div class="kv-label">Final Amount</div><div class="kv-value">₹${p.finalAmount || p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Storage</div><div class="kv-value">${p.storageTB || 0} TB</div></div>
+                        <div class="kv"><div class="kv-label">Duration</div><div class="kv-value">${p.durationDays || 0} days</div></div>
+                        <div class="kv"><div class="kv-label">Purchased</div><div class="kv-value">${p.purchasedAt ? new Date(p.purchasedAt).toLocaleString() : '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Activated</div><div class="kv-value">${p.activatedAt ? new Date(p.activatedAt).toLocaleString() : '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Expires</div><div class="kv-value">${p.expiresAt ? new Date(p.expiresAt).toLocaleString() : '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Renewals</div><div class="kv-value">${p.renewalAttempts ?? 0}</div></div>
+                        <div class="kv"><div class="kv-label">Blocked Reason</div><div class="kv-value">${p.blockedReason || '—'}</div></div>
+                    </div>
+                    ${p.notes ? `<div style="margin-top:10px;color:var(--muted);">📝 ${p.notes}</div>` : ''}
+                    ${createCollapsibleJSON(p, `purchase-${i}-json`)}
+                </div>
+                `;
+            }).join('');
+        }
+
+        function editPurchase(i) {
+            const p = filteredData.purchases[i];
+            document.getElementById(`purchase-${i}`).innerHTML = `
+                <div class="edit-form">
+                    <h3>✏️ Edit Purchase</h3>
+                    <div class="form-group">
+                        <label>Full JSON</label>
+                        <textarea id="edit-purchase-json" rows="12">${JSON.stringify(p, null, 2)}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="savePurchase(${i})">💾 Save</button>
+                        <button class="btn btn-secondary" onclick="renderPurchases()">❌ Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function savePurchase(i) {
+            const p = filteredData.purchases[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById('edit-purchase-json').value);
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/update-purchase', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transactionId: p.transactionId, updatedData })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('Purchase updated!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        async function deletePurchase(transactionId) {
+            if (!confirm(`Delete purchase?`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/delete-purchase', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transactionId })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('Purchase deleted!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        function renderProofs() {
+            const proofs = filteredData.proofs || [];
+            document.getElementById('proofsBadge').textContent = proofs.length;
+            const content = document.getElementById('proofsContent');
+
+            if (proofs.length === 0) {
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No proofs</div>';
+                return;
+            }
+
+            content.innerHTML = proofs.map((p, i) => {
+                const statusClass = (p.status || 'pending').toLowerCase() === 'approved' ? 'pill-success' : (p.status || 'pending').toLowerCase() === 'rejected' ? 'pill-danger' : 'pill-warning';
+                const highlightClass = p.highlighted ? 'card-highlight' : '';
+                return `
+                <div class="data-item ${highlightClass}" id="proof-${i}">
+                    <div class="data-item-header">
+                        <div>
+                            <span class="data-item-title">${p.email || 'N/A'}</span>
+                            <span class="pill ${statusClass}">${p.status || 'pending'}</span>
+                            ${p.highlighted ? '<span class="pill pill-warning">⭐ Highlighted</span>' : ''}
+                        </div>
+                        <div class="data-item-actions">
+                            <button class="btn btn-warning btn-sm" onclick="editProof(${i})">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProof(${i})">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="data-grid">
+                        <div class="kv"><div class="kv-label">Plan</div><div class="kv-value">${p.plan || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">UID</div><div class="kv-value">${p.uid || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Txn Id</div><div class="kv-value">${p.upi_txn_id || p.transactionId || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Method</div><div class="kv-value">${p.method || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Amount</div><div class="kv-value">₹${p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Discount</div><div class="kv-value">${p.discountPercent || 0}% (₹${p.discount || 0})</div></div>
+                        <div class="kv"><div class="kv-label">Final Amount</div><div class="kv-value">₹${p.finalAmount || p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Requested TB</div><div class="kv-value">${p.requestedStorageTB || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Submitted</div><div class="kv-value">${p.submittedAt ? new Date(p.submittedAt).toLocaleString() : '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Verified</div><div class="kv-value">${p.verifiedAt ? new Date(p.verifiedAt).toLocaleString() : '—'}</div></div>
+                    </div>
+                    ${p.screenshot ? `<div style="margin-top:10px;"><a href="${p.screenshot}" target="_blank" class="pill pill-info">📸 View Screenshot</a></div>` : ''}
+                    ${p.notes ? `<div style="margin-top:10px;color:var(--muted);">📝 ${p.notes}</div>` : ''}
+                    ${createCollapsibleJSON(p, `proof-${i}-json`)}
+                </div>
+                `;
+            }).join('');
+        }
+
+        function editProof(i) {
+            const p = filteredData.proofs[i];
+            document.getElementById(`proof-${i}`).innerHTML = `
+                <div class="edit-form">
+                    <h3>✏️ Edit Proof</h3>
+                    <div class="form-group">
+                        <label>Full JSON</label>
+                        <textarea id="edit-proof-json" rows="12">${JSON.stringify(p, null, 2)}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="saveProof(${i})">💾 Save</button>
+                        <button class="btn btn-secondary" onclick="renderProofs()">❌ Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function saveProof(i) {
+            const p = filteredData.proofs[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById('edit-proof-json').value);
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/update-proof', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transactionId: p.transactionId, updatedData })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('Proof updated!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        async function deleteProof(i) {
+            if (!confirm(`Delete proof?`)) return;
+            try {
+                const p = filteredData.proofs[i];
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/delete-proof', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transactionId: p?.transactionId || p?.id || p?._id || p?.upi_txn_id,
+                        id: p?.id,
+                        _id: p?._id,
+                        proofId: p?.proofId,
+                        upi_txn_id: p?.upi_txn_id
+                    })
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    const msg = err.error || err.message || 'Failed';
+                    throw new Error(msg);
+                }
+                showSuccess('Proof deleted!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        function renderPlanActive() {
+            const planActive = filteredData.planActive || [];
+            const totalPlans = planActive.reduce((sum, user) => sum + (user.plans?.length || 0), 0);
+            document.getElementById('planActiveBadge').textContent = totalPlans;
+            const content = document.getElementById('planActiveContent');
+
+            if (planActive.length === 0) {
+                content.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">No active plans</div>';
+                return;
+            }
+
+            content.innerHTML = planActive.map((u, i) => `
+                <div class="data-item" id="planactive-${i}">
+                    <div class="data-item-header">
+                        <div>
+                            <span class="data-item-title">${u.self?.email || 'N/A'}</span>
+                            <span class="data-item-badge badge-active">${u.summary?.totalPlans || 0} Plans</span>
+                        </div>
+                        <div class="data-item-actions">
+                            <button class="btn btn-warning btn-sm" onclick="editPlanActive(${i})">✏️</button>
+                        </div>
+                    </div>
+                    ${createCollapsibleJSON(u, `planactive-${i}-json`)}
+                </div>
+            `).join('');
+        }
+
+        function editPlanActive(i) {
+            const u = filteredData.planActive[i];
+            document.getElementById(`planactive-${i}`).innerHTML = `
+                <div class="edit-form">
+                    <h3>✏️ Edit Plan Active</h3>
+                    <div class="form-group">
+                        <label>Full JSON</label>
+                        <textarea id="edit-planactive-json" rows="15">${JSON.stringify(u, null, 2)}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="savePlanActive(${i})">💾 Save</button>
+                        <button class="btn btn-secondary" onclick="renderPlanActive()">❌ Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function savePlanActive(i) {
+            const u = filteredData.planActive[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById('edit-planactive-json').value);
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/update-plan-active', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: u.self?.uid, updatedData })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('Plan active updated!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        function renderPlanPrice() {
+            const planPrice = filteredData.planPrice || {};
+            document.getElementById('planPriceBadge').textContent = Object.keys(planPrice.plans || {}).length;
+            const content = document.getElementById('planPriceContent');
+
+            content.innerHTML = `
+                <div class="data-item" id="planprice-main">
+                    <div class="data-item-header">
+                        <span class="data-item-title">💰 Plan Pricing Config</span>
+                        <button class="btn btn-warning btn-sm" onclick="editPlanPrice()">✏️ Edit</button>
+                    </div>
+                    ${createCollapsibleJSON(planPrice, 'planprice-json')}
+                </div>
+            `;
+        }
+
+        function editPlanPrice() {
+            const planPrice = filteredData.planPrice;
+            document.getElementById('planprice-main').innerHTML = `
+                <div class="edit-form">
+                    <h3>✏️ Edit Plan Pricing</h3>
+                    <div class="form-group">
+                        <label>Full JSON</label>
+                        <textarea id="edit-planprice-json" rows="20">${JSON.stringify(planPrice, null, 2)}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="savePlanPrice()">💾 Save</button>
+                        <button class="btn btn-secondary" onclick="renderPlanPrice()">❌ Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function savePlanPrice() {
+            try {
+                const updatedData = JSON.parse(document.getElementById('edit-planprice-json').value);
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/update-plan-price', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updatedData })
+                });
+                if (!response.ok) throw new Error('Failed');
+                showSuccess('Plan pricing updated!');
+                await loadData();
+            } catch (e) { showCoolAlert('Error: ' + e.message, 'error'); }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            if (!searchTerm) {
+                filteredData = JSON.parse(JSON.stringify(allData));
+                renderAllPanels();
+                return;
+            }
+            filteredData.users = allData.users?.filter(u => JSON.stringify(u).toLowerCase().includes(searchTerm)) || [];
+            filteredData.purchases = allData.purchases?.filter(p => JSON.stringify(p).toLowerCase().includes(searchTerm)) || [];
+            filteredData.proofs = allData.proofs?.filter(p => JSON.stringify(p).toLowerCase().includes(searchTerm)) || [];
+            filteredData.planActive = allData.planActive?.filter(u => JSON.stringify(u).toLowerCase().includes(searchTerm)) || [];
+            filteredData.planPrice = allData.planPrice;
+            renderAllPanels();
+        });
+
+        function showSuccess(msg) {
+            const div = document.createElement('div');
+            div.className = 'toast';
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3200);
+        }
+    </script>
+</body>
+</html>

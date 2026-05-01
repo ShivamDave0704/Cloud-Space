@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>🌌 Cloud Space Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Link external CSS -->
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Keep header in normal document flow */
+        header {
+            position: relative;
+            pointer-events: auto;
+        }
+        
+        /* Logout button always clickable */
+        #logoutBtn, [data-logout],
+        #backToUploadBtn, [data-back-upload] {
+            z-index: 10000;
+            position: relative;
+            pointer-events: auto !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 44px;
+            width: auto;
+            min-width: 132px;
+            padding: 12px 14px;
+            touch-action: manipulation;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        #backToUploadBtn, [data-back-upload] {
+            background: linear-gradient(135deg, #00ffff, #00ff99);
+            color: #001016;
+        }
+
+        #logoutBtn, [data-logout] {
+            background: linear-gradient(135deg, #ff5b71, #ff2d55);
+            color: #fff;
+            z-index: 10020 !important;
+            pointer-events: auto !important;
+        }
+
+        .header-left-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+            flex-wrap: nowrap;
+        }
+
+        .header-left-group > span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        header > #logoutBtn,
+        header > [data-logout] {
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        [data-header-actions] {
+            position: relative;
+            z-index: 10002;
+            pointer-events: auto;
+        }
+
+        [data-header-center-badge] {
+            pointer-events: none !important;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* Overlays below header, only capture clicks when shown */
+        #customAlert, .proof-modal, .blocked-modal, .proofs-container {
+            z-index: 2000;
+            pointer-events: none;
+        }
+        
+        #customAlert.show, .proof-modal.show, .blocked-modal.show {
+            pointer-events: auto;
+        }
+        
+        #customAlert .custom-alert-box,
+        .proof-modal img,
+        .blocked-modal .blocked-box {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 🌌 Custom Alert -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-box">
+            <span id="alertIcon">⚠️</span>
+            <p id="alertMessage">This is a custom alert</p>
+            <button onclick="closeAlert()">OK</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-left-group">
+            <span>🌌 Cloud Space Admin Panel</span>
+            <button id="backToUploadBtn" data-back-upload>⬅️ Upload</button>
+        </div>
+        <button id="logoutBtn" data-logout onclick="if(window.logout){window.logout();} return false;">🚪 Logout</button>
+    </header>
+
+    <!-- 📊 Dashboard -->
+    <div class="dashboard">
+        <div class="card">
+            <h2 id="totalUsers">0</h2>
+            <p>👥 Total Users</p>
+        </div>
+        <div class="card">
+            <h2 id="activeUsers">0</h2>
+            <p>✅ Active Users</p>
+        </div>
+        <div class="card">
+            <h2 id="blockedUsers">0</h2>
+            <p>🚫 Blocked Users</p>
+        </div>
+        <div class="card">
+            <h2 id="totalFiles">0</h2>
+            <p>📂 Files Uploaded</p>
+        </div>
+        <div class="card">
+            <h2 id="totalStorage">0 MB</h2>
+            <p>💾 Storage Used</p>
+        </div>
+    </div>
+
+    <nav>
+        <button data-tab="users" class="active">👥 Users</button>
+        <button data-tab="files">📂 Files</button>
+        <button data-tab="stats">📊 Stats</button>
+        <button data-tab="logs">📝 Logs</button>
+        <button data-tab="mail">📩 Mail</button>
+        <button data-tab="proofs" id="proofsTabBtn">🛡️ Proofs</button>
+        <button id="activePlansBtn">🟢 Active Plans</button>
+        <button id="jsonFetchBtn">📊 JSON Dashboard</button>
+        <button id="loginSignupActivityBtn">🔐 Login/Signup Activity</button>
+        <button id="privacyDashboardBtn" style="background: linear-gradient(135deg, #00ffff, #ff00ff); color: #000; font-weight: 700;">🔒 Privacy Dashboard (2FA)</button>
+    </nav>
+
+    <!-- 👥 Users -->
+    <section id="users" class="active">
+        <h2>👥 User Management <span id="refreshStatus" style="font-size: 12px; color: #00ff00;"></span></h2>
+        <div class="search-controls">
+            <select id="userSearchType" aria-label="User search type">
+                <option value="all">🔎 All</option>
+                <option value="uid">🆔 UID</option>
+                <option value="phone">📱 Phone</option>
+                <option value="email">📧 Email</option>
+            </select>
+            <input type="text" id="userSearch" placeholder="🔍 Search users...">
+        </div>
+        <table id="usersTable"></table>
+        <div id="usersPagination"></div>
+    </section>
+
+    <!-- 📂 Files -->
+    <section id="files">
+        <h2>📂 File Management</h2>
+        <table id="filesTable"></table>
+    </section>
+
+    <!-- 📊 Stats -->
+    <section id="stats">
+        <h2>📊 System Stats</h2>
+        <div id="statsBox"></div>
+        <br>
+        <button onclick="autoBlock()" class="warn">⏳ Auto-Block Inactive Users</button>
+        <button onclick="window.location.href='/admin-privacy.html'" style="background: linear-gradient(135deg, #00ffff, #ff00ff); color: #000; margin-left: 10px; font-weight: 700;" class="btn">🔒 Privacy Dashboard (2FA)</button>
+    </section>
+
+    <!-- 📝 Logs -->
+    <section id="logs">
+        <h2>📝 Activity Logs</h2>
+        <h3>🔑 Reset Requests</h3>
+        <pre id="resetLogs"></pre>
+        <h3>🔒 Password Changes</h3>
+        <pre id="passLogs"></pre>
+        <h3>📤 File Uploads</h3>
+        <pre id="uploadLogs"></pre>
+        <h3>🔐 Login Attempts</h3>
+        <pre id="loginLogs"></pre>
+        <h3>📩 Mail Activity</h3>
+        <pre id="mailLogs"></pre>
+        <h3>🚨 Account Flags / Bans</h3>
+        <pre id="flagsLogs"></pre>
+    </section>
+
+    <!-- 📩 Mail -->
+    <section id="mail">
+        <h2>📩 Send Email</h2>
+        <label>Recipient:</label><br>
+        <select id="mailTo">
+            <option value="all">🌍 All Users</option>
+            <option value="admins">👑 Admins Only</option>
+            <option value="users">👥 Normal Users</option>
+            <option value="active">✅ Active Users</option>
+            <option value="blocked">🚫 Blocked Users</option>
+            <option value="custom">🎯 Custom Selection</option>
+
+        </select><br><br>
+
+        <select id="customUsers" multiple style="display:none;height:100px;"></select><br><br>
+        <input id="mailSub" placeholder="Subject"><br><br>
+        <textarea id="mailMsg" placeholder="Message"></textarea><br><br>
+        <button id="sendMailBtn" class="success">📩 Send</button>
+    </section>
+    <!-- 🛡️ Proof Submissions -->
+    <section id="proofs">
+        <h2>🛡️ Payment Proof Management</h2>
+        <p style="opacity:0.8;">(Add your proof verification HTML here later)</p>
+
+        <!-- 💠 Placeholder Container -->
+        <div class="proofs-container">
+            <button id="refreshProofsBtn">🔄 Refresh Proofs</button>
+
+            <div id="proofsTable">
+                <!-- Dynamic proof list will load here -->
+            </div>
+
+            <div id="proofsStatus"></div>
+        </div>
+
+        <!-- 🖼️ Proof Modal Preview -->
+        <div id="proofModal" class="proof-modal" style="display:none;">
+            <img id="proofPreview" src="" alt="Proof Image">
+        </div>
+    </section>
+
+    <!-- ✅ Alert Box -->
+    <div id="alertBox"></div>
+
+    <!-- 🚫 Block Duration Modal -->
+    <div id="blockDurationModal" class="blocked-modal" style="display:none;">
+        <div class="blocked-box">
+            <h2>🚫 Block User</h2>
+            <p id="blockUserEmail"></p>
+
+            <label>⏳ Choose Block Duration:</label><br>
+            <div class="cool-select-wrapper">
+                <select id="blockDurationSelect" class="cool-select">
+                    <option value="24">⏳ 24 Hours</option>
+                    <option value="720">📅 30 Days</option>
+                    <option value="custom">⚡ Custom (Hours & Minutes)</option>
+                </select>
+            </div>
+
+            <!-- Custom inputs (hidden by default, shown if "custom" selected) -->
+            <div id="customTimeInputs" style="display:none; margin-top:10px;">
+                <input type="number" id="customHours" class="cool-input" placeholder="Hours (e.g. 2)">
+                <input type="number" id="customMinutes" class="cool-input" placeholder="Minutes (e.g. 30)">
+            </div>
+
+            <br>
+            <button id="confirmBlockBtn" class="warn">🚫 Block</button>
+            <button onclick="closeBlockModal()">❌ Cancel</button>
+        </div>
+    </div>
+
+    <!-- External JS -->
+    <script src="admin.js"></script>
+    <script>
+        // Redirect to upload page
+        document.getElementById('backToUploadBtn').addEventListener('click', function () {
+            window.location.href = 'upload.html?from=admin';
+        });
+
+        // Redirect to proof.html when Proofs button is clicked
+        document.getElementById('proofsTabBtn').addEventListener('click', function () {
+            window.location.href = 'proof.html';
+        });
+
+        // Redirect to active-user-plan.html when Active Plans is clicked
+        document.getElementById('activePlansBtn').addEventListener('click', function () {
+            window.location.href = 'active-user-plan.html';
+        });
+
+        // Redirect to user-detail.html when JSON Dashboard is clicked
+        document.getElementById('jsonFetchBtn').addEventListener('click', function () {
+            window.location.href = 'user-detail.html';
+        });
+
+        // Redirect to login-signup-activity.html when Login/Signup Activity is clicked
+        document.getElementById('loginSignupActivityBtn').addEventListener('click', function () {
+            window.location.href = 'login-signup-activity.html';
+        });
+
+        // Redirect to admin-privacy.html when Privacy Dashboard is clicked
+        document.getElementById('privacyDashboardBtn').addEventListener('click', function () {
+            window.location.href = 'admin-privacy.html';
+        });
+    </script>
+</body>
+
+</html>

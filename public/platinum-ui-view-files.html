@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👁️ CloudSpace+ Platinum | View Files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --platinum-primary: #c0c5ce;
+            --platinum-accent: #00d4ff;
+            --platinum-glow: #4facfe;
+            --platinum-dark: #0a0e27;
+            --platinum-glass: rgba(192, 197, 206, 0.08);
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-blue: #0099ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0a0e27;
+            background-image: 
+                radial-gradient(ellipse at 10% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(192, 197, 206, 0.15) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0e27 0%, #050810 100%);
+            color: var(--platinum-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(125deg, 
+                transparent 0%,
+                rgba(0, 212, 255, 0.08) 25%,
+                rgba(192, 197, 206, 0.12) 50%,
+                rgba(0, 212, 255, 0.08) 75%,
+                transparent 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            opacity: 0.6;
+            z-index: -1;
+            pointer-events: none;
+        }
+        @keyframes gradientShift {
+            0%,100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .orb { position: fixed; border-radius: 50%; filter: blur(90px); opacity: 0.35; animation: floatOrb 25s ease-in-out infinite; pointer-events: none; z-index: 0; }
+        .orb:nth-child(1) { width: 380px; height: 380px; background: radial-gradient(circle, var(--platinum-accent), transparent); top: 5%; left: 8%; animation-delay: 0s; }
+        .orb:nth-child(2) { width: 480px; height: 480px; background: radial-gradient(circle, var(--platinum-glow), transparent); top: 50%; right: 5%; animation-delay: 8s; }
+        .orb:nth-child(3) { width: 320px; height: 320px; background: radial-gradient(circle, #a8b5d1, transparent); bottom: 10%; left: 45%; animation-delay: 16s; }
+        @keyframes floatOrb {
+            0%,100% { transform: translate(0,0) scale(1) rotate(0deg); }
+            33% { transform: translate(45px,-50px) scale(1.15) rotate(120deg); }
+            66% { transform: translate(-45px,50px) scale(0.85) rotate(240deg); }
+        }
+        .container { position: relative; z-index: 2; max-width: 1400px; margin: 60px auto 40px; padding: 0 20px; }
+        .header {
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px;
+            background: linear-gradient(135deg, rgba(192, 197, 206, 0.12), rgba(0, 212, 255, 0.08));
+            border: 1px solid rgba(192, 197, 206, 0.25);
+            padding: 24px 32px; border-radius: 24px; backdrop-filter: blur(30px) saturate(180%);
+            box-shadow: 0 25px 70px rgba(0, 212, 255, 0.2), inset 0 1px 1px rgba(255,255,255,0.1);
+            position: relative; overflow: hidden;
+        }
+        .header::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(192,197,206,0.05), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .title {
+            font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900;
+            background: linear-gradient(135deg, #ffffff, #00d4ff, #c0c5ce, #4facfe);
+            background-size: 300% 300%; animation: textGlow 5s ease infinite;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+            filter: drop-shadow(0 2px 8px rgba(0, 212, 255, 0.3));
+            position: relative; z-index: 1;
+        }
+        @keyframes textGlow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .pill {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 11px 20px; border-radius: 16px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(192, 197, 206, 0.12));
+            border: 1px solid rgba(192, 197, 206, 0.3);
+            color: #fff; font-weight: 700; font-size: 0.95rem;
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.15), inset 0 1px 1px rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .pill:hover {
+            box-shadow: 0 6px 24px rgba(0, 212, 255, 0.3), inset 0 1px 1px rgba(255,255,255,0.15);
+            border-color: var(--platinum-accent);
+        }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn {
+            padding: 13px 24px; border: none; border-radius: 14px; cursor: pointer;
+            font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 0.8px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+            font-size: 0.95rem;
+        }
+        .btn::before {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.25), transparent);
+            transform: translateX(-100%); transition: transform 0.6s;
+        }
+        .btn:hover::before { transform: translateX(100%); }
+        .btn-primary { 
+            background: linear-gradient(135deg, #00d4ff, #4facfe, #00d4ff); 
+            background-size: 200% 200%;
+            color: #0a0e27; 
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.35), inset 0 1px 1px rgba(255,255,255,0.2); 
+            animation: gradientPulse 4s ease infinite;
+        }
+        @keyframes gradientPulse {
+            0%,100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .btn-ghost { 
+            background: rgba(192, 197, 206, 0.08); 
+            color: var(--platinum-accent); 
+            border: 1.5px solid rgba(192, 197, 206, 0.3); 
+            backdrop-filter: blur(10px);
+        }
+        .btn:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4); }
+        .btn-ghost:hover { background: rgba(192, 197, 206, 0.15); border-color: var(--platinum-accent); }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; animation: fadeInUp 0.6s ease; }
+        .stat { 
+            background: linear-gradient(135deg, rgba(192, 197, 206, 0.1), rgba(0, 212, 255, 0.08)); 
+            border: 1px solid rgba(192, 197, 206, 0.25); 
+            border-radius: 18px; padding: 20px 16px; text-align: center; 
+            backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.12), inset 0 1px 1px rgba(255,255,255,0.08);
+            transition: all 0.35s ease;
+            position: relative; overflow: hidden;
+        }
+        .stat::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--platinum-accent), var(--platinum-glow));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .stat:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0, 212, 255, 0.25); border-color: var(--platinum-accent); }
+        .stat:hover::before { opacity: 1; }
+        .stat-val { font-size: 1.9rem; font-weight: 900; color: var(--platinum-accent); font-family: 'Orbitron', sans-serif; text-shadow: 0 2px 12px rgba(0, 212, 255, 0.3); }
+        .stat-label { font-size: 0.85rem; color: rgba(192, 197, 206, 0.8); margin-top: 6px; font-weight: 500; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .controls {
+            display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+            background: linear-gradient(135deg, rgba(192, 197, 206, 0.08), rgba(0, 212, 255, 0.05));
+            border: 1px solid rgba(192, 197, 206, 0.2);
+            padding: 18px 22px; border-radius: 18px; backdrop-filter: blur(20px) saturate(180%);
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.08), inset 0 1px 1px rgba(255,255,255,0.06);
+        }
+        .search-box { flex: 1; min-width: 200px; }
+        .search-box input {
+            width: 100%; padding: 12px 16px; border: 1px solid rgba(192, 197, 206, 0.25);
+            background: rgba(192, 197, 206, 0.06); color: var(--platinum-primary); border-radius: 12px;
+            font-family: 'Poppins'; outline: none; transition: all 0.3s; font-size: 0.95rem;
+            backdrop-filter: blur(10px);
+        }
+        .search-box input::placeholder { color: rgba(192, 197, 206, 0.5); }
+        .search-box input:focus { 
+            border-color: var(--platinum-accent); 
+            background: rgba(0, 212, 255, 0.08);
+            box-shadow: 0 0 24px rgba(0, 212, 255, 0.2), inset 0 1px 1px rgba(255,255,255,0.1); 
+        }
+        .sort-select { 
+            padding: 12px 16px; border: 1px solid rgba(192, 197, 206, 0.25); 
+            background: rgba(192, 197, 206, 0.06);
+            color: var(--platinum-primary); border-radius: 12px; font-family: 'Poppins'; 
+            cursor: pointer; outline: none; font-size: 0.95rem;
+            backdrop-filter: blur(10px); transition: all 0.3s;
+        }
+        .sort-select:hover, .sort-select:focus {
+            border-color: var(--platinum-accent);
+            background: rgba(0, 212, 255, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.15);
+        }
+        .grid {
+            margin-top: 20px; display: grid; gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+        .card {
+            background: linear-gradient(135deg, rgba(192, 197, 206, 0.1), rgba(0, 212, 255, 0.05));
+            border: 1px solid rgba(192, 197, 206, 0.2);
+            border-radius: 20px; overflow: hidden; backdrop-filter: blur(25px) saturate(180%);
+            box-shadow: 0 12px 36px rgba(0, 212, 255, 0.12), inset 0 1px 1px rgba(255,255,255,0.08);
+            position: relative; transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: cardSlideUp 0.6s ease-out;
+        }
+        @keyframes cardSlideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(192, 197, 206, 0.08));
+            opacity: 0; transition: opacity 0.4s;
+        }
+        .card:hover {
+            transform: translateY(-10px) scale(1.03);
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 20px 50px rgba(0, 212, 255, 0.3), inset 0 2px 4px rgba(255,255,255,0.12);
+        }
+        .card:hover::before { opacity: 1; }
+        .card-thumb {
+            width: 100%; height: 140px; background: linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));
+            display: flex; align-items: center; justify-content: center; font-size: 3.5rem;
+            position: relative; overflow: hidden;
+        }
+        .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .card-content { padding: 16px; position: relative; z-index: 2; }
+        .card h4 {
+            font-family: 'Orbitron', sans-serif; margin-bottom: 8px; 
+            color: var(--platinum-accent);
+            font-size: 1.05rem; word-break: break-word; font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
+        }
+        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .meta { color: rgba(255,255,255,0.65); font-size: 0.85rem; }
+        .tag { padding: 7px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;
+            color: #0a0e27; background: linear-gradient(135deg, #00d4ff, #4facfe);
+            box-shadow: 0 4px 14px rgba(0, 212, 255, 0.3); 
+            text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-actions {
+            display: flex; gap: 8px; margin-top: 12px;
+        }
+        .action-btn {
+            flex: 1; padding: 11px 12px; border: none; border-radius: 12px;
+            background: rgba(0, 212, 255, 0.12); color: var(--platinum-accent);
+            cursor: pointer; font-weight: 600; font-size: 0.85rem;
+            transition: all 0.35s ease; border: 1px solid rgba(192, 197, 206, 0.25);
+            backdrop-filter: blur(10px);
+        }
+        .action-btn:hover {
+            background: rgba(0, 212, 255, 0.25); border-color: var(--platinum-accent);
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 212, 255, 0.25);
+        }
+        .action-btn.delete {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff8f8f;
+            border-color: rgba(255, 70, 70, 0.35);
+        }
+        .action-btn.delete:hover {
+            background: rgba(255, 70, 70, 0.2);
+            border-color: #ff6b6b;
+            box-shadow: 0 6px 18px rgba(255, 70, 70, 0.25);
+        }
+        .empty {
+            text-align: center; padding: 60px 20px;
+            background: var(--glass); border: 2px dashed rgba(0,255,255,0.3);
+            border-radius: 18px; color: rgba(255,255,255,0.7);
+        }
+        .empty-icon { font-size: 3.5rem; margin-bottom: 12px; }
+        .toast {
+            position: fixed; bottom: 32px; right: 32px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(192, 197, 206, 0.12));
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 16px; padding: 16px 24px;
+            color: var(--platinum-accent); font-weight: 700; font-size: 0.95rem;
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.3), inset 0 1px 1px rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            display: none; z-index: 9999;
+            animation: toastSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes toastSlide { from { transform: translateX(450px) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+        .toast.show { display: block; }
+        .loader { width: 30px; height: 30px; border: 3px solid rgba(0,255,255,0.2);
+            border-top-color: var(--neon-cyan); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+            .header { flex-direction: column; align-items: flex-start; }
+            .grid { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; }
+            .search-box { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb"></div><div class="orb"></div><div class="orb"></div>
+    <div class="container">
+        <div class="header">
+            <div>
+                <div class="title">👑 Platinum Files Vault</div>
+                <div class="pill" id="statusPill">🔒 Loading...</div>
+            </div>
+            <div class="actions">
+                <button class="btn btn-ghost" id="backBtn">← Back</button>
+                <button class="btn btn-primary" id="refreshBtn">🔄 Refresh</button>
+                <button class="btn btn-ghost" id="deleteAllBtn" style="border-color: rgba(255, 90, 90, 0.45); color: #ff8f8f;">🗑 Delete All</button>
+            </div>
+        </div>
+
+        <div class="stats" id="statsBoard"></div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search files...">
+            </div>
+            <select class="sort-select" id="sortSelect">
+                <option value="date-desc">📅 Newest First</option>
+                <option value="date-asc">📅 Oldest First</option>
+                <option value="name-asc">📝 Name A-Z</option>
+                <option value="name-desc">📝 Name Z-A</option>
+                <option value="size-desc">📦 Largest First</option>
+                <option value="size-asc">📦 Smallest First</option>
+            </select>
+        </div>
+
+        <div class="grid" id="filesGrid"></div>
+        <div class="empty" id="emptyState" style="display:none;">
+            <div class="empty-icon">☁️</div>
+            <div style="font-size: 1.2rem; margin-bottom: 8px; font-weight: 700;">No files found</div>
+            <div style="font-size: 0.95rem; color: rgba(255,255,255,0.6);">Upload from the Platinum portal to see them here.</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function retainToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const uid = params.get('uid');
+            if (token) sessionStorage.setItem('platinumToken', token);
+            if (uid) localStorage.setItem('uid', uid);
+        })();
+
+        const filesGrid = document.getElementById('filesGrid');
+        const emptyState = document.getElementById('emptyState');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const backBtn = document.getElementById('backBtn');
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        const statusPill = document.getElementById('statusPill');
+        const toast = document.getElementById('toast');
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const statsBoard = document.getElementById('statsBoard');
+
+        let allFiles = [];
+        let filteredFiles = [];
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2600);
+        }
+
+        function getAuthContext() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token') || sessionStorage.getItem('platinumToken') || '';
+            const uid = params.get('uid') || localStorage.getItem('uid') || '';
+            return { token, uid };
+        }
+
+        function buildUploadUrl() {
+            const { token, uid } = getAuthContext();
+            const query = [];
+            if (token) query.push(`token=${encodeURIComponent(token)}`);
+            if (uid) query.push(`uid=${encodeURIComponent(uid)}`);
+            const qs = query.length ? `?${query.join('&')}` : '';
+            return `platinum-ui-upload.html${qs}`;
+        }
+
+        backBtn.addEventListener('click', () => {
+            window.location.href = buildUploadUrl();
+        });
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const icons = {
+                pdf: '📄', doc: '📝', docx: '📝', txt: '📝', xls: '📊', xlsx: '📊',
+                jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🎨', svg: '🎨',
+                mp4: '🎬', avi: '🎬', mov: '🎬', mkv: '🎬', flv: '🎬',
+                mp3: '🎵', wav: '🎵', flac: '🎵', aac: '🎵',
+                zip: '📦', rar: '📦', '7z': '📦', tar: '📦',
+                js: '⚙️', py: '🐍', java: '☕', cpp: '⚡', html: '🌐', css: '🎨'
+            };
+            return icons[ext] || '📄';
+        }
+
+        function formatSize(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+        }
+
+        function formatDate(val) {
+            const d = new Date(val);
+            if (Number.isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function ownerKey(owner) {
+            return String(owner || '').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        }
+
+        function resolveFileUrl(file) {
+            const raw = String(file?.secure_url || '').trim();
+            const base = window.location.origin;
+            const encodedName = encodeURIComponent(file?.filename || '');
+            const key = ownerKey(file?.uploadedBy || file?.ownerEmail || '');
+
+            if (raw) {
+                try {
+                    const parsed = new URL(raw, base);
+                    // Force same-origin/protocol to avoid mixed-content and stale host issues
+                    if (parsed.pathname.startsWith('/uploads/')) {
+                        return `${base}${parsed.pathname}`;
+                    }
+                    if (parsed.pathname.startsWith('/files/')) {
+                        return key && file?.filename ? `${base}/uploads/${key}/files/${encodedName}` : `${base}${parsed.pathname}`;
+                    }
+                    return `${base}${parsed.pathname}`;
+                } catch (_e) {
+                    // fallback below
+                }
+            }
+
+            if (key && file?.filename) {
+                return `${base}/uploads/${key}/files/${encodedName}`;
+            }
+            return '';
+        }
+
+        function buildStatsBoard() {
+            if (!allFiles.length) return;
+            const total = allFiles.reduce((s, f) => s + (f.bytes || f.size || 0), 0);
+            const types = new Set(allFiles.map(f => (f.format || 'file').toUpperCase()));
+            statsBoard.innerHTML = `
+                <div class="stat">
+                    <div class="stat-val">${allFiles.length}</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-val">${formatSize(total)}</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-val">${types.size}</div>
+                    <div class="stat-label">File Types</div>
+                </div>
+            `;
+        }
+
+        function filterAndSort() {
+            const query = searchInput.value.toLowerCase();
+            filteredFiles = allFiles.filter(f => 
+                (f.originalname || f.filename || '').toLowerCase().includes(query)
+            );
+            
+            const sortBy = sortSelect.value;
+            if (sortBy === 'name-asc') {
+                filteredFiles.sort((a, b) => (a.originalname || a.filename || '').localeCompare(b.originalname || b.filename || ''));
+            } else if (sortBy === 'name-desc') {
+                filteredFiles.sort((a, b) => (b.originalname || b.filename || '').localeCompare(a.originalname || a.filename || ''));
+            } else if (sortBy === 'size-desc') {
+                filteredFiles.sort((a, b) => (b.bytes || b.size || 0) - (a.bytes || a.size || 0));
+            } else if (sortBy === 'size-asc') {
+                filteredFiles.sort((a, b) => (a.bytes || a.size || 0) - (b.bytes || b.size || 0));
+            } else if (sortBy === 'date-asc') {
+                filteredFiles.sort((a, b) => new Date(a.created_at || a.createdAt || 0) - new Date(b.created_at || b.createdAt || 0));
+            } else {
+                filteredFiles.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
+            }
+            
+            renderFiles();
+        }
+
+        function renderFiles() {
+            filesGrid.innerHTML = '';
+            if (!filteredFiles.length) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            filteredFiles.forEach((f) => {
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes((f.format || 'file').toLowerCase());
+                const fileUrl = resolveFileUrl(f);
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-thumb">
+                        ${isImage && fileUrl ? `<img src="${fileUrl}" alt="${f.originalname || f.filename}" onerror="this.style.display='none'">` : `<div style="font-size: 2.8rem;">${getFileIcon(f.originalname || f.filename || '')}</div>`}
+                    </div>
+                    <div class="card-content">
+                        <h4 title="${f.originalname || f.filename || 'File'}">${(f.originalname || f.filename || 'File').substring(0, 30)}${(f.originalname || f.filename || 'File').length > 30 ? '...' : ''}</h4>
+                        <div class="card-meta">
+                            <span class="meta">${formatSize(f.bytes || f.size || 0)}</span>
+                            <span class="tag">${(f.format || 'file').toUpperCase()}</span>
+                        </div>
+                        <div class="meta" style="font-size: 0.8rem;">📅 ${formatDate(f.created_at || f.createdAt || Date.now())}</div>
+                        <div class="card-actions">
+                            <button class="action-btn" onclick="downloadFile('${encodeURIComponent(fileUrl || '')}', '${(f.originalname || f.filename || 'file').replace(/'/g, "\\'")}')">⬇️ Download</button>
+                            <button class="action-btn" onclick="copyToClipboard('${(fileUrl || '').replace(/'/g, "\\'")}')">📋 Copy</button>
+                            <button class="action-btn delete" onclick="deleteFile('${encodeURIComponent(f.uploadedBy || '')}', '${encodeURIComponent(f.filename || '')}', '${(f.originalname || f.filename || 'file').replace(/'/g, "\\'")}')">🗑 Delete</button>
+                        </div>
+                    </div>
+                `;
+                filesGrid.appendChild(card);
+            });
+        }
+
+        function downloadFile(url, name) {
+            try {
+                const decoded = decodeURIComponent(url);
+                const a = document.createElement('a');
+                a.href = decoded;
+                a.download = name || 'file';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showToast('⬇️ Download started: ' + name);
+            } catch (err) {
+                showToast('❌ Download failed');
+            }
+        }
+
+        function copyToClipboard(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('✅ URL copied to clipboard!');
+            }).catch(() => {
+                showToast('❌ Failed to copy');
+            });
+        }
+
+        async function deleteFile(ownerEncoded, fileEncoded, displayName) {
+            if (!ownerEncoded || !fileEncoded) {
+                showToast('❌ File info missing');
+                return;
+            }
+
+            const confirmDelete = confirm(`Delete file?\n${displayName || 'This file'}`);
+            if (!confirmDelete) return;
+
+            try {
+                const owner = decodeURIComponent(ownerEncoded);
+                const filename = decodeURIComponent(fileEncoded);
+                const res = await fetch(`/files/${encodeURIComponent(owner)}/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || 'Delete failed');
+                }
+
+                showToast('🗑 File deleted');
+                await loadFiles();
+            } catch (err) {
+                showToast('❌ ' + (err.message || 'Delete failed'));
+            }
+        }
+
+        async function deleteAllFiles() {
+            const { uid } = getAuthContext();
+            if (!uid) {
+                showToast('❌ UID missing');
+                return;
+            }
+
+            if (!allFiles.length) {
+                showToast('ℹ️ No files to delete');
+                return;
+            }
+
+            const ok = confirm(`Delete ALL files?\nThis will remove ${allFiles.length} file(s).`);
+            if (!ok) return;
+
+            try {
+                const res = await fetch(`/files/${encodeURIComponent(uid)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || 'Delete all failed');
+                }
+
+                showToast('🗑 All files deleted');
+                await loadFiles();
+            } catch (err) {
+                showToast('❌ ' + (err.message || 'Delete all failed'));
+            }
+        }
+
+        refreshBtn.addEventListener('click', loadFiles);
+        deleteAllBtn.addEventListener('click', deleteAllFiles);
+        searchInput.addEventListener('input', filterAndSort);
+        sortSelect.addEventListener('change', filterAndSort);
+
+        async function loadFiles() {
+            const { token, uid } = getAuthContext();
+            if (!token || !uid) {
+                statusPill.textContent = '❌ Token/UID missing';
+                statusPill.style.background = 'linear-gradient(135deg, rgba(255,0,0,0.3), rgba(255,100,0,0.3))';
+                showToast('Add token & uid in URL');
+                filesGrid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            statusPill.textContent = '🔄 Loading...';
+            statusPill.style.background = 'linear-gradient(135deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2))';
+            filesGrid.innerHTML = '<div class="loader"></div>';
+            emptyState.style.display = 'none';
+
+            try {
+                const res = await fetch(`/files/${encodeURIComponent(uid)}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+                });
+
+                if (!res.ok) throw new Error('Failed to load files');
+                allFiles = await res.json() || [];
+                filteredFiles = [...allFiles];
+
+                if (!allFiles.length) {
+                    emptyState.style.display = 'block';
+                    filesGrid.innerHTML = '';
+                    statusPill.textContent = '✅ Connected (Empty)';
+                    statusPill.style.background = 'linear-gradient(135deg, rgba(100,255,100,0.2), rgba(0,200,255,0.2))';
+                    buildStatsBoard();
+                    return;
+                }
+
+                buildStatsBoard();
+                sortBy = sortSelect.value;
+                if (sortBy === 'date-desc') {
+                    filteredFiles.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
+                }
+                renderFiles();
+                statusPill.textContent = `✅ ${allFiles.length} file(s) loaded`;
+                statusPill.style.background = 'linear-gradient(135deg, rgba(100,255,100,0.2), rgba(0,200,255,0.2))';
+            } catch (err) {
+                console.error('Load error', err);
+                statusPill.textContent = '❌ Load failed';
+                statusPill.style.background = 'linear-gradient(135deg, rgba(255,0,0,0.3), rgba(255,100,0,0.3))';
+                emptyState.style.display = 'block';
+                filesGrid.innerHTML = '';
+                showToast('Failed to load files');
+            }
+        }
+
+        window.downloadFile = downloadFile;
+        window.copyToClipboard = copyToClipboard;
+        window.deleteFile = deleteFile;
+        loadFiles();
+    </script>
+</body>
+</html>

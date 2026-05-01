@@ -1,0 +1,1315 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #eee;
+    overflow-x: hidden;
+}
+
+header {
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #00ffcc;
+    text-shadow: 0 0 15px #00ffcc, 0 0 25px #00ccff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0, 255, 200, 0.2);
+}
+
+header button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #ff4b2b, #ff416c);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 75, 43, 0.6);
+}
+
+header button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 75, 43, 0.9);
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px auto;
+    flex-wrap: wrap;
+    padding: 0 10px;
+}
+
+nav button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(0, 204, 255, 0.2);
+    color: #00ccff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
+}
+
+nav button:hover {
+    background: rgba(0, 255, 204, 0.3);
+    color: #00ffcc;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.7);
+    transform: translateY(-2px);
+}
+
+nav button.active {
+    background: rgba(0, 255, 204, 0.2);
+    color: #00ffcc;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 1);
+}
+
+.dashboard {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.card {
+    width: 220px;
+    /* ✅ Fixed width */
+    height: 120px;
+    /* ✅ Fixed height */
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 0 30px rgba(0, 255, 200, 0.6);
+}
+
+.card h2 {
+    font-size: 26px;
+    margin: 0;
+    color: #00ffcc;
+    text-shadow: 0 0 12px #00ffcc, 0 0 20px #00ccff;
+}
+
+.card p {
+    font-size: 15px;
+    margin-top: 6px;
+    color: #bbb;
+}
+
+section {
+    display: none;
+    padding: 20px;
+    margin: 15px auto;
+    max-width: 1200px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.3);
+    overflow-x: auto;
+    transition: all 0.3s ease;
+}
+
+section.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 14px;
+    min-width: 600px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th {
+    background: rgba(0, 255, 204, 0.15);
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+}
+
+table,
+th,
+td {
+    border: 1px solid rgba(0, 255, 200, 0.2);
+}
+
+th,
+td {
+    padding: 10px;
+    text-align: left;
+}
+
+tr:hover td {
+    background: rgba(0, 255, 204, 0.08);
+}
+
+pre {
+    background: rgba(0, 0, 0, 0.6);
+    color: #00ff88;
+    padding: 12px;
+    border-radius: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 12px;
+    box-shadow: inset 0 0 12px rgba(0, 255, 200, 0.2);
+}
+
+/* 🌟 Default Owner row */
+.super-admin-row {
+    background: rgba(255, 215, 0, 0.18) !important;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffaa00, 0 0 30px #ff8800;
+    border-left: 4px solid gold;
+}
+
+/* 👑 Promoted Super Admin row */
+.promoted-super-row {
+    background: rgba(255, 215, 0, 0.1) !important;
+    font-weight: bold;
+    color: #ffdd55;
+    text-shadow: 0 0 6px #ffaa00, 0 0 12px #ff8800;
+    border-left: 4px solid #ffaa00;
+}
+
+/* 👑 Crown styling (shared) */
+.super-admin-crown {
+    margin-left: 6px;
+    font-size: 18px;
+    animation: crownGlow 1.5s infinite alternate;
+}
+
+/* ✨ Glowing crown animation */
+@keyframes crownGlow {
+    from {
+        text-shadow: 0 0 6px #ffcc00, 0 0 12px #ffaa00;
+    }
+
+    to {
+        text-shadow: 0 0 12px #ffcc00, 0 0 24px #ffaa00, 0 0 36px #ff8800;
+    }
+}
+
+/* 🌟 Role labels */
+.role-superadmin {
+    color: gold;
+    font-weight: bold;
+    text-shadow: 0 0 12px gold, 0 0 20px orange;
+}
+
+.role-promoted-super {
+    color: #ffdd55;
+    font-weight: bold;
+    text-shadow: 0 0 8px #ffaa00, 0 0 14px #ff8800;
+}
+
+/* 🌟 Alerts */
+#alertBox {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert {
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    animation: fadeIn 0.3s ease, fadeOut 0.3s ease 4.5s forwards;
+    min-width: 220px;
+}
+
+.alert.success {
+    background: #00ffcc;
+    color: #111;
+    border-left: 5px solid #00cc99;
+}
+
+.alert.error {
+    background: #ff4b2b;
+    color: #fff;
+    border-left: 5px solid #cc1e00;
+}
+
+.alert.warn {
+    background: #ffcc00;
+    color: #111;
+    border-left: 5px solid #e6b800;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+}
+
+@keyframes fadeOutBg {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+}
+
+/* 📱 Responsive */
+@media (max-width: 992px) {
+    .dashboard {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card {
+        width: 90%;
+    }
+}
+
+@media (max-width: 600px) {
+    nav button {
+        flex: 1 1 100%;
+        font-size: 14px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    .card h2 {
+        font-size: 20px;
+    }
+
+    .card p {
+        font-size: 13px;
+    }
+
+    section {
+        padding: 12px;
+    }
+}
+
+/* ================= 📩 MAIL SECTION ================= */
+#mail {
+    text-align: center;
+}
+
+#mail h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #ff4bfa;
+    text-shadow: 0 0 12px #ff4bfa, 0 0 20px #ff99ff;
+}
+
+#mail label {
+    display: block;
+    font-weight: bold;
+    margin: 8px 0 5px;
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+}
+
+#mail select,
+#mail input,
+#mail textarea {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    margin: 8px auto;
+    display: block;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.2);
+}
+
+#mail select:focus,
+#mail input:focus,
+#mail textarea:focus {
+    border-color: #00ffcc;
+    box-shadow: 0 0 15px #00ffcc;
+}
+
+/* Subject + Message */
+#mail textarea {
+    resize: none;
+    min-height: 100px;
+}
+
+/* 📩 Send button */
+#sendMailBtn {
+    background: linear-gradient(90deg, #ff00cc, #3333ff);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 14px;
+    box-shadow: 0 0 12px rgba(255, 0, 255, 0.6);
+    transition: all 0.3s ease;
+}
+
+#sendMailBtn:hover {
+    box-shadow: 0 0 20px #ff00ff, 0 0 30px #3333ff;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* ================== SYSTEM STATS BOX ================== */
+#statsBox {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(10, 20, 30, 0.85);
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.3), inset 0 0 10px rgba(0, 255, 200, 0.2);
+    color: #eee;
+    font-size: 15px;
+    line-height: 1.6em;
+    animation: fadeIn 0.6s ease;
+}
+
+/* Each stat row */
+#statsBox div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.3s ease;
+}
+
+/* Glow on hover */
+#statsBox div:hover {
+    background: rgba(0, 255, 200, 0.12);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.5);
+    transform: scale(1.02);
+}
+
+/* Stat icons */
+#statsBox .stat-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+}
+
+#statsBox .stat-value {
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Auto-Block Button */
+#stats button {
+    margin-top: 15px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    background: linear-gradient(90deg, #ffcc00, #ff9900);
+    color: #111;
+    box-shadow: 0 0 15px rgba(255, 200, 0, 0.5);
+    transition: 0.3s ease;
+}
+
+#stats button:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 25px #ffcc00, 0 0 40px #ff9900;
+}
+
+/* Stat rows inside #statsBox */
+#statsBox .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.3s ease;
+    font-size: 15px;
+}
+
+#statsBox .stat-row:hover {
+    background: rgba(0, 255, 200, 0.1);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.5);
+    transform: scale(1.02);
+}
+
+#statsBox .stat-label {
+    font-weight: bold;
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+}
+
+#statsBox .stat-value {
+    font-weight: bold;
+    color: #fff;
+}
+
+/* 📜 Logs Section */
+.log-card {
+    background: rgba(15, 25, 40, 0.8);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 15px rgba(0, 255, 200, 0.2);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+}
+
+.log-header {
+    padding: 12px 16px;
+    font-weight: bold;
+    color: #00ffcc;
+    background: rgba(0, 255, 200, 0.15);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-shadow: 0 0 8px #00ffcc;
+    transition: 0.3s;
+}
+
+.log-header:hover {
+    background: rgba(0, 255, 200, 0.25);
+    box-shadow: 0 0 12px #00ffcc;
+}
+
+.arrow {
+    font-size: 14px;
+    color: #fff;
+    transition: transform 0.3s;
+}
+
+.log-body {
+    padding: 12px 16px;
+    display: block;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(0, 255, 200, 0.2);
+    max-height: 250px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.4em;
+}
+
+/* Each log line */
+.log-line {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0, 255, 200, 0.1);
+    color: #eee;
+    font-family: monospace;
+    transition: 0.2s;
+}
+
+.log-line:hover {
+    color: #00ffcc;
+    text-shadow: 0 0 8px #00ffcc;
+    transform: translateX(4px);
+}
+
+.empty-log {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 10px 0;
+}
+
+/* ================== FUTURISTIC SEARCH BAR ================== */
+#userSearch {
+    width: 250px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    background: rgba(0, 255, 204, 0.08);
+    color: #00ffcc;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.2);
+}
+
+/* Hover effect */
+#userSearch:hover {
+    background: rgba(0, 255, 204, 0.15);
+    box-shadow: 0 0 18px rgba(0, 255, 204, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Focus (typing) effect */
+#userSearch:focus {
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 25px #00ffcc, 0 0 40px rgba(0, 255, 204, 0.7);
+}
+
+/* 🔍 Add glowing search icon inside */
+#userSearch::placeholder {
+    color: rgba(0, 255, 204, 0.6);
+    font-weight: normal;
+}
+
+/* 🔍 Futuristic Search Bar */
+.search-box {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+.search-box::before {
+    content: "🔍";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #00ffcc;
+    font-size: 16px;
+    text-shadow: 0 0 10px #00ffcc;
+}
+
+#userSearch {
+    width: 250px;
+    padding: 10px 14px 10px 38px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    background: rgba(0, 255, 204, 0.08);
+    color: #00ffcc;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.2);
+}
+
+#userSearch:focus {
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 25px #00ffcc, 0 0 40px rgba(0, 255, 204, 0.7);
+}
+
+/* 📩 Mail Section */
+#mailTo,
+#customUsers,
+#mailSub,
+#mailMsg {
+    width: 100%;
+    max-width: 420px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 200, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    margin-top: 8px;
+    outline: none;
+    transition: 0.3s;
+    font-size: 14px;
+}
+
+#mailTo option,
+#customUsers option {
+    background: #0f2027;
+    color: #00ffcc;
+    padding: 8px;
+}
+
+#mailTo:focus,
+#customUsers:focus,
+#mailSub:focus,
+#mailMsg:focus {
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 15px #00ffcc;
+}
+
+#sendMailBtn {
+    margin-top: 14px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(90deg, #ff4b2b, #ff416c);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 75, 43, 0.6);
+    transition: 0.3s ease;
+}
+
+#sendMailBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 75, 43, 0.9);
+}
+
+/* 🚫 Blocked Modal */
+.blocked-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 32, 39, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 99999;
+    color: #ff4d4d;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.blocked-box {
+    background: rgba(30, 30, 30, 0.9);
+    border: 2px solid #ff4d4d;
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 400px;
+    box-shadow: 0 0 25px #ff0000, 0 0 50px rgba(255, 0, 0, 0.7);
+    animation: pulse 2s infinite;
+}
+
+.blocked-box h2 {
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px #ff4d4d;
+}
+
+.blocked-box button {
+    margin-top: 12px;
+    background: linear-gradient(90deg, #ff4d4d, #ff0000);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 12px #ff0000;
+    transition: 0.3s;
+}
+
+.blocked-box button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 22px #ff0000;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 25px #ff0000;
+    }
+
+    50% {
+        box-shadow: 0 0 50px #ff0000;
+    }
+
+    100% {
+        box-shadow: 0 0 25px #ff0000;
+    }
+}
+
+/* 🌟 Futuristic Fullscreen Alert */
+.fullscreen-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 20, 30, 0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    animation: fadeIn 0.3s ease;
+}
+
+.fullscreen-alert-box {
+    background: rgba(20, 30, 48, 0.95);
+    border: 2px solid #00ffcc;
+    border-radius: 16px;
+    padding: 25px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 0 25px #00ffcc, 0 0 45px #00ccff;
+    animation: popUp 0.4s ease;
+}
+
+.fullscreen-alert-box span {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+    text-shadow: 0 0 15px #ff4b2b, 0 0 25px #ff0000;
+}
+
+.fullscreen-alert-box p {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.fullscreen-alert-box button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(90deg, #ff4b2b, #ff0000);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    transition: 0.3s;
+}
+
+.fullscreen-alert-box button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #ff0000;
+}
+
+@keyframes popUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 🌈 Small Neon Alerts (top-right corner) */
+.custom-alert {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    background: rgba(20, 20, 30, 0.75);
+    color: #fff;
+    padding: 16px 26px;
+    border-radius: 14px;
+    font-family: "Poppins", sans-serif;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 9999;
+}
+
+.custom-alert.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.custom-alert.success {
+    border-left: 4px solid #00ffcc;
+    box-shadow: 0 0 25px #00ffcc70;
+}
+
+.custom-alert.error {
+    border-left: 4px solid #ff3366;
+    box-shadow: 0 0 25px #ff336670;
+}
+
+.custom-alert.warning {
+    border-left: 4px solid #ffd500;
+    box-shadow: 0 0 25px #ffd50070;
+}
+
+.custom-alert i {
+    font-size: 20px;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+#alertContainer {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+/* 🌌 Futuristic Cool Select */
+.cool-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.cool-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #00ffcc;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.5),
+        inset 0 0 10px rgba(0, 255, 200, 0.2);
+    transition: all 0.3s ease;
+}
+
+.cool-select:hover {
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 18px rgba(0, 255, 200, 0.7),
+        inset 0 0 12px rgba(0, 255, 200, 0.3);
+}
+
+.cool-select option {
+    background: #111;
+    color: #00ffcc;
+    padding: 12px;
+}
+
+/* 🌌 Cool Input for custom hours */
+.cool-input {
+    width: 100%;
+    padding: 10px 14px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffcc00;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 0 12px rgba(255, 204, 0, 0.5);
+    outline: none;
+}
+
+.cool-input::placeholder {
+    color: #aaa;
+}
+
+/* ================== FUTURISTIC SELECT ================== */
+.actions-select {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+
+    background: rgba(0, 255, 204, 0.08);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #00ffcc;
+    font-weight: bold;
+    cursor: pointer;
+    width: 180px;
+    text-align: center;
+
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.2);
+    transition: all 0.3s ease;
+}
+
+.actions-select:hover {
+    background: rgba(0, 255, 204, 0.15);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+    transform: translateY(-2px);
+}
+
+.actions-select:focus {
+    outline: none;
+    border: 1px solid #00ffcc;
+    box-shadow: 0 0 25px #00ffcc;
+}
+
+/* ✅ Dropdown Options */
+.actions-select option {
+    background: #0f2027;
+    color: #00ffcc;
+    padding: 10px;
+    font-size: 14px;
+    border: none;
+    font-weight: bold;
+}
+
+/* Hover effect inside dropdown (works in Chrome/Edge) */
+.actions-select option:hover {
+    background: #00ffcc;
+    color: #111;
+}
+
+/* ================= SELECT DROPDOWN FIX ================= */
+#mail select {
+    -moz-appearance: none;
+    /* remove default styles */
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(15, 30, 45, 0.95);
+    border: 1px solid #00ffcc;
+    color: #00ffcc;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* when focused */
+#mail select:focus {
+    outline: none;
+    border-color: #00ccff;
+    box-shadow: 0 0 20px #00ccff;
+}
+
+/* Dropdown options */
+#mail select option {
+    background: #0f2027;
+    /* dark background */
+    color: #00ffcc;
+    /* neon text */
+    padding: 10px;
+    border: none;
+}
+
+/* Hover effect inside dropdown */
+#mail select option:hover {
+    background: #00ffcc;
+    color: #111;
+}
+
+/* 🚫 Fullscreen Blocked Modal */
+.blocked-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 20, 30, 0.95);
+    display: none;
+    /* show via JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 999999;
+    animation: fadeIn 0.4s ease;
+}
+
+/* 🚫 Blocked Box */
+.blocked-box {
+    background: rgba(30, 30, 30, 0.92);
+    border: 2px solid #ff4d4d;
+    border-radius: 16px;
+    padding: 35px;
+    max-width: 420px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 0 25px #ff0000, 0 0 50px rgba(255, 0, 0, 0.7);
+    animation: pulseRed 2s infinite;
+}
+
+.blocked-box h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #ff4d4d;
+    text-shadow: 0 0 12px #ff4d4d, 0 0 25px #ff0000;
+}
+
+.blocked-box p {
+    font-size: 15px;
+    margin-bottom: 20px;
+    line-height: 1.5em;
+    color: #ddd;
+}
+
+.blocked-box button {
+    background: linear-gradient(90deg, #ff4d4d, #ff0000);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 15px #ff0000;
+    transition: all 0.3s ease;
+}
+
+.blocked-box button:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 25px #ff0000, 0 0 50px #ff3333;
+}
+
+/* 🔴 Red Glow Pulse */
+@keyframes pulseRed {
+    0% {
+        box-shadow: 0 0 15px #ff0000;
+    }
+
+    50% {
+        box-shadow: 0 0 40px #ff0000, 0 0 70px rgba(255, 0, 0, 0.8);
+    }
+
+    100% {
+        box-shadow: 0 0 15px #ff0000;
+    }
+}
+
+/* 🛡️ Proof Management Section */
+.proofs-container {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
+}
+
+#refreshProofsBtn {
+    background: linear-gradient(90deg, #00ffcc, #0077ff);
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+}
+
+#refreshProofsBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.proof-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.proof-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 12px;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+}
+
+/* ===== Modern Visual Refresh ===== */
+:root {
+    --bg-deep: #07111c;
+    --bg-mid: #10283a;
+    --panel: rgba(12, 25, 39, 0.72);
+    --panel-strong: rgba(11, 30, 46, 0.9);
+    --accent-cyan: #2af5d5;
+    --accent-blue: #33b6ff;
+    --accent-lime: #9dff6b;
+    --text-main: #eaf7ff;
+    --text-soft: #9eb9cc;
+    --border-glow: rgba(58, 200, 255, 0.25);
+}
+
+body {
+    font-family: "Space Grotesk", "Segoe UI", Tahoma, sans-serif;
+    color: var(--text-main);
+    background:
+        radial-gradient(circle at 12% 8%, rgba(42, 245, 213, 0.12), transparent 34%),
+        radial-gradient(circle at 86% 14%, rgba(51, 182, 255, 0.18), transparent 36%),
+        linear-gradient(145deg, var(--bg-deep), var(--bg-mid));
+}
+
+header {
+    background: linear-gradient(90deg, rgba(4, 20, 30, 0.9), rgba(10, 29, 43, 0.82));
+    border: 1px solid var(--border-glow);
+    border-radius: 14px;
+    margin: 12px 12px 16px;
+    padding: 14px 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.dashboard {
+    gap: 14px;
+    padding: 8px 14px 18px;
+}
+
+.card {
+    background: linear-gradient(165deg, rgba(19, 39, 58, 0.82), rgba(13, 28, 43, 0.88));
+    border: 1px solid var(--border-glow);
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(6, 20, 35, 0.45);
+}
+
+.card p {
+    color: var(--text-soft);
+}
+
+nav {
+    background: rgba(8, 23, 35, 0.52);
+    border: 1px solid rgba(61, 194, 255, 0.22);
+    border-radius: 14px;
+    padding: 10px;
+    max-width: 1220px;
+}
+
+nav button {
+    border: 1px solid rgba(58, 200, 255, 0.25);
+    color: #c4ecff;
+    background: linear-gradient(145deg, rgba(18, 49, 72, 0.62), rgba(12, 34, 53, 0.72));
+}
+
+nav button.active {
+    color: #052124;
+    border-color: rgba(42, 245, 213, 0.6);
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    box-shadow: 0 8px 20px rgba(42, 245, 213, 0.35);
+}
+
+section {
+    background: linear-gradient(165deg, var(--panel), rgba(11, 25, 39, 0.82));
+    border: 1px solid rgba(61, 194, 255, 0.16);
+    border-radius: 18px;
+    box-shadow: 0 14px 34px rgba(4, 13, 22, 0.45);
+}
+
+section h2 {
+    letter-spacing: 0.2px;
+    color: #dff6ff;
+}
+
+table {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(58, 200, 255, 0.2);
+}
+
+th {
+    background: linear-gradient(145deg, rgba(31, 79, 112, 0.75), rgba(24, 58, 89, 0.88));
+    color: #b8ecff;
+    text-shadow: none;
+}
+
+td {
+    color: #e4f2ff;
+}
+
+#userSearch,
+#mail input,
+#mail textarea,
+#mail select {
+    background: rgba(8, 27, 41, 0.82);
+    border: 1px solid rgba(58, 200, 255, 0.35);
+    color: #dbf4ff;
+}
+
+#userSearch::placeholder,
+#mail input::placeholder,
+#mail textarea::placeholder {
+    color: #80a9bf;
+}
+
+#sendMailBtn,
+#refreshProofsBtn,
+#stats button {
+    border: 0;
+    color: #042622;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lime));
+    box-shadow: 0 8px 20px rgba(42, 245, 213, 0.28);
+}
+
+#sendMailBtn:hover,
+#refreshProofsBtn:hover,
+#stats button:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+@media (max-width: 700px) {
+    header {
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    nav {
+        margin: 0 10px;
+    }
+
+    section {
+        margin: 12px 10px;
+    }
+}
+
+.search-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 12px;
+    flex-wrap: wrap;
+}
+
+#userSearchType {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 204, 0.35);
+    background: rgba(0, 255, 204, 0.08);
+    color: #00ffcc;
+    font-weight: bold;
+    outline: none;
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.18);
+    cursor: pointer;
+}
+
+#userSearchType option {
+    background: #0f2027;
+    color: #00ffcc;
+}

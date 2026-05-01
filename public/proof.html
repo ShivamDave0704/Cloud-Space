@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>🛡️ Admin Payments | CloudSpace+</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root {
+  --bg-1: #071521;
+  --bg-2: #0e2c3a;
+  --panel: rgba(255,255,255,0.07);
+  --panel-2: rgba(255,255,255,0.12);
+  --accent-cyan: #27f5d2;
+  --accent-blue: #2f9dff;
+  --accent-gold: #ffd05a;
+}
+
+body{
+  margin:0;
+  font-family:"Space Grotesk","Poppins",sans-serif;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(39,245,210,.14), transparent 34%),
+    radial-gradient(circle at 88% 14%, rgba(47,157,255,.16), transparent 36%),
+    linear-gradient(135deg,var(--bg-1),var(--bg-2),#1b4050);
+  color:#fff;
+  padding:30px 16px;
+}
+h1{
+  color:#cffff7;
+  text-align:center;
+  letter-spacing:.4px;
+  text-shadow:0 0 14px rgba(39,245,210,.7);
+  margin:0 0 16px;
+}
+.container{
+  max-width:1200px;
+  margin:auto;
+  background:var(--panel);
+  backdrop-filter:blur(14px);
+  padding:20px;
+  border-radius:20px;
+  border:1px solid rgba(47,157,255,.28);
+  box-shadow:0 16px 45px rgba(3,13,22,.45),0 0 30px rgba(0,255,255,.2);
+}
+
+.top-toolbar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:0 auto 18px;
+  gap:10px;
+  max-width:1200px;
+  flex-wrap:wrap;
+}
+
+.search-wrap {
+  text-align:center;
+  margin-bottom:14px;
+}
+
+#searchBox {
+  width:min(420px,100%);
+  padding:11px 14px;
+  border-radius:14px;
+  border:1px solid rgba(39,245,210,.34);
+  outline:none;
+  font-size:14px;
+  background:rgba(10,32,45,.72);
+  color:#fff;
+  box-shadow:0 0 14px rgba(0,255,255,.22);
+  transition:.25s ease;
+}
+
+#searchBox:focus {
+  border-color: var(--accent-cyan);
+  box-shadow:0 0 20px rgba(39,245,210,.45);
+}
+
+/* 🔘 Filter Buttons */
+.filters{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.filters button{
+  padding:8px 14px;
+  border:none;
+  border-radius:999px;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(90deg,rgba(39,245,210,.9),rgba(47,157,255,.9));
+  color:#042424;
+  box-shadow:0 6px 14px rgba(39,245,210,.28);
+  transition:.2s ease;
+}
+.filters button.active{
+  box-shadow:0 0 18px rgba(39,245,210,.7);
+  transform:scale(1.05);
+}
+.filters button:hover{ transform:translateY(-1px) scale(1.03); }
+
+/* 📊 Table */
+.header,.row{
+  display:grid;
+  grid-template-columns:
+  130px 90px 80px 170px 1fr 120px 160px;
+  gap:8px;
+  padding:10px;
+  text-align:center;
+  align-items:center;
+}
+.header{
+  background:linear-gradient(145deg,rgba(39,245,210,.22),rgba(47,157,255,.22));
+  border:1px solid rgba(47,157,255,.35);
+  font-weight:bold;
+  border-radius:12px;
+}
+.row{
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.row:hover{background:rgba(255,255,255,.08)}
+
+.status{
+  padding:5px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:bold;
+}
+.pending{color:#ffcc00;border:1px solid #ffcc00}
+.approved{color:#00ffcc;border:1px solid #00ffcc}
+.rejected{color:#ff4d4d;border:1px solid #ff4d4d}
+
+.actions button{
+  margin:2px;
+  padding:6px 10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.approve{background:linear-gradient(90deg,#00ffcc,#00aa88)}
+.reject{background:linear-gradient(90deg,#ff4d4d,#ff9966)}
+
+img.proof{
+  width:55px;height:55px;
+  border-radius:10px;
+  cursor:pointer;
+  border:1px solid rgba(0,255,255,.4);
+}
+
+/* 🔍 Image modal */
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.modal img{
+  max-width:90%;
+  max-height:90%;
+  border-radius:14px;
+  box-shadow:0 0 25px rgba(0,255,255,.6);
+}
+.amount-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.amount-original {
+  opacity: 0.5;
+  text-decoration: line-through;
+  font-size: 13px;
+}
+
+.amount-discount {
+  color: #ffcc00;
+  font-size: 12px;
+}
+
+.amount-final {
+  color: #00ffcc;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.coupon-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  background: linear-gradient(90deg,#ffcc00,#ff8800);
+  color: #000;
+  margin-top: 4px;
+}
+
+.row.approved-row {
+  box-shadow: inset 0 0 12px rgba(0,255,200,.25);
+}
+
+.row.rejected-row {
+  opacity: 0.55;
+}
+
+.meta {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+/* ===== PREMIUM UI UPGRADE ===== */
+
+.row {
+  border-radius: 16px;
+  margin: 10px 0;
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,0.06),
+    rgba(255,255,255,0.02)
+  );
+  transition: all 0.35s ease;
+}
+
+.row:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0 25px rgba(0,255,255,0.25);
+}
+
+/* Approved / Rejected Glow */
+.approved-row {
+  box-shadow: inset 0 0 25px rgba(0,255,180,.25),
+              0 0 20px rgba(0,255,180,.15);
+}
+
+.rejected-row {
+  opacity: 0.55;
+  filter: grayscale(40%);
+}
+
+/* 💰 Amount Box */
+.amount-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.amount-original {
+  font-size: 12px;
+  opacity: .5;
+  text-decoration: line-through;
+}
+
+.amount-discount {
+  font-size: 11px;
+  color: #ffcc00;
+}
+
+.amount-final {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00ffcc;
+  text-shadow: 0 0 8px rgba(0,255,200,.6);
+}
+
+/* 🎟 Coupon */
+.coupon-badge {
+  margin-top: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: bold;
+  background: linear-gradient(90deg,#ffcc00,#ff8800);
+  color: #000;
+  box-shadow: 0 0 12px rgba(255,200,0,.6);
+}
+
+/* 📌 Status */
+.status {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pending {
+  background: rgba(255,204,0,.15);
+}
+
+.approved {
+  background: rgba(0,255,200,.15);
+}
+
+.rejected {
+  background: rgba(255,80,80,.15);
+}
+
+/* 🕒 Meta */
+.meta {
+  font-size: 11px;
+  opacity: .7;
+  margin-top: 4px;
+}
+
+/* ⚙️ Action Buttons */
+.actions button {
+  transition: all .25s ease;
+}
+
+.actions button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 12px rgba(0,255,255,.6);
+}
+
+/* 🧾 Proof Image */
+img.proof {
+  box-shadow: 0 0 15px rgba(0,255,255,.4);
+}
+
+img.proof:hover {
+  transform: scale(1.15);
+}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:18px;
+}
+.stats div{
+  background:linear-gradient(145deg,rgba(39,245,210,.18),rgba(47,157,255,.16));
+  border:1px solid rgba(47,157,255,.24);
+  padding:14px;
+  border-radius:14px;
+  text-align:center;
+  box-shadow:0 8px 22px rgba(0,255,255,.15);
+}
+.stats b{
+  font-size:20px;
+  color:#00ffcc;
+}
+.amount-box{
+  align-items:flex-start;
+}
+@keyframes approvePop {
+  0% { transform: scale(.95); opacity:.6 }
+  60% { transform: scale(1.05); box-shadow:0 0 30px rgba(0,255,200,.8) }
+  100% { transform: scale(1); }
+}
+
+.approving {
+  animation: approvePop .5s ease forwards;
+}
+/* 🔘 Top Nav Buttons */
+.nav-btn{
+  padding:10px 18px;
+  border:none;
+  border-radius:999px;
+  font-weight:600;
+  cursor:pointer;
+  font-size:14px;
+  transition:all .3s ease;
+  backdrop-filter:blur(10px);
+}
+
+.back-btn{
+  background:linear-gradient(90deg,#00c6ff,#0072ff);
+  color:#000;
+  box-shadow:0 0 18px rgba(0,200,255,.6);
+}
+
+.refresh-btn{
+  background:linear-gradient(90deg,#00ffcc,#00aa88);
+  color:#000;
+  box-shadow:0 0 18px rgba(0,255,200,.6);
+}
+
+.nav-btn:hover{
+  transform:scale(1.08);
+  box-shadow:0 0 30px rgba(0,255,255,.9);
+}
+
+@media (max-width: 780px) {
+  .header,.row{
+    grid-template-columns: 1fr;
+    text-align:left;
+    gap:6px;
+  }
+  .header { display:none; }
+  .row { padding:12px; }
+}
+
+/* 🔄 Refresh animation */
+.refreshing{
+  animation:spin .7s linear infinite;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+/* Cool Alert System */
+.cool-alert {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    background: rgba(20, 20, 30, 0.95);
+    color: #fff;
+    padding: 18px 28px;
+    border-radius: 14px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 30px rgba(0, 255, 200, 0.6);
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 10000;
+    font-weight: 600;
+}
+.cool-alert.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.cool-alert.success {
+    border-left: 5px solid #22c55e;
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.7);
+}
+.cool-alert.error {
+    border-left: 5px solid #ef4444;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+}
+.cool-alert.warning {
+    border-left: 5px solid #fbbf24;
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.7);
+}
+.cool-alert .icon {
+    font-size: 24px;
+}
+</style>
+</head>
+
+<body>
+<div id="coolAlertContainer"></div>
+<h1>🛡️ CloudSpace+ Payments</h1>
+<div class="top-toolbar">
+
+  <!-- ⬅️ Back -->
+  <button onclick="goBack()" class="nav-btn back-btn">
+    ⬅ Back to Admin
+  </button>
+
+  <!-- 🔄 Refresh -->
+  <button onclick="refreshPayments()" class="nav-btn refresh-btn">
+    🔄 Refresh
+  </button>
+
+</div>
+
+<div class="container">
+<div class="stats">
+  <div>💰 Total Revenue<br><b id="rev">₹0</b></div>
+  <div>🎟 Discount Given<br><b id="disc">₹0</b></div>
+  <div>✅ Approved<br><b id="ok">0</b></div>
+</div>
+
+<div class="search-wrap">
+  <input
+    id="searchBox"
+    placeholder="🔍 Search UID / Txn ID / Coupon"
+  >
+</div>
+
+  <!-- 🔘 FILTERS -->
+  <div class="filters">
+    <button onclick="filterPayments('all',this)" class="active">All</button>
+  <button onclick="filterPayments('card',this)">💳 Card</button>
+  <button onclick="filterPayments('upi',this)">📱 UPI</button>
+  <button onclick="filterPayments('qr',this)">🧾 QR Proof</button>
+    </div>
+
+  <!-- 📊 TABLE -->
+  <div class="header">
+  <div>UID</div>
+  <div>Plan</div>
+  <div>Method</div>
+  <div>Amount</div>
+  <div>Txn / Notes</div>
+  <div>Status</div>
+  <div>Action</div>
+</div>
+  <div id="rows"></div>
+  <div class="row ${status}-row" data-id="${p._id}">
+</div>
+
+<!-- 🔍 IMAGE MODAL -->
+<div class="modal" id="imgModal" onclick="this.style.display='none'">
+  <img id="modalImg">
+</div>
+
+<script>
+  const PLAN_PRICES = {
+  silver: 500,
+  gold: 1999,
+  platinum: 6999
+};
+
+const API = (location.hostname==="localhost" || location.hostname==="127.0.0.1")
+  ? "http://localhost:5000"
+  : location.origin;
+
+let allPayments=[];
+let currentFilter="all";
+
+// Cool Alert System Function
+function showCoolAlert(message, type = 'success') {
+    const container = document.getElementById('coolAlertContainer') || document.body;
+    const alert = document.createElement('div');
+    alert.className = `cool-alert ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️'
+    };
+    
+    alert.innerHTML = `
+        <span class="icon">${icons[type] || icons.success}</span>
+        <span>${message}</span>
+    `;
+    
+    container.appendChild(alert);
+    
+    setTimeout(() => alert.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        alert.classList.remove('show');
+        setTimeout(() => alert.remove(), 400);
+    }, 4000);
+}
+
+async function api(endpoint,method="GET",body){
+  const token=localStorage.getItem("token");
+  const res=await fetch(API+endpoint,{
+    method,
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+token
+    },
+    body:body?JSON.stringify(body):null
+  });
+  return res.json();
+}
+
+/* ================= LOAD PAYMENTS ================= */
+async function loadPayments(){
+  const data = await api("/admin/proofs");
+  allPayments = data.proofs || [];
+  render();
+ let totalRevenue = 0;
+let totalDiscount = 0;
+let approvedCount = 0;
+
+allPayments.forEach(p => {
+  if (p.status === "approved") {
+    totalRevenue += Number(p.finalAmount || 0);
+    totalDiscount += Number(p.discount || 0);
+    approvedCount++;
+  }
+});
+
+document.getElementById("rev").innerText =
+  "₹" + totalRevenue.toFixed(2);
+
+document.getElementById("disc").innerText =
+  "₹" + totalDiscount.toFixed(2);
+
+document.getElementById("ok").innerText =
+  approvedCount;
+}
+
+//================= SEARCH =================
+let searchQuery = "";
+
+document.getElementById("searchBox").addEventListener("input", e => {
+  searchQuery = e.target.value.toLowerCase();
+  render();
+});
+
+/* ================= FILTER ================= */
+function filterPayments(type,btn){
+  currentFilter = type;
+  document.querySelectorAll(".filters button")
+    .forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+/* ================= RENDER ================= */
+function render() {
+  const box = document.getElementById("rows");
+  box.innerHTML = "";
+
+  allPayments
+    .filter(p => {
+      const method = (p.method || "qr").toLowerCase();
+
+      if (currentFilter !== "all" && method !== currentFilter) return false;
+
+      if (!searchQuery) return true;
+
+      return (
+        p.uid?.toLowerCase().includes(searchQuery) ||
+        p.upi_txn_id?.toLowerCase().includes(searchQuery) ||
+        p.coupon?.toLowerCase().includes(searchQuery)
+      );
+    })
+    .forEach(p => {
+
+      /* ===== SAFE NUMBERS ===== */
+      const base = Number(p.amount) || 0;
+      const discount = Number(p.discount) || 0;
+      const percent = Number(p.discountPercent) || 0;
+      const finalAmount =
+        Number.isFinite(Number(p.finalAmount))
+          ? Number(p.finalAmount)
+          : base - discount;
+
+      const status = (p.status || "pending").toLowerCase();
+
+      /* ===== FRAUD DETECTION ===== */
+      const frauds = [];
+      if (percent >= 70) frauds.push("High Discount");
+
+      const sameTxn = allPayments.filter(x => x.upi_txn_id === p.upi_txn_id);
+      if (sameTxn.length > 1) frauds.push("Duplicate TXN");
+
+      const sameUser = allPayments.filter(x => x.uid === p.uid);
+      if (sameUser.length >= 5) frauds.push("Multiple Attempts");
+
+      box.innerHTML += `
+      <div class="row ${status}-row" data-id="${p._id}">
+
+        <!-- UID -->
+        <div>${p.uid || "-"}</div>
+
+        <!-- PLAN -->
+        <div>${(p.plan || "-").toUpperCase()}</div>
+
+        <!-- METHOD -->
+        <div>${(p.method || "qr").toUpperCase()}</div>
+
+        <!-- 💰 AMOUNT -->
+        <div class="amount-box">
+          ${
+            discount > 0
+              ? `
+                <div class="amount-original">₹${base.toFixed(2)}</div>
+                <div class="amount-discount">
+                  ${percent}% OFF · -₹${discount.toFixed(2)}
+                </div>
+                <div class="amount-final">₹${finalAmount.toFixed(2)}</div>
+              `
+              : `<div class="amount-final">₹${base.toFixed(2)}</div>`
+          }
+
+          ${p.coupon ? `<span class="coupon-badge">${p.coupon}</span>` : ""}
+
+          ${
+            frauds.length
+              ? `<span class="coupon-badge" style="background:#ff4d4d;color:#fff">
+                  🚨 ${frauds.join(", ")}
+                </span>`
+              : ""
+          }
+        </div>
+
+        <!-- 🧾 TXN -->
+        <div style="text-align:left">
+          <div>${p.upi_txn_id || "-"}</div><div style="text-align:left">
+  ${
+    p.method === "card"
+      ? `
+        💳 Card ****${p.card?.last4 || "XXXX"}<br>
+        <span class="meta">${p.card?.holder || ""}</span>
+      `
+      : p.upi_txn_id || "-"
+  }
+</div>
+          <div class="meta">
+            ${p.submittedAt ? new Date(p.submittedAt).toLocaleString() : ""}
+          </div>
+        </div>
+
+        <!-- 📌 STATUS -->
+        <div>
+          <span class="status ${status}">${status}</span>
+          ${
+            p.verifiedAt
+              ? `<div class="meta">✔ ${new Date(p.verifiedAt).toLocaleString()}</div>`
+              : ""
+          }
+        </div>
+
+        <!-- ⚙️ ACTION -->
+        <div class="actions">
+          ${
+            status === "pending"
+              ? `
+                <button class="approve"
+                  onclick="updateStatus('${p._id}','approved')">
+                  Approve
+                </button>
+                <button class="reject"
+                  onclick="updateStatus('${p._id}','rejected')">
+                  Reject
+                </button>
+              `
+              : ""
+          }
+
+          ${
+            p.screenshot
+              ? `<img src="${p.screenshot}"
+                   class="proof"
+                   title="View Proof"
+                   onclick="viewImg('${p.screenshot}')">`
+              : ""
+          }
+        </div>
+
+      </div>`;
+    });
+}
+
+/* ================= UPDATE STATUS ================= */
+async function updateStatus(id,status){
+  const row = document.querySelector(`[data-id="${id}"]`);
+  if (row && status === "approved") {
+    row.classList.add("approving");
+  }
+
+  await api("/admin/update-status","POST",{id,status});
+  loadPayments();
+}
+
+/* ================= IMAGE VIEW ================= */
+function viewImg(src){
+  document.getElementById("imgModal").style.display="flex";
+  document.getElementById("modalImg").src=src;
+}
+
+/* ================= ADMIN CHECK ================= */
+(async()=>{
+  const me=await api("/me");
+  if(!me || !["admin","superadmin"].includes(me.role)){
+    showCoolAlert("Admins only", "warning");
+    setTimeout(() => location.href = "upload.html", 2000);
+    return;
+  }
+  loadPayments();
+})();
+
+//================= FRAUD DETECTION =================
+function detectFraud(p, all) {
+  let flags = [];
+
+  // Duplicate TXN
+  const sameTxn = all.filter(x => x.upi_txn_id === p.upi_txn_id);
+  if (sameTxn.length > 1) flags.push("Duplicate TXN");
+
+  // Heavy discount
+  if (p.discountPercent >= 70) flags.push("High Discount");
+
+  // Too many attempts
+  const sameUser = all.filter(x => x.uid === p.uid);
+  if (sameUser.length >= 5) flags.push("Multiple Attempts");
+
+  return flags;
+}
+
+// ⬅️ Back to Admin
+function goBack(){
+  location.href = "admin.html";
+}
+
+// 🔄 Refresh Payments
+async function refreshPayments(){
+  const btn = document.querySelector(".refresh-btn");
+  btn.classList.add("refreshing");
+
+  await loadPayments();
+
+  setTimeout(()=>{
+    btn.classList.remove("refreshing");
+  },600);
+}
+
+</script>
+
+</body>
+</html>

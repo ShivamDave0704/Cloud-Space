@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📤 Upload Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="upload.css">
+
+    <style>
+        /* 💬 Alert Styles */
+        #customAlert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(15, 32, 39, 0.95);
+            color: #fff;
+            padding: 20px 28px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #customAlert.show {
+            display: flex;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #customAlert.success {
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        #customAlert.warn {
+            border: 2px solid #ffcc00;
+            box-shadow: 0 0 20px #ffcc00;
+        }
+
+        #customAlert.info {
+            border: 2px solid #00e0ff;
+            box-shadow: 0 0 20px #00e0ff;
+        }
+
+        /* 🌟 Premium Modal */
+        #premiumModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .premium-box {
+            background: rgba(15, 32, 39, 0.95);
+            padding: 25px 40px;
+            border-radius: 20px;
+            color: #fff;
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .plan-card {
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(0, 255, 255, 0.08);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .plan-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+        }
+
+        .plan-card h3 {
+            color: #00ffcc;
+            margin-bottom: 10px;
+        }
+
+        .price {
+            font-size: 20px;
+            color: #00ffff;
+            margin: 10px 0;
+        }
+
+        .upgrade-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 🌈 Extra Premium UI Features */
+        .premium-badge {
+            display: inline-block;
+            margin-left: 10px;
+            color: #00ffcc;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #0077ff;
+        }
+
+        #speedMeter {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        #speedMeter .fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00ffff, #0077ff);
+            animation: speedAnim 2s linear infinite alternate;
+        }
+
+        @keyframes speedAnim {
+            from {
+                width: 40%;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        #autoBackup {
+            display: none;
+            margin: 10px 0;
+            color: #00ffcc;
+            font-size: 14px;
+        }
+
+        /* 💎 Glowing Background for Platinum */
+        body.platinum-bg {
+            background: linear-gradient(45deg, #000, #0f2027, #203a43, #2c5364);
+            background-size: 400% 400%;
+            animation: shift 15s ease infinite;
+        }
+
+        @keyframes shift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div id="customAlert">
+            <span id="alertIcon">ℹ️</span>
+            <span id="alertMessage">This is a message</span>
+        </div>
+
+        <!-- Profile -->
+        <div id="profile-container">
+            <img id="profilePic" src="/images/default-avatar.png" alt="Profile Picture" title="Click to view details">
+            <span id="userBadge" class="premium-badge"></span>
+            <button id="upgradeBtn" type="button">💎 Upgrade</button>
+            <button id="logoutBtn" type="button">🚪 Logout</button>
+        </div>
+
+        <div class="upload-container">
+            <div class="upload-section">
+                <h1>📤 Upload Files to Cloud</h1>
+
+                <!-- Speed Meter (Premium Feature) -->
+                <div id="speedMeter">
+                    <div class="fill"></div>
+                </div>
+
+                <section class="file-input-wrapper" id="dropZone">
+                    <label for="fileInput" class="file-label">
+                        <span id="fileLabelText">📂 Drag & drop files here or click to browse</span>
+                    </label>
+                    <input type="file" id="fileInput" name="files" multiple hidden aria-hidden="true">
+                </section>
+
+                <section id="filePreview"></section>
+
+                <section class="button-group">
+                    <button id="uploadBtn" type="button">⬆️ Upload</button>
+                    <button id="cancelBtn" type="button">❌ Cancel</button>
+                </section>
+
+                <div id="autoBackup">🪄 Auto Backup Enabled (Platinum Feature)</div>
+
+                <section id="progressContainer" aria-live="polite"></section>
+                <div id="uploadError" aria-live="polite"></div>
+
+                <nav>
+                    <a href="files.html" class="view-files-btn">📂 View Uploaded Files</a>
+                </nav>
+            </div>
+
+            <aside id="storageBox">
+                <h3>Your Cloud Space</h3>
+                <div class="circle-progress">
+                    <svg>
+                        <circle class="bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="progress" cx="60" cy="60" r="54"></circle>
+                    </svg>
+                    <div class="storage-text">
+                        <span id="storagePercent">0%</span>
+                        <small id="storageUsed">Loading...</small>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- 💎 Premium Plans Modal -->
+    <div id="premiumModal" class="modal">
+        <div class="modal-content premium-box">
+            <span class="close" id="closePremium">&times;</span>
+            <h2>💎 Upgrade to Premium</h2>
+            <p>Choose your plan and unlock exclusive features!</p>
+
+            <div class="plans">
+                <div class="plan-card basic">
+                    <h3>Free Plan</h3>
+                    <p>✅ 1 GB Storage<br>✅ Basic Uploads<br>❌ No Priority Speed</p>
+                    <button disabled>Current Plan</button>
+                </div>
+
+                <div class="plan-card silver">
+                    <h3>Silver Plan</h3>
+                    <p>💠 10 GB Storage<br>⚡ Fast Uploads<br>📅 30 Days</p>
+                    <p class="price">₹199</p>
+                    <button class="upgrade-btn" data-plan="silver" data-amount="199">Upgrade</button>
+                </div>
+
+                <div class="plan-card gold">
+                    <h3>Gold Plan</h3>
+                    <p>💎 50 GB Storage<br>⚡⚡ Ultra Speed<br>🔒 Private Files<br>📅 90 Days</p>
+                    <p class="price">₹499</p>
+                    <button class="upgrade-btn" data-plan="gold" data-amount="499">Upgrade</button>
+                </div>
+
+                <div class="plan-card platinum">
+                    <h3>Platinum Plan</h3>
+                    <p>🚀 200 GB Storage<br>🛡️ File Lock & Analytics<br>📅 1 Year Access</p>
+                    <p class="price">₹999</p>
+                    <button class="upgrade-btn" data-plan="platinum" data-amount="999">Upgrade</button>
+                </div>
+
+                <div class="plan-card cloudplus">
+                    <h3>Cloud+ Plan</h3>
+                    <p>🌌 Full Cloud+ UI<br>🚀 200 TB Storage<br>📅 1 Year + Dedicated UI</p>
+                    <p class="price">₹9,999</p>
+                    <button class="upgrade-btn" data-plan="cloudplus" data-amount="9999">Upgrade</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="upload.js"></script>
+    <script>
+        // ⚙️ Premium System Script
+        const premiumModal = document.getElementById("premiumModal");
+        const closePremium = document.getElementById("closePremium");
+        const upgradeBtn = document.getElementById("upgradeBtn");
+        const speedMeter = document.getElementById("speedMeter");
+        const badge = document.getElementById("userBadge");
+        const autoBackup = document.getElementById("autoBackup");
+
+        function showAlert(msg, type = "info") {
+            const alertBox = document.getElementById("customAlert");
+            document.getElementById("alertMessage").innerText = msg;
+            alertBox.className = "show " + type;
+            setTimeout(() => alertBox.className = "", 3000);
+        }
+
+        upgradeBtn.addEventListener("click", () => {
+            premiumModal.style.display = "flex";
+        });
+
+        closePremium.addEventListener("click", () => {
+            premiumModal.style.display = "none";
+        });
+
+        window.addEventListener("click", (e) => {
+            if (e.target === premiumModal) premiumModal.style.display = "none";
+        });
+
+        // 💰 Handle Upgrade
+        document.querySelectorAll(".upgrade-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const plan = btn.dataset.plan;
+                // For Cloud+ open the payment page so user can submit proof and admin can approve
+                if (plan === "cloudplus") {
+                    showAlert(`Opening Cloud+ payment page...`, "info");
+                    setTimeout(() => {
+                        window.location.href = `payment.html?plan=${plan}`;
+                    }, 700);
+                    return;
+                }
+
+                showAlert(`Redirecting to payment for ${plan} plan...`, "info");
+                setTimeout(() => {
+                    localStorage.setItem("premiumPlan", plan);
+                    localStorage.setItem("premiumExpiry", Date.now() + (plan === "silver" ? 30 : plan === "gold" ? 90 : 9999) * 24 * 60 * 60 * 1000);
+                    showAlert(`✅ You are now on ${plan.toUpperCase()} plan!`, "success");
+                    premiumModal.style.display = "none";
+                    location.reload();
+                }, 2000);
+            });
+        });
+
+        // ⏳ Expiry Check
+        const expiry = localStorage.getItem("premiumExpiry");
+        const plan = localStorage.getItem("premiumPlan") || "free";
+        if (expiry && Date.now() > expiry) {
+            localStorage.removeItem("premiumPlan");
+            localStorage.removeItem("premiumExpiry");
+            showAlert("⏰ Your premium plan has expired.", "warn");
+        }
+
+        // 🎯 Apply Plan Effects
+        document.body.classList.remove("platinum-bg");
+        switch (plan) {
+            case "silver":
+                badge.textContent = "💠 SILVER";
+                speedMeter.style.display = "block";
+                document.querySelector("#speedMeter .fill").style.background = "linear-gradient(90deg,#00ffff,#c0c0c0)";
+                break;
+
+            case "gold":
+                badge.textContent = "💎 GOLD";
+                speedMeter.style.display = "block";
+                document.querySelector("#speedMeter .fill").style.background = "linear-gradient(90deg,gold,#ffcc00)";
+                break;
+
+            case "platinum":
+                badge.textContent = "🚀 PLATINUM";
+                document.body.classList.add("platinum-bg");
+                speedMeter.style.display = "block";
+                autoBackup.style.display = "block";
+                document.querySelector("#speedMeter .fill").style.background = "linear-gradient(90deg,#00ffff,#0077ff)";
+                break;
+
+            default:
+                badge.textContent = "(Free)";
+        }
+    </script>
+</body>
+
+</html>

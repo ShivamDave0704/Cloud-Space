@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>💬 Support & Feedback | CloudSpace+</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffa5a5 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    overflow-x: hidden;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+h1 {
+    color: white;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    animation: fadeInDown 0.6s ease;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 18px;
+    font-weight: 500;
+    animation: fadeInUp 0.6s ease 0.1s both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.box {
+    width: 100%;
+    max-width: 750px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 30px;
+    padding: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: fadeInUp 0.6s ease 0.2s both, boxGlow 3s ease-in-out infinite;
+}
+
+@keyframes boxGlow {
+    0%, 100% {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+    50% {
+        box-shadow: 0 20px 80px rgba(102, 126, 234, 0.2), 0 0 40px rgba(240, 147, 251, 0.1);
+        border-color: rgba(255, 255, 255, 0.35);
+    }
+}
+
+label {
+    display: block;
+    margin-top: 20px;
+    font-weight: 600;
+    color: white;
+    font-size: 15px;
+    animation: labelSlide 0.5s ease;
+    position: relative;
+}
+
+label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00ff88, #00ffff);
+    transition: width 0.4s ease;
+}
+
+input, select, textarea {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #333;
+    font-family: inherit;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    animation: inputSlideIn 0.5s ease;
+}
+
+input:hover:not(:focus), select:hover:not(:focus), textarea:hover:not(:focus) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateX(5px);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1), inset 0 0 10px rgba(102, 126, 234, 0.3);
+    transform: translateY(-2px);
+}
+
+input::placeholder, textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+    transition: color 0.3s ease;
+}
+
+input:focus::placeholder, textarea:focus::placeholder {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+select {
+    color: #333;
+    background: rgba(255, 255, 255, 0.95);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+select option {
+    color: #333;
+    background: white;
+}
+
+/* Priority Field Styling */
+#priority {
+    position: relative;
+}
+
+#priority:disabled {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
+    cursor: not-allowed;
+    font-weight: 600;
+    color: #333;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.priority-container {
+    position: relative;
+}
+
+.priority-badge {
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: none;
+    white-space: nowrap;
+    animation: badgePop 0.4s ease;
+    z-index: 10;
+}
+
+.priority-badge.show {
+    display: inline-block;
+}
+
+.priority-badge.low {
+    background: linear-gradient(135deg, #4ecdc4, #44b8b0);
+    color: white;
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+}
+
+.priority-badge.normal {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.priority-badge.high {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+.priority-badge.urgent {
+    background: linear-gradient(135deg, #ff6b6b, #ff0000);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+    animation: badgePop 0.4s ease, urgentPulse 1.5s ease infinite;
+}
+
+@keyframes badgePop {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+@keyframes urgentPulse {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+    }
+    50% {
+        box-shadow: 0 6px 25px rgba(255, 0, 0, 0.8);
+    }
+}
+
+@keyframes labelSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes inputSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+        border-color: rgba(255, 255, 255, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* ============== CONFETTI ANIMATION ============== */
+@keyframes confettiFall {
+    0% { 
+        transform: translateY(-20vh) rotate(0deg); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: translateY(120vh) rotate(360deg); 
+        opacity: 0; 
+    }
+}
+
+/* ============== BOUNCE IN ANIMATION ============== */
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ============== POP IN ANIMATION ============== */
+@keyframes popIn {
+    0% { 
+        transform: scale(0); 
+        opacity: 0; 
+    }
+    70% { 
+        transform: scale(1.08); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: scale(1); 
+        opacity: 1; 
+    }
+}
+
+/* ============== GRADIENT WAVE ANIMATION ============== */
+@keyframes gradientWave {
+    0% {
+        background-position: 0% center;
+    }
+    50% {
+        background-position: 100% center;
+    }
+    100% {
+        background-position: 0% center;
+    }
+}
+
+/* ============== FADE IN BACKDROP ============== */
+@keyframes fadeInBackdrop {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ============== SPIN ANIMATION ============== */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============== HEARTBEAT ANIMATION ============== */
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1);
+    }
+    50% {
+        transform: scale(1);
+    }
+}
+
+/* ============== WIGGLE ANIMATION ============== */
+@keyframes wiggle {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-2deg);
+    }
+    75% {
+        transform: rotate(2deg);
+    }
+}
+
+/* ============== PROGRESS SHIMMER ============== */
+@keyframes progressShimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+input::placeholder, textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.stars {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+    animation: floatUp 0.6s ease 0.3s both;
+}
+
+.star {
+    font-size: 32px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    display: inline-block;
+    animation: starBounce 0.5s ease forwards;
+}
+
+.star:nth-child(1) { animation-delay: 0s; }
+.star:nth-child(2) { animation-delay: 0.1s; }
+.star:nth-child(3) { animation-delay: 0.2s; }
+.star:nth-child(4) { animation-delay: 0.3s; }
+.star:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes starBounce {
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Bronze - 1st star */
+.star-bronze {
+    color: white;
+}
+
+.star-bronze:hover {
+    transform: scale(1.3) rotate(20deg);
+    filter: drop-shadow(0 0 15px rgba(205, 127, 50, 0.8));
+    animation: starPulse 0.6s ease;
+    color: #CD7F32;
+}
+
+.star-bronze.active {
+    color: #CD7F32;
+    filter: drop-shadow(0 0 20px rgba(205, 127, 50, 1)) drop-shadow(0 0 10px rgba(205, 127, 50, 0.8));
+    animation: bronzeGlow 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.6), 0 0 20px rgba(205, 127, 50, 0.4);
+}
+
+/* Silver - 2nd star */
+.star-silver {
+    color: white;
+}
+
+.star-silver:hover {
+    transform: scale(1.3) rotate(20deg);
+    filter: drop-shadow(0 0 15px rgba(192, 192, 192, 0.8));
+    animation: starPulse 0.6s ease;
+    color: #C0C0C0;
+}
+
+.star-silver.active {
+    color: #C0C0C0;
+    filter: drop-shadow(0 0 20px rgba(192, 192, 192, 1)) drop-shadow(0 0 10px rgba(192, 192, 192, 0.8));
+    animation: silverGlow 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.6), 0 0 20px rgba(192, 192, 192, 0.4);
+}
+
+/* Gold - 3rd star */
+.star-gold {
+    color: white;
+}
+
+.star-gold:hover {
+    transform: scale(1.3) rotate(20deg);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+    animation: starPulse 0.6s ease;
+    color: #FFD700;
+}
+
+.star-gold.active {
+    color: #FFD700;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+    animation: goldGlow 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Diamond - 4th star (Blue) */
+.star-diamond {
+    color: white;
+}
+
+.star-diamond:hover {
+    transform: scale(1.3) rotate(20deg);
+    filter: drop-shadow(0 0 15px rgba(30, 144, 255, 0.8));
+    animation: starPulse 0.6s ease;
+    color: #1E90FF;
+}
+
+.star-diamond.active {
+    color: #1E90FF;
+    filter: drop-shadow(0 0 20px rgba(30, 144, 255, 1)) drop-shadow(0 0 10px rgba(30, 144, 255, 0.8));
+    animation: diamondGlow 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(30, 144, 255, 0.6), 0 0 20px rgba(30, 144, 255, 0.4);
+}
+
+/* Platinum - 5th star (Purple) */
+.star-platinum {
+    color: white;
+}
+
+.star-platinum:hover {
+    transform: scale(1.3) rotate(20deg);
+    filter: drop-shadow(0 0 15px rgba(157, 78, 221, 0.8));
+    animation: starPulse 0.6s ease;
+    color: #9D4EDD;
+}
+
+.star-platinum.active {
+    color: #9D4EDD;
+    filter: drop-shadow(0 0 20px rgba(157, 78, 221, 1)) drop-shadow(0 0 10px rgba(157, 78, 221, 0.8));
+    animation: platinumGlow 1.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(157, 78, 221, 0.6), 0 0 20px rgba(157, 78, 221, 0.4);
+}
+
+@keyframes starPulse {
+    0% {
+        transform: scale(1.3) rotate(20deg);
+    }
+    50% {
+        transform: scale(1.4) rotate(25deg);
+    }
+    100% {
+        transform: scale(1.3) rotate(20deg);
+    }
+}
+
+@keyframes starBurst {
+    0% {
+        transform: scale(0.5) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.35) rotate(10deg);
+    }
+    100% {
+        transform: scale(1.25) rotate(-15deg);
+        opacity: 1;
+    }
+}
+
+@keyframes bronzeGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(205, 127, 50, 1)) drop-shadow(0 0 10px rgba(205, 127, 50, 0.8));
+        text-shadow: 0 0 10px rgba(205, 127, 50, 0.6), 0 0 20px rgba(205, 127, 50, 0.4);
+    }
+    50% {
+        filter: drop-shadow(0 0 30px rgba(205, 127, 50, 1)) drop-shadow(0 0 15px rgba(205, 127, 50, 1));
+        text-shadow: 0 0 20px rgba(205, 127, 50, 0.8), 0 0 30px rgba(205, 127, 50, 0.6);
+    }
+}
+
+@keyframes silverGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(192, 192, 192, 1)) drop-shadow(0 0 10px rgba(192, 192, 192, 0.8));
+        text-shadow: 0 0 10px rgba(192, 192, 192, 0.6), 0 0 20px rgba(192, 192, 192, 0.4);
+    }
+    50% {
+        filter: drop-shadow(0 0 30px rgba(192, 192, 192, 1)) drop-shadow(0 0 15px rgba(192, 192, 192, 1));
+        text-shadow: 0 0 20px rgba(192, 192, 192, 0.8), 0 0 30px rgba(192, 192, 192, 0.6);
+    }
+}
+
+@keyframes goldGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1)) drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+}
+
+@keyframes platinumGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(157, 78, 221, 1)) drop-shadow(0 0 10px rgba(157, 78, 221, 0.8));
+        text-shadow: 0 0 10px rgba(157, 78, 221, 0.6), 0 0 20px rgba(157, 78, 221, 0.4);
+    }
+    50% {
+        filter: drop-shadow(0 0 30px rgba(157, 78, 221, 1)) drop-shadow(0 0 15px rgba(157, 78, 221, 1));
+        text-shadow: 0 0 20px rgba(157, 78, 221, 0.8), 0 0 30px rgba(157, 78, 221, 0.6);
+    }
+}
+
+@keyframes diamondGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(30, 144, 255, 1)) drop-shadow(0 0 10px rgba(30, 144, 255, 0.8));
+        text-shadow: 0 0 10px rgba(30, 144, 255, 0.6), 0 0 20px rgba(30, 144, 255, 0.4);
+    }
+    50% {
+        filter: drop-shadow(0 0 30px rgba(30, 144, 255, 1)) drop-shadow(0 0 15px rgba(30, 144, 255, 1));
+        text-shadow: 0 0 20px rgba(30, 144, 255, 0.8), 0 0 30px rgba(30, 144, 255, 0.6);
+    }
+}
+
+@keyframes starTwinkle {
+    0%, 100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+    }
+    50% {
+        opacity: 0.7;
+        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+    }
+}
+
+button {
+    margin-top: 30px;
+    width: 100%;
+    padding: 16px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: buttonSlideIn 0.6s ease 0.5s both;
+}
+
+@keyframes buttonSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+
+button:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5), 0 0 20px rgba(102, 126, 234, 0.3);
+    animation: buttonGlow 1s ease infinite;
+}
+
+button:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+@keyframes buttonGlow {
+    0%, 100% {
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+    50% {
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.7), 0 0 30px rgba(118, 75, 162, 0.5);
+    }
+}
+
+button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+button span {
+    position: relative;
+    z-index: 1;
+}
+
+#alert {
+    display: none;
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    animation: slideInRight 0.3s ease, alertPulse 0.6s ease 0.3s;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes alertPulse {
+    0% {
+        transform: scale(0.95);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.success {
+    color: #00ff88;
+    border: 2px solid rgba(0, 255, 136, 0.8);
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(76, 175, 80, 0.1));
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4), inset 0 0 10px rgba(0, 255, 136, 0.1);
+    animation: successGlow 1.5s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.success::before {
+    content: '✨';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    animation: shimmerIcon 0.6s ease;
+}
+
+@keyframes successGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.4), inset 0 0 10px rgba(0, 255, 136, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.7), inset 0 0 15px rgba(0, 255, 136, 0.2);
+    }
+}
+
+@keyframes shimmerIcon {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+.error {
+    color: #ff6b6b;
+    border: 2px solid rgba(255, 107, 107, 0.8);
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(255, 0, 0, 0.05));
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.4), inset 0 0 10px rgba(255, 107, 107, 0.1);
+    animation: errorShake 0.5s ease, errorGlow 1.5s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.error::before {
+    content: '⚠️';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    animation: errorPulse 0.8s ease infinite;
+}
+
+@keyframes errorShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes errorGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.4), inset 0 0 10px rgba(255, 107, 107, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(255, 107, 107, 0.7), inset 0 0 15px rgba(255, 107, 107, 0.2);
+    }
+}
+
+@keyframes errorPulse {
+    0%, 100% {
+        transform: translateY(-50%) scale(1);
+    }
+    50% {
+        transform: translateY(-50%) scale(1.2);
+    }
+}
+
+.socials {
+    margin-top: 50px;
+    text-align: center;
+    animation: fadeInUp 0.6s ease 0.3s both;
+}
+
+.socials h3 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 22px;
+    animation: titlePulse 0.6s ease;
+}
+
+@keyframes titlePulse {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.social-links a {
+    text-decoration: none;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    animation: socialFade 0.5s ease forwards;
+    opacity: 0;
+}
+
+.social-links a:nth-child(1) { animation-delay: 0.3s; }
+.social-links a:nth-child(2) { animation-delay: 0.4s; }
+.social-links a:nth-child(3) { animation-delay: 0.5s; }
+.social-links a:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes socialFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.social-links a:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-4px) scale(1.08);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.back {
+    margin-top: 40px;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    animation: slideIn 0.6s ease 0.7s both;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.back:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateX(-4px);
+}
+
+.ticket-btn {
+    margin-left: 15px;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.ticket-btn:hover {
+    background: linear-gradient(135deg, #f5576c, #ffa5a5);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+}
+
+/* Ticket Modal Styles */
+.ticket-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ticket-modal.active {
+    display: flex;
+}
+
+.ticket-container {
+    width: 100%;
+    max-width: 900px;
+    max-height: 85vh;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ticket-header {
+    padding: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ticket-header h2 {
+    color: white;
+    font-size: 24px;
+    margin: 0;
+}
+
+.ticket-close-btn {
+    background: rgba(255, 107, 107, 0.2);
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.ticket-close-btn:hover {
+    background: rgba(255, 107, 107, 0.4);
+}
+
+.ticket-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 25px;
+}
+
+.ticket-item {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.1));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.ticket-item:hover {
+    border-color: rgba(255, 193, 7, 0.6);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.15));
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+}
+
+.ticket-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.ticket-id {
+    color: #ffc107;
+    font-weight: 700;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+}
+
+.ticket-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.ticket-status.open {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.5);
+}
+
+.ticket-status.pending {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+    border: 1px solid rgba(255, 165, 0, 0.5);
+}
+
+.ticket-status.closed {
+    background: rgba(128, 128, 128, 0.2);
+    color: #aaa;
+    border: 1px solid rgba(128, 128, 128, 0.5);
+}
+
+.ticket-purpose {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.ticket-time {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+/* Chat Modal */
+.chat-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 1001;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.chat-modal.active {
+    display: flex;
+}
+
+.chat-container {
+    width: 100%;
+    max-width: 900px;
+    max-height: 95vh;
+    background: linear-gradient(135deg, rgba(10, 20, 60, 0.95), rgba(20, 10, 50, 0.98));
+    backdrop-filter: blur(35px);
+    border-radius: 30px;
+    border: 2px solid rgba(102, 126, 234, 0.5);
+    box-shadow: 0 35px 120px rgba(102, 126, 234, 0.4), inset 0 0 50px rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 35px;
+}
+
+.chat-header {
+    padding: 0 0 30px 0;
+    border-bottom: 3px solid rgba(102, 126, 234, 0.4);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: none;
+    margin-bottom: 20px;
+}
+
+.chat-header h3 {
+    color: #667eea;
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.chat-status-info {
+    color: rgba(0, 255, 200, 0.8);
+    font-size: 13px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: linear-gradient(135deg, rgba(15, 25, 70, 0.5), rgba(25, 15, 65, 0.5));
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.chat-message {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    animation: messageSlideIn 0.3s ease;
+    flex-wrap: wrap;
+}
+
+@keyframes messageSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-message.user {
+    justify-content: flex-end;
+}
+
+.chat-message.admin {
+    justify-content: flex-start;
+}
+
+.chat-bubble {
+    max-width: 80%;
+    min-width: 80px;
+    padding: 15px 20px;
+    border-radius: 16px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    font-size: 14px;
+    line-height: 1.6;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: inline-block;
+}
+
+.chat-bubble:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.chat-message.user .chat-bubble {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border: 2px solid #667eea;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.2);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.chat-message.user .chat-bubble::before {
+    content: '👤 You';
+    display: block;
+    font-size: 11px;
+    opacity: 1;
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+.chat-message.admin .chat-bubble {
+    background: linear-gradient(135deg, #00ff88 0%, #00ffcc 100%);
+    color: #000000;
+    border: 2px solid #00ff88;
+    font-weight: 600;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+}
+
+.chat-message.admin .chat-bubble::before {
+    content: '🔧 Admin';
+    display: block;
+    font-size: 11px;
+    opacity: 1;
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #000000;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+}
+
+.chat-time {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 5px;
+    padding: 0 8px;
+}
+
+.chat-input-area {
+    padding: 25px;
+    border-top: 2px solid rgba(102, 126, 234, 0.4);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(0, 255, 136, 0.08));
+    border: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.chat-input-wrapper {
+    display: none;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid rgba(102, 126, 234, 0.6);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+    resize: none;
+    min-height: 75px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.11);
+    box-shadow: 0 0 25px rgba(102, 126, 234, 0.6), inset 0 0 12px rgba(102, 126, 234, 0.2);
+}
+
+.chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.file-upload-btn {
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.35), rgba(0, 255, 200, 0.25));
+    border: 2px solid rgba(0, 255, 136, 0.6);
+    border-radius: 14px;
+    color: #00ff88;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    height: 54px;
+    width: 100%;
+}
+
+.file-upload-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.55), rgba(0, 255, 200, 0.45));
+    border-color: rgba(0, 255, 136, 0.9);
+    box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+    transform: translateY(-2px);
+}
+
+.file-upload-btn:active {
+    transform: translateY(0);
+}
+
+.send-btn {
+    padding: 15px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(102, 126, 234, 0.7);
+    border-radius: 14px;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    height: 54px;
+    width: 100%;
+}
+
+.send-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 45px rgba(102, 126, 234, 0.7);
+    background: linear-gradient(135deg, #7b8ef4 0%, #8557b3 100%);
+    border-color: rgba(102, 126, 234, 0.9);
+}
+
+.send-btn:active {
+    transform: translateY(-1px);
+}
+
+#fileInput {
+    display: none;
+}
+
+/* ===============================
+   CUSTOM COOL ALERT
+================================*/
+.cool-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cool-alert-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.cool-alert-box {
+    background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+    border: 2px solid #667eea;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 
+        0 0 30px rgba(102, 126, 234, 0.6),
+        0 0 60px rgba(102, 126, 234, 0.3),
+        inset 0 0 20px rgba(102, 126, 234, 0.1);
+    animation: alertSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cool-alert-overlay.active .cool-alert-box {
+    transform: scale(1);
+    opacity: 1;
+}
+
+@keyframes alertSlideIn {
+    from {
+        transform: scale(0.8) translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.alert-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: alertIconBounce 0.6s ease;
+}
+
+@keyframes alertIconBounce {
+    0% { transform: scale(0.5) rotate(-10deg); }
+    50% { transform: scale(1.1) rotate(5deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+.alert-title {
+    color: #00ffff;
+    font-size: 24px;
+    font-weight: 800;
+    margin: 16px 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    letter-spacing: 0.5px;
+}
+
+.alert-message {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 16px 0 24px 0;
+}
+
+.alert-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: 2px solid #667eea;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    min-width: 150px;
+}
+
+.alert-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 0 30px rgba(102, 126, 234, 0.7),
+        0 0 50px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #7b8ef4 0%, #8557b3 100%);
+    border-color: #00ffff;
+}
+
+.alert-button:active {
+    transform: translateY(-1px);
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+    border-color: #00ff88;
+    color: #000;
+    font-weight: 800;
+    flex: 1;
+    min-width: 120px;
+}
+
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #00ff99 0%, #00dd77 100%);
+    border-color: #00ffff;
+    box-shadow: 
+        0 0 30px rgba(0, 255, 136, 0.7),
+        0 0 50px rgba(0, 255, 136, 0.3);
+    color: #000;
+}
+
+.cancel-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #cc4444 100%);
+    border-color: #ff6b6b;
+    color: white;
+    font-weight: 800;
+    flex: 1;
+    min-width: 120px;
+}
+
+.cancel-btn:hover {
+    background: linear-gradient(135deg, #ff7777 0%, #dd5555 100%);
+    border-color: #ff88ff;
+    box-shadow: 
+        0 0 30px rgba(255, 107, 107, 0.7),
+        0 0 50px rgba(255, 107, 107, 0.3);
+    color: white;
+}
+
+/* ============== SUCCESS MODAL OVERLAY ============== */
+.success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeInBackdrop 0.3s ease;
+}
+
+.success-modal-box {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 25px;
+    padding: 40px 50px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 450px;
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.success-modal-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.6));
+}
+
+.success-modal-box h2 {
+    color: white;
+    font-size: 28px;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.success-modal-box p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.success-modal-box button {
+    margin-top: 15px;
+    padding: 12px 35px;
+    background: linear-gradient(135deg, #00ff88, #4caf50);
+    color: #000;
+    font-weight: 700;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+    animation: buttonSlideIn 0.6s ease 0.3s both;
+}
+
+.success-modal-box button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.5);
+}
+
+/* ============== CONFETTI CONTAINER ============== */
+.confetti {
+    position: absolute;
+    width: 8px;
+    height: 12px;
+    opacity: 0.95;
+    z-index: 10001;
+    pointer-events: none;
+    animation: confettiFall 2.5s linear forwards;
+    border-radius: 2px;
+}
+
+/* ============== COIN HISTORY PANEL ============== */
+.coin-history-panel {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: linear-gradient(135deg, rgba(14, 31, 58, 0.5), rgba(64, 38, 95, 0.45));
+    box-shadow: 0 12px 28px rgba(10, 20, 45, 0.26), inset 0 0 20px rgba(255, 255, 255, 0.05);
+    animation: floatUp 0.35s ease;
+}
+
+.coin-history-panel.hidden {
+    display: none;
+}
+
+.coin-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.coin-history-title {
+    color: #ddf7ff;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.coin-meta-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.coin-chip {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.coin-history-loading,
+.coin-history-empty {
+    padding: 14px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.coin-tx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.coin-tx-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.coin-tx-kind {
+    font-size: 17px;
+}
+
+.coin-tx-type {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.coin-tx-time {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.coin-tx-amount {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.coin-tx-amount.credit {
+    color: #00ff9c;
+}
+
+.coin-tx-amount.debit {
+    color: #ff8a8a;
+}
+
+/* ============== PAYMENT HISTORY PANEL ============== */
+.payment-history-panel {
+    margin-top: 14px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: linear-gradient(135deg, rgba(39, 22, 58, 0.5), rgba(16, 42, 72, 0.45));
+    box-shadow: 0 12px 28px rgba(18, 20, 50, 0.24), inset 0 0 18px rgba(255, 255, 255, 0.05);
+    animation: floatUp 0.35s ease;
+}
+
+.payment-history-panel.hidden {
+    display: none;
+}
+
+.payment-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.payment-history-title {
+    color: #ffe9ff;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.payment-chip {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.payment-history-loading,
+.payment-history-empty {
+    padding: 14px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.payment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.payment-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.payment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-plan {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.payment-amount {
+    color: #00ffb5;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.payment-meta {
+    margin-top: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+</style>
+</head>
+
+<body>
+
+<h1>💬 CloudSpace+ Support</h1>
+<p class="subtitle">Tell us why you’re contacting us & share your experience 🚀</p>
+
+<button class="ticket-btn" onclick="openTicketsModal()" style="margin-bottom: 30px; width: 100%; max-width: 600px; padding: 14px 20px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.2)); border: 2px solid rgba(102, 126, 234, 0.6); color: #667eea; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.3s; display: block; margin-left: auto; margin-right: auto;">🎫 My Support Tickets</button>
+
+<div class="box">
+<form id="supportForm">
+
+<label>📌 Purpose of Contact</label>
+<select id="reason">
+    <option>Loading...</option>
+</select>
+
+<label>⚠ Priority <span style="font-size: 12px; color: rgba(255,255,255,0.7);"> (Auto-set)</span></label>
+<div class="priority-container">
+    <div class="priority-badge" id="priorityBadge"></div>
+    <select id="priority" disabled>
+        <option>Loading...</option>
+    </select>
+</div>
+
+<label>👤 Your User ID</label>
+<input type="text" id="userId" placeholder="Loading..." readonly>
+
+<label>📧 Your Email</label>
+<input type="email" id="email" placeholder="Loading..." readonly>
+
+<label>Your Name (optional)</label>
+<input type="text" id="name" placeholder="Your name">
+
+<label>📱 Phone Number (optional)</label>
+<input type="tel" id="phone" placeholder="+1 (555) 000-0000">
+
+<label>📝 Message / Feedback</label>
+<textarea id="message" placeholder="Explain your issue or suggestion clearly..."></textarea>
+
+<div id="coinHistoryPanel" class="coin-history-panel hidden">
+    <div class="coin-history-header">
+        <div class="coin-history-title">🪙 Cloud Coin Transaction History</div>
+        <div class="coin-meta-chips">
+            <span class="coin-chip" id="coinBalanceChip">Balance: --</span>
+            <span class="coin-chip" id="coinCountChip">Transactions: --</span>
+        </div>
+    </div>
+    <div id="coinHistoryBody" class="coin-history-loading">Loading your coin activity...</div>
+</div>
+
+<div id="paymentHistoryPanel" class="payment-history-panel hidden">
+    <div class="payment-history-header">
+        <div class="payment-history-title">💳 Payment / Billing History</div>
+        <div class="coin-meta-chips">
+            <span class="payment-chip" id="paymentCountChip">Payments: --</span>
+            <span class="payment-chip" id="paymentTotalChip">Total: --</span>
+        </div>
+    </div>
+    <div id="paymentHistoryBody" class="payment-history-loading">Loading your payment history...</div>
+</div>
+
+<label>⭐ Rate Your Experience</label>
+<div class="stars">
+    <span class="star star-bronze" data-rating="1">★</span>
+    <span class="star star-silver" data-rating="2">★</span>
+    <span class="star star-gold" data-rating="3">★</span>
+    <span class="star star-diamond" data-rating="4">★</span>
+    <span class="star star-platinum" data-rating="5">★</span>
+</div>
+
+<button type="submit">📨 Submit</button>
+<div id="alert"></div>
+
+</form>
+</div>
+
+<div class="socials">
+<h3>🌐 Connect With Us</h3>
+<div class="social-links" id="socialLinks"></div>
+</div>
+
+<a href="upload.html" class="back">⬅ Back to CloudSpace</a>
+
+<!-- Success Modal with Confetti -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-modal-box">
+        <div class="success-modal-icon">✨</div>
+        <h2>Feedback Sent!</h2>
+        <p>Thank you for your feedback! We'll review your message and get back to you soon.</p>
+        <button onclick="closeSuccessModal()">Continue</button>
+    </div>
+</div>
+
+<!-- Tickets Modal -->
+<div class="ticket-modal" id="ticketsModal">
+    <div class="ticket-container">
+        <div class="ticket-header">
+            <h2>🎫 My Support Tickets</h2>
+            <button class="ticket-close-btn" onclick="closeTicketsModal()">✕ Close</button>
+        </div>
+        <div class="ticket-content" id="ticketsContent">
+            <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">
+                Loading your tickets...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chat Modal -->
+<div class="chat-modal" id="chatModal">
+    <div class="chat-container">
+        <div class="chat-header">
+            <div>
+                <h3 id="chatTicketId">Ticket #12345</h3>
+                <div class="chat-status-info" id="chatTicketInfo">Status: Open</div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="ticket-close-btn" onclick="closeChatModal()">✕ Close</button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be populated here -->
+        </div>
+        <div class="chat-input-area">
+            <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx" style="display: none;">
+            <textarea class="chat-input" id="chatInput" placeholder="Type your message here..." autocomplete="off"></textarea>
+            <button class="send-btn" onclick="sendChatMessage()">📨 Send Message</button>
+            <button class="file-upload-btn" onclick="triggerFileUpload()" title="Attach file (Image, PDF)">📎 Attach File</button>
+        </div>
+    </div>
+</div>
+
+<!-- COOL ALERT MODAL -->
+<div class="cool-alert-overlay" id="coolAlert">
+    <div class="cool-alert-box">
+        <div class="alert-icon" id="alertIcon">ℹ️</div>
+        <div class="alert-title" id="alertTitle">Notice</div>
+        <div class="alert-message" id="alertMessage">Something important</div>
+        <button class="alert-button" onclick="closeCoolAlert()">✓ Got it</button>
+    </div>
+</div>
+
+<!-- COOL CONFIRMATION MODAL -->
+<div class="cool-alert-overlay" id="coolConfirm">
+    <div class="cool-alert-box">
+        <div class="alert-icon" id="confirmIcon">❓</div>
+        <div class="alert-title" id="confirmTitle">Confirm</div>
+        <div class="alert-message" id="confirmMessage">Are you sure?</div>
+        <div class="button-group">
+            <button class="alert-button confirm-btn" onclick="confirmCoolAlert(true)">✓ Yes</button>
+            <button class="alert-button cancel-btn" onclick="confirmCoolAlert(false)">✕ Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===============================
+   ELEMENTS
+================================*/
+const supportForm = document.getElementById("supportForm");
+const alertBox = document.getElementById("alert");
+const reason = document.getElementById("reason");
+const priority = document.getElementById("priority");
+const message = document.getElementById("message");
+const userId = document.getElementById("userId");
+const email = document.getElementById("email");
+const phone = document.getElementById("phone");
+const socialLinks = document.getElementById("socialLinks");
+const coinHistoryPanel = document.getElementById("coinHistoryPanel");
+const coinHistoryBody = document.getElementById("coinHistoryBody");
+const coinBalanceChip = document.getElementById("coinBalanceChip");
+const coinCountChip = document.getElementById("coinCountChip");
+const paymentHistoryPanel = document.getElementById("paymentHistoryPanel");
+const paymentHistoryBody = document.getElementById("paymentHistoryBody");
+const paymentCountChip = document.getElementById("paymentCountChip");
+const paymentTotalChip = document.getElementById("paymentTotalChip");
+
+/* ===============================
+   LOGIN CHECK & AUTO-FETCH DATA
+================================*/
+const token = localStorage.getItem("token");
+if (!token) {
+    showCoolAlert("You must log in to access support!", "🔐 Login Required", "🔑");
+    setTimeout(() => location.href = "login.html", 2000);
+}
+
+/* Auto-fetch user data */
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            return;
+        }
+
+        const res = await fetch("/me", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            
+            if (data.uid) {
+                document.getElementById("userId").value = data.uid;
+            }
+            if (data.email) {
+                document.getElementById("email").value = data.email;
+            }
+            if (data.phone) {
+                document.getElementById("phone").value = data.phone;
+            }
+        }
+    } catch (err) {
+        console.error("Failed to fetch user info:", err);
+    }
+});
+
+/* ===============================
+   SAFE FETCH
+================================*/
+async function loadJSON(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to load ${url}`);
+    return res.json();
+}
+
+/* ===============================
+   PRIORITY MAPPING BY REASON
+================================*/
+const priorityByReason = {
+    "Technical Issue": "High",
+    "Payment / Billing": "Urgent",
+    "Cloud Coin Related": "High",
+    "Account Problem": "High",
+    "Feature Request": "Low",
+    "Feedback / Review": "Normal",
+    "Business / Partnership": "Normal",
+    "Security Concern": "Urgent",
+    "Other": "Normal"
+};
+
+const priorityIcons = {
+    "Low": "🟢",
+    "Normal": "🟡",
+    "High": "🔴",
+    "Urgent": "🚨"
+};
+
+function normalizeTxAmount(tx) {
+    const raw = Number(tx?.amount ?? tx?.coins ?? tx?.value ?? 0);
+    return Number.isFinite(raw) ? raw : 0;
+}
+
+function txTimeValue(tx) {
+    const raw = tx?.createdAt || tx?.timestamp || tx?.time || tx?.date || null;
+    const value = raw ? new Date(raw).getTime() : NaN;
+    return Number.isFinite(value) ? value : 0;
+}
+
+function txTimeText(tx) {
+    const raw = tx?.createdAt || tx?.timestamp || tx?.time || tx?.date || null;
+    if (!raw) return "Unknown time";
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return "Unknown time";
+    return date.toLocaleString();
+}
+
+function txLabel(tx) {
+    const type = String(tx?.type || tx?.kind || "transaction").replace(/_/g, " ");
+    return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function txIcon(tx) {
+    const type = String(tx?.type || "").toLowerCase();
+    if (type.includes("transfer") || type.includes("send")) return "🔁";
+    if (type.includes("bonus") || type.includes("reward")) return "🎁";
+    if (type.includes("purchase") || type.includes("buy")) return "🛒";
+    return "🪙";
+}
+
+function renderCoinHistory(transactions) {
+    if (!Array.isArray(transactions) || !transactions.length) {
+        coinHistoryBody.innerHTML = '<div class="coin-history-empty">No coin transactions found for this account yet.</div>';
+        coinCountChip.textContent = 'Transactions: 0';
+        return;
+    }
+
+    const latest = [...transactions]
+        .sort((a, b) => txTimeValue(b) - txTimeValue(a))
+        .slice(0, 12);
+
+    coinCountChip.textContent = `Transactions: ${transactions.length}`;
+    coinHistoryBody.innerHTML = `<div class="coin-tx-list">${latest.map((tx) => {
+        const amount = normalizeTxAmount(tx);
+        const cls = amount >= 0 ? "credit" : "debit";
+        const sign = amount >= 0 ? "+" : "-";
+        return `
+            <div class="coin-tx-item">
+                <div class="coin-tx-kind">${txIcon(tx)}</div>
+                <div>
+                    <div class="coin-tx-type">${txLabel(tx)}</div>
+                    <div class="coin-tx-time">${txTimeText(tx)}</div>
+                </div>
+                <div class="coin-tx-amount ${cls}">${sign}${Math.abs(amount).toLocaleString()} C</div>
+            </div>
+        `;
+    }).join("")}</div>`;
+}
+
+async function loadCoinHistoryIntoSupport() {
+    const authToken = localStorage.getItem("token");
+    if (!authToken) {
+        coinHistoryPanel.classList.add("hidden");
+        return;
+    }
+
+    coinHistoryPanel.classList.remove("hidden");
+    coinHistoryBody.innerHTML = '<div class="coin-history-loading">Loading your coin activity...</div>';
+    coinBalanceChip.textContent = 'Balance: --';
+    coinCountChip.textContent = 'Transactions: --';
+
+    try {
+        const [balanceRes, txRes] = await Promise.all([
+            fetch('/api/coins/balance', { headers: { 'Authorization': `Bearer ${authToken}` } }),
+            fetch('/api/coins/transactions', { headers: { 'Authorization': `Bearer ${authToken}` } })
+        ]);
+
+        const balanceData = await balanceRes.json().catch(() => ({}));
+        const txData = await txRes.json().catch(() => ([]));
+
+        if (!balanceRes.ok || !txRes.ok) {
+            throw new Error('Failed to load coin activity');
+        }
+
+        const balance = Number(balanceData?.balance ?? 0);
+        coinBalanceChip.textContent = `Balance: ${Number.isFinite(balance) ? balance.toLocaleString() : 0} C`;
+
+        const transactions = Array.isArray(txData)
+            ? txData
+            : (Array.isArray(txData?.transactions) ? txData.transactions : []);
+
+        renderCoinHistory(transactions);
+    } catch (err) {
+        coinHistoryBody.innerHTML = '<div class="coin-history-empty">Could not load coin history right now. Please try again.</div>';
+        coinBalanceChip.textContent = 'Balance: --';
+        coinCountChip.textContent = 'Transactions: --';
+    }
+}
+
+function toggleCoinHistoryByReason(selectedReason) {
+    if (selectedReason === 'Cloud Coin Related') {
+        paymentHistoryPanel.classList.add('hidden');
+        loadCoinHistoryIntoSupport();
+        return;
+    }
+    coinHistoryPanel.classList.add('hidden');
+}
+
+function getPaymentAmount(item) {
+    const value = Number(item?.amount ?? item?.finalAmount ?? 0);
+    return Number.isFinite(value) ? value : 0;
+}
+
+function paymentTimeText(item) {
+    const raw = item?.purchasedAt || item?.createdAt || item?.verifiedAt || null;
+    if (!raw) return 'Unknown time';
+    const d = new Date(raw);
+    return Number.isNaN(d.getTime()) ? 'Unknown time' : d.toLocaleString();
+}
+
+function paymentStatusText(item) {
+    if (item?.isBlocked) return 'Blocked';
+    if (item?.isActive === false) return 'Inactive';
+    if (item?.status) return String(item.status);
+    return 'Active';
+}
+
+function renderPaymentHistory(items) {
+    if (!Array.isArray(items) || !items.length) {
+        paymentHistoryBody.innerHTML = '<div class="payment-history-empty">No payment records found for this account.</div>';
+        paymentCountChip.textContent = 'Payments: 0';
+        paymentTotalChip.textContent = 'Total: ₹0';
+        return;
+    }
+
+    const latest = items.slice(0, 12);
+    const total = items.reduce((sum, p) => sum + getPaymentAmount(p), 0);
+    paymentCountChip.textContent = `Payments: ${items.length}`;
+    paymentTotalChip.textContent = `Total: ₹${total.toLocaleString('en-IN')}`;
+
+    paymentHistoryBody.innerHTML = `<div class="payment-list">${latest.map((item) => {
+        const amount = getPaymentAmount(item);
+        const plan = String(item?.plan || 'Unknown Plan').toUpperCase();
+        const txId = item?.transactionId || 'N/A';
+        const method = item?.paymentMethod || 'N/A';
+        const status = paymentStatusText(item);
+        return `
+            <div class="payment-item">
+                <div class="payment-top">
+                    <div class="payment-plan">${plan}</div>
+                    <div class="payment-amount">₹${amount.toLocaleString('en-IN')}</div>
+                </div>
+                <div class="payment-meta">
+                    <span>🧾 ${status}</span>
+                    <span>💸 ${method}</span>
+                    <span>🆔 ${txId}</span>
+                    <span>🕒 ${paymentTimeText(item)}</span>
+                </div>
+            </div>
+        `;
+    }).join('')}</div>`;
+}
+
+async function loadPaymentHistoryIntoSupport() {
+    const authToken = localStorage.getItem('token');
+    const uid = String(userId?.value || '').trim();
+    if (!authToken || !uid) {
+        paymentHistoryPanel.classList.add('hidden');
+        return;
+    }
+
+    paymentHistoryPanel.classList.remove('hidden');
+    paymentHistoryBody.innerHTML = '<div class="payment-history-loading">Loading your payment history...</div>';
+    paymentCountChip.textContent = 'Payments: --';
+    paymentTotalChip.textContent = 'Total: --';
+
+    try {
+        const res = await fetch(`/api/user/payment-history/${encodeURIComponent(uid)}`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.success) {
+            throw new Error(data?.error || 'Failed to load payment history');
+        }
+
+        const items = Array.isArray(data.purchases) ? data.purchases : [];
+        renderPaymentHistory(items);
+    } catch (err) {
+        paymentHistoryBody.innerHTML = '<div class="payment-history-empty">Could not load payment history right now. Please try again.</div>';
+        paymentCountChip.textContent = 'Payments: --';
+        paymentTotalChip.textContent = 'Total: --';
+    }
+}
+
+function togglePaymentHistoryByReason(selectedReason) {
+    if (selectedReason === 'Payment / Billing') {
+        coinHistoryPanel.classList.add('hidden');
+        loadPaymentHistoryIntoSupport();
+        return;
+    }
+    paymentHistoryPanel.classList.add('hidden');
+}
+
+/* ===============================
+   LOAD REASONS
+================================*/
+loadJSON("/api/support/reasons")
+.then(d => {
+    reason.innerHTML = '<option value="">-- Select Reason --</option>';
+    d.reasons.forEach(r => {
+        const o = document.createElement("option");
+        o.value = r;
+        o.textContent = r;
+        reason.appendChild(o);
+    });
+    
+    // Add change event to auto-set priority
+    reason.addEventListener("change", (e) => {
+        const selectedReason = e.target.value;
+        const priorityBadge = document.getElementById("priorityBadge");
+        
+        if (selectedReason && priorityByReason[selectedReason]) {
+            const newPriority = priorityByReason[selectedReason];
+            priority.value = newPriority;
+            
+            // Update badge with animation
+            const badgeClass = newPriority.toLowerCase();
+            priorityBadge.textContent = `${priorityIcons[newPriority]} ${newPriority}`;
+            priorityBadge.className = `priority-badge show ${badgeClass}`;
+            
+            // Remove show class after animation if not urgent
+            if (badgeClass !== "urgent") {
+                setTimeout(() => {
+                    priorityBadge.classList.remove("show");
+                }, 3000);
+            }
+        } else {
+            priority.value = "";
+            priorityBadge.classList.remove("show");
+        }
+
+        toggleCoinHistoryByReason(selectedReason);
+        togglePaymentHistoryByReason(selectedReason);
+    });
+})
+.catch(console.error);
+
+/* ===============================
+   LOAD PRIORITIES
+================================*/
+loadJSON("/api/support/priorities")
+.then(d => {
+    priority.innerHTML = '<option value="">-- Select Priority --</option>';
+    d.priorities.forEach(p => {
+        const o = document.createElement("option");
+        o.value = p;
+        o.textContent = p;
+        priority.appendChild(o);
+    });
+})
+.catch(console.error);
+
+/* ===============================
+   LOAD SOCIAL LINKS
+================================*/
+loadJSON("/api/support/socials")
+.then(d => {
+    socialLinks.innerHTML = "";
+    d.socials.forEach(s => {
+        const a = document.createElement("a");
+        a.href = s.url;
+        a.target = "_blank";
+        a.innerHTML = `${s.icon} ${s.name}`;
+        socialLinks.appendChild(a);
+    });
+})
+.catch(console.error);
+
+/* ===============================
+   STAR RATING
+================================*/
+let rating = 0;
+document.querySelectorAll(".star").forEach((star) => {
+    star.onclick = () => {
+        rating = parseInt(star.getAttribute("data-rating"));
+        document.querySelectorAll(".star").forEach(s => s.classList.remove("active"));
+        document.querySelectorAll(".star").forEach(s => {
+            if (parseInt(s.getAttribute("data-rating")) <= rating) {
+                s.classList.add("active");
+            }
+        });
+    };
+});
+
+/* ===============================
+   FORM SUBMIT → BACKEND
+================================*/
+supportForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (!reason.value && !message.value) {
+        show("Please select a purpose or write feedback", "error");
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            show("Please log in first", "error");
+            return;
+        }
+
+        const res = await fetch("/api/feedback", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                userId: userId.value,
+                email: email.value,
+                phone: phone.value || null,
+                reason: reason.value || null,
+                priority: priority.value || "Normal",
+                message: message.value || "",
+                rating: rating || 0
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || "Failed");
+        }
+
+        // Show cool success modal with confetti
+        showSuccessModal();
+        
+        // Reset only editable fields, keep auto-fetched ones
+        document.getElementById("name").value = "";
+        document.getElementById("reason").value = "";
+        document.getElementById("priority").value = "";
+        document.getElementById("message").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("priorityBadge").classList.remove("show");
+        document.querySelectorAll(".star").forEach(s => s.classList.remove("active"));
+        coinHistoryPanel.classList.add("hidden");
+        paymentHistoryPanel.classList.add("hidden");
+        coinHistoryBody.innerHTML = '<div class="coin-history-loading">Loading your coin activity...</div>';
+        coinBalanceChip.textContent = 'Balance: --';
+        coinCountChip.textContent = 'Transactions: --';
+        paymentHistoryBody.innerHTML = '<div class="payment-history-loading">Loading your payment history...</div>';
+        paymentCountChip.textContent = 'Payments: --';
+        paymentTotalChip.textContent = 'Total: --';
+        rating = 0;
+
+    } catch (err) {
+        console.error(err);
+        show("❌ Failed to submit feedback", "error");
+    }
+});
+
+/* ===============================
+   ALERT HANDLER
+================================*/
+function show(msg, type) {
+    alertBox.textContent = msg;
+    alertBox.className = type;
+    alertBox.style.display = "block";
+    setTimeout(() => alertBox.style.display = "none", 3500);
+}
+
+/* ===============================
+   SUPPORT TICKET SYSTEM
+================================*/
+let userTickets = [];
+let currentOpenTicket = null;
+let currentChatMessages = [];
+
+async function openTicketsModal() {
+    document.getElementById('ticketsModal').classList.add('active');
+    await loadUserTickets();
+}
+
+function closeTicketsModal() {
+    document.getElementById('ticketsModal').classList.remove('active');
+}
+
+async function loadUserTickets() {
+    try {
+        const token = localStorage.getItem('token');
+        console.log("Token from localStorage:", token ? `${token.substring(0, 20)}...` : "null");
+        
+        if (!token) {
+            document.getElementById('ticketsContent').innerHTML = '<div style="color: #ff6b6b; padding: 20px;">Please log in first</div>';
+            return;
+        }
+
+        const res = await fetch('/api/tickets', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log("Tickets response status:", res.status);
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Tickets error response:", errorText);
+            throw new Error(`Failed to load tickets: ${res.status}`);
+        }
+
+        const data = await res.json();
+        userTickets = data.tickets || [];
+
+        const content = document.getElementById('ticketsContent');
+        if (!userTickets.length) {
+            content.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">No support tickets yet</div>';
+            return;
+        }
+
+        content.innerHTML = userTickets.map(ticket => `
+            <div class="ticket-item" onclick="openChatForTicket('${ticket.ticketId}')">
+                <div class="ticket-item-header">
+                    <div>
+                        <div class="ticket-id">Ticket #${ticket.ticketId}</div>
+                        <div class="ticket-purpose">${ticket.originalFeedback?.purpose || 'Support Request'}</div>
+                    </div>
+                    <span class="ticket-status ${ticket.status.toLowerCase()}">
+                        ${ticket.status}
+                    </span>
+                </div>
+                <div class="ticket-time">
+                    ⏰ Created: ${new Date(ticket.createdAt).toLocaleString()}
+                    ${ticket.expiresAt ? ` | Expires: ${new Date(ticket.expiresAt).toLocaleString()}` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading tickets:', err);
+        const errorMsg = err.message || 'Failed to load tickets';
+        if (errorMsg.includes('401')) {
+            document.getElementById('ticketsContent').innerHTML = '<div style="color: #ff6b6b; padding: 20px;">Session expired. Please <a href="login.html" style="color: #ffff00; text-decoration: underline;">log in again</a></div>';
+        } else {
+            document.getElementById('ticketsContent').innerHTML = '<div style="color: #ff6b6b; padding: 20px;">' + errorMsg + '</div>';
+        }
+    }
+}
+
+async function openChatForTicket(ticketId) {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showCoolAlert('Please log in first', '🔐 Login Required', '🔑');
+            return;
+        }
+
+        const res = await fetch(`/api/tickets/${ticketId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Failed to load ticket');
+
+        currentOpenTicket = await res.json();
+
+        // Check if ticket is closed and ask to reopen
+        if (currentOpenTicket.status === 'Closed') {
+            showCoolConfirm(
+                'Reopening will clear all previous messages and start fresh.',
+                '🔒 This ticket is closed',
+                '🔒',
+                async (confirmed) => {
+                    if (confirmed) {
+                        await reopenTicket(ticketId);
+                    }
+                }
+            );
+            return;
+        }
+
+        currentChatMessages = currentOpenTicket.messages || [];
+
+        document.getElementById('chatTicketId').textContent = `Ticket #${ticketId}`;
+        document.getElementById('chatTicketInfo').textContent = `Status: ${currentOpenTicket.status} | Created: ${new Date(currentOpenTicket.createdAt).toLocaleString()}`;
+
+        displayChatMessages();
+        document.getElementById('chatModal').classList.add('active');
+        document.getElementById('ticketsModal').classList.remove('active');
+    } catch (err) {
+        console.error('Error loading ticket:', err);
+        showCoolAlert('Failed to load ticket details', '❌ Error', '⚠️');
+    }
+}
+
+async function reopenTicket(ticketId) {
+    const token = localStorage.getItem('token');
+    
+    try {
+        // Clear messages and reopen ticket
+        const res = await fetch(`/api/tickets/${ticketId}/reopen`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ clearMessages: true })
+        });
+
+        if (!res.ok) {
+            const errorBody = await res.json().catch(() => ({}));
+            if (res.status === 403 && errorBody?.error) {
+                showCoolAlert(errorBody.error, '🔒 Reopen Blocked', '⛔');
+                return;
+            }
+            throw new Error('Failed to reopen ticket');
+        }
+
+        // Fetch fresh ticket data
+        const ticketRes = await fetch(`/api/tickets/${ticketId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!ticketRes.ok) throw new Error('Failed to load reopened ticket');
+
+        currentOpenTicket = await ticketRes.json();
+        currentChatMessages = currentOpenTicket.messages || [];
+
+        document.getElementById('chatTicketId').textContent = `Ticket #${ticketId}`;
+        document.getElementById('chatTicketInfo').textContent = `Status: ${currentOpenTicket.status} | Created: ${new Date(currentOpenTicket.createdAt).toLocaleString()}`;
+
+        displayChatMessages();
+        document.getElementById('chatModal').classList.add('active');
+        document.getElementById('ticketsModal').classList.remove('active');
+
+        showCoolAlert('Ticket reopened successfully! All previous messages have been cleared.', '🎉 Reopened', '✨');
+    } catch (err) {
+        console.error('Error reopening ticket:', err);
+        showCoolAlert('Failed to reopen ticket', '❌ Error', '⚠️');
+    }
+}
+
+function displayChatMessages() {
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = currentChatMessages.map(msg => `
+        <div class="chat-message ${msg.sender === 'admin' ? 'admin' : 'user'}">
+            <div>
+                <div class="chat-bubble">
+                    ${msg.type === 'file' ? `📎 <a href="${msg.content}" target="_blank" style="color: inherit; text-decoration: underline;">${msg.fileName || 'File'}</a>` : msg.content}
+                </div>
+                <div class="chat-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+            </div>
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+function closeChatModal() {
+    document.getElementById('chatModal').classList.remove('active');
+    document.getElementById('ticketsModal').classList.add('active');
+}
+
+// ===============================
+// COOL ALERT SYSTEM
+// ===============================
+let confirmCallback = null;
+
+function showCoolAlert(message, title = "Notice", icon = "ℹ️") {
+    document.getElementById('alertIcon').textContent = icon;
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    document.getElementById('coolAlert').classList.add('active');
+}
+
+function closeCoolAlert() {
+    document.getElementById('coolAlert').classList.remove('active');
+}
+
+// Close alert when clicking overlay
+document.getElementById('coolAlert')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCoolAlert();
+    }
+});
+
+function showCoolConfirm(message, title = "Confirm", icon = "❓", callback = null) {
+    document.getElementById('confirmIcon').textContent = icon;
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmMessage').textContent = message;
+    confirmCallback = callback;
+    document.getElementById('coolConfirm').classList.add('active');
+}
+
+function confirmCoolAlert(result) {
+    document.getElementById('coolConfirm').classList.remove('active');
+    if (confirmCallback) {
+        confirmCallback(result);
+    }
+}
+
+// Close confirm when clicking overlay
+document.getElementById('coolConfirm')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        confirmCoolAlert(false);
+    }
+});
+
+function triggerFileUpload() {
+    document.getElementById('fileInput').click();
+}
+
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        showCoolAlert('File size must be less than 5MB. Please choose a smaller file.', '📁 File Too Large', '❌');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('ticketId', currentOpenTicket.ticketId);
+
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showCoolAlert('Please log in first', '🔐 Login Required', '🔑');
+            return;
+        }
+
+        const res = await fetch('/api/tickets/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        });
+
+        if (!res.ok) throw new Error('Upload failed');
+
+        const data = await res.json();
+        currentChatMessages.push({
+            sender: 'user',
+            type: 'file',
+            content: data.fileUrl,
+            fileName: file.name,
+            timestamp: new Date()
+        });
+
+        displayChatMessages();
+        e.target.value = '';
+    } catch (err) {
+        console.error('Upload error:', err);
+        showCoolAlert('Failed to upload file. Please try again.', '❌ Upload Failed', '⚠️');
+    }
+});
+
+async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showCoolAlert('Please log in first', '🔐 Login Required', '🔑');
+            return;
+        }
+
+        const res = await fetch(`/api/tickets/${currentOpenTicket.ticketId}/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ message, sender: 'user' })
+        });
+
+        if (!res.ok) throw new Error('Failed to send message');
+
+        currentChatMessages.push({
+            sender: 'user',
+            type: 'text',
+            content: message,
+            timestamp: new Date()
+        });
+
+        displayChatMessages();
+        input.value = '';
+    } catch (err) {
+        console.error('Error sending message:', err);
+        showCoolAlert('Failed to send message. Please try again.', '❌ Send Failed', '⚠️');
+    }
+}
+
+/* ============== SUCCESS MODAL WITH CONFETTI ============== */
+function showSuccessModal() {
+    const overlay = document.getElementById('successOverlay');
+    overlay.style.display = 'flex';
+    
+    // Create confetti
+    createConfetti();
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+        closeSuccessModal();
+    }, 3000);
+}
+
+function closeSuccessModal() {
+    const overlay = document.getElementById('successOverlay');
+    overlay.style.display = 'none';
+}
+
+function createConfetti() {
+    const confettiCount = 50;
+    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffa5a5', '#00ff88', '#4caf50'];
+    
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.delay = Math.random() * 0.5 + 's';
+        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + 's';
+        
+        document.body.appendChild(confetti);
+        
+        // Remove confetti after animation completes
+        setTimeout(() => {
+            confetti.remove();
+        }, 3000);
+    }
+}
+</script>
+</body>
+</html>

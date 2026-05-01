@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📤 Upload Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="upload.css">
+    <style>
+        #customAlert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(15, 32, 39, 0.95);
+            color: #fff;
+            padding: 20px 28px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #customAlert.show {
+            display: flex;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #customAlert.error {
+            border: 2px solid #ff4d4d;
+            box-shadow: 0 0 20px #ff4d4d;
+        }
+
+        #customAlert.success {
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 20px #00ffcc;
+        }
+
+        #customAlert.warn {
+            border: 2px solid #ffcc00;
+            box-shadow: 0 0 20px #ffcc00;
+        }
+
+        #customAlert.info {
+            border: 2px solid #00e0ff;
+            box-shadow: 0 0 20px #00e0ff;
+        }
+
+        #customAlert span {
+            font-size: 20px;
+        }
+
+        .profile-alert {
+            display: none;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .profile-alert.error {
+            background: rgba(255, 77, 77, 0.15);
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+        }
+
+        .profile-alert.success {
+            background: rgba(0, 255, 200, 0.15);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .local-alert {
+            display: none;
+            margin: 8px 0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .local-alert.error {
+            background: rgba(255, 77, 77, 0.15);
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+        }
+
+        .local-alert.success {
+            background: rgba(0, 255, 200, 0.15);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+        }
+
+        .local-alert.warn {
+            background: rgba(255, 204, 0, 0.15);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* File preview container */
+        #filePreview div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(0, 255, 200, 0.08);
+            border: 1px solid rgba(0, 255, 200, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 10px 0;
+            box-shadow: 0 0 12px rgba(0, 255, 200, 0.25),
+                inset 0 0 8px rgba(0, 255, 200, 0.15);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            animation: fadeIn 0.4s ease;
+            max-width: 100%;
+            overflow: hidden;
+            /* ✅ ensures children won’t overflow */
+        }
+
+        /* File name text */
+        #filePreview div span {
+            flex: 1;
+            /* take available space */
+            min-width: 0;
+            /* ✅ IMPORTANT: allows ellipsis inside flex */
+            color: #00ffcc;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffcc, 0 0 15px #0077ff;
+            white-space: nowrap;
+            /* don’t wrap */
+            overflow: hidden;
+            /* hide extra */
+            text-overflow: ellipsis;
+            /* show ... */
+        }
+
+        /* Remove button */
+        #filePreview .remove-btn {
+            flex-shrink: 0;
+            /* ✅ never shrink */
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div id="customAlert">
+            <span id="alertIcon">ℹ️</span>
+            <span id="alertMessage">This is a message</span>
+        </div>
+        <!-- Profile -->
+        <div id="profile-container" style="display:none;">
+            <img id="profilePic" src="/images/default-avatar.png" alt="Profile Picture" title="Click to view details">
+            <button id="logoutBtn" type="button">🚪 Logout</button>
+        </div>
+
+        <div class="upload-container">
+            <!-- LEFT: Upload area -->
+            <div class="upload-section">
+                <h1>📤 Upload Files to Cloud</h1>
+
+                <!-- Dropzone -->
+                <section class="file-input-wrapper" id="dropZone">
+                    <label for="fileInput" class="file-label">
+                        <span id="fileLabelText">📂 Drag & drop files here or click to browse</span>
+                    </label>
+                    <input type="file" id="fileInput" name="files" multiple hidden aria-hidden="true">
+                </section>
+
+                <!-- Live file preview -->
+                <section id="filePreview"></section>
+
+                <!-- Buttons -->
+                <section class="button-group">
+                    <button id="uploadBtn" type="button">⬆️ Upload</button>
+                    <button id="cancelBtn" type="button">❌ Cancel</button>
+                </section>
+
+                <!-- Progress -->
+                <section id="progressContainer" aria-live="polite"></section>
+                <div id="uploadError" aria-live="polite"></div>
+
+                <!-- Navigation -->
+                <nav>
+                <nav>
+                    <a href="friends.html" class="view-files-btn">👥 Friends & Coins</a>
+                    <a href="files.html" class="view-files-btn">📂 View Uploaded Files</a>
+                </nav>
+                </nav>
+            </div>
+
+            <!-- RIGHT: Storage Box -->
+            <aside id="storageBox">
+                <h3>Your Cloud Space</h3>
+                <div class="circle-progress">
+                    <svg>
+                        <circle class="bg" cx="60" cy="60" r="54"></circle>
+                        <circle class="progress" cx="60" cy="60" r="54"></circle>
+                    </svg>
+                    <div class="storage-text">
+                        <span id="storagePercent">0%</span>
+                        <small id="storageUsed">Loading...</small>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+    <!-- 🌟 Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+
+            <div class="avatar-glow">
+                <img id="modalPic" src="/images/default-avatar.png" alt="Profile Pic">
+            </div>
+
+            <h3 id="modalName">👤 Username</h3>
+            <p>Email: <span id="modalEmail"></span></p>
+            <p>Phone: <span id="modalPhone"></span></p>
+            <p>UID: <span id="modalUid" class="glow-text"></span></p>
+
+            <input type="text" id="editName" class="edit-field" placeholder="Update Username">
+            <input type="tel" id="editPhone" class="edit-field" placeholder="Update Phone">
+            <input type="file" id="editPic" class="edit-field" accept="image/*">
+
+            <!-- Reset Password -->
+            <div id="resetPasswordSection" style="display:none; margin-top:15px;">
+                <h4 style="color:#00ffcc;">🔑 Reset Password</h4>
+                <div id="resetAlert" class="local-alert"></div>
+                <input type="password" id="oldPass" class="edit-field" placeholder="Enter Old Password">
+                <input type="password" id="newPass" class="edit-field" placeholder="Enter New Password">
+                <input type="password" id="confirmPass" class="edit-field" placeholder="Confirm New Password">
+
+                <div class="modal-actions">
+                    <button id="submitResetPassBtn">✅ Save Password</button>
+                    <button id="cancelResetPassBtn">❌ Cancel</button>
+                </div>
+            </div>
+
+            <!-- ✅ Profile alert moved INSIDE modal, above buttons -->
+            <div id="profileAlert" class="local-alert"></div>
+
+            <div class="modal-actions">
+                <button id="copyUidBtn">📋 Copy UID</button>
+                <button id="saveProfileBtn">💾 Save</button>
+                <button id="resetPassBtn">🔑 Change Password</button>
+                <button id="closeProfileBtn">❌ Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- External JS -->
+    <script src="upload.js"></script>
+</body>
+
+</html>

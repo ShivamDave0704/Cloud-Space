@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>🛡️ Admin Panel | CloudSpace+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="upload.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #0077ff;
+        }
+
+        .admin-container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            animation: fadeIn 0.6s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .table-header,
+        .table-row {
+            display: grid;
+            grid-template-columns: 120px 100px 160px 1fr 100px 160px;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table-header {
+            font-weight: bold;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        img.proof {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        img.proof:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .status {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .pending {
+            background: rgba(255, 204, 0, 0.15);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+        }
+
+        .approved {
+            background: rgba(0, 255, 200, 0.15);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+        }
+
+        .rejected {
+            background: rgba(255, 77, 77, 0.15);
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+        }
+
+        .actions button {
+            margin: 0 4px;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #000;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .approve-btn {
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+        }
+
+        .reject-btn {
+            background: linear-gradient(90deg, #ff4d4d, #ff9966);
+        }
+
+        .approve-btn:hover,
+        .reject-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #statusBox {
+            margin-top: 15px;
+            color: #00ffff;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #refreshBtn {
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: bold;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #refreshBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        #backBtn {
+            position: absolute;
+            left: 24px;
+            top: 22px;
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            transition: transform 0.15s;
+        }
+
+        #backBtn:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🛡️ CloudSpace+ Admin Panel</h1>
+
+    <button id="backBtn">◀ Back</button>
+    <button id="refreshBtn">🔄 Refresh Submissions</button>
+
+    <div class="admin-container">
+        <div class="table-header">
+            <div>UID</div>
+            <div>Plan</div>
+            <div>Txn ID</div>
+            <div>Notes</div>
+            <div>Status</div>
+            <div>Actions</div>
+        </div>
+        <div id="proofList"></div>
+    </div>
+
+    <div id="statusBox"></div>
+
+    <div id="imageModal" class="modal">
+        <img id="modalImg" src="" alt="Proof Screenshot" />
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // ✅ Unified API base
+            const API =
+                window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+                    ? "http://localhost:5000"
+                    : window.location.origin;
+
+            const proofList = document.getElementById("proofList");
+            const statusBox = document.getElementById("statusBox");
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("modalImg");
+            const refreshBtn = document.getElementById("refreshBtn");
+            const backBtn = document.getElementById("backBtn");
+
+            // ✅ Fetch wrapper
+            async function apiFetch(endpoint, method = "GET", body = null) {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("⚠️ Please login first.");
+                    window.location.href = "login.html";
+                    return null;
+                }
+
+                const options = {
+                    method,
+                    headers: { Authorization: "Bearer " + token },
+                };
+                if (body) {
+                    options.headers["Content-Type"] = "application/json";
+                    options.body = JSON.stringify(body);
+                }
+
+                const res = await fetch(`${API}${endpoint}`, options);
+                const data = await res.clone().json().catch(() => ({}));
+
+                if (res.status === 401) {
+                    alert("🔐 Session expired or unauthorized. Please login again.");
+                    localStorage.clear();
+                    window.location.href = "login.html";
+                    return null;
+                }
+                if (res.status === 403) {
+                    alert("🚫 Access denied. Admins only.");
+                    window.location.href = "upload.html";
+                    return null;
+                }
+                return data;
+            }
+
+            async function loadProofs() {
+                statusBox.textContent = "⏳ Loading submissions...";
+                const data = await apiFetch("/admin/proofs");
+                if (!data || !data.success) {
+                    statusBox.textContent = "⚠️ Failed to load proofs.";
+                    return;
+                }
+
+                proofList.innerHTML = "";
+                data.proofs.forEach((p) => {
+                    const row = document.createElement("div");
+                    row.className = "table-row";
+                    row.innerHTML = `
+            <div>${p.uid}</div>
+            <div>${p.plan?.toUpperCase() || "-"}</div>
+            <div>${p.upi_txn_id || "-"}</div>
+            <div>${p.notes || "-"}</div>
+            <div><span class="status ${p.status}">${p.status}</span></div>
+            <div class="actions">
+              ${p.status === "pending"
+                            ? `<button class="approve-btn" onclick="updateStatus('${p._id}','approved')">Approve</button>
+                     <button class="reject-btn" onclick="updateStatus('${p._id}','rejected')">Reject</button>`
+                            : ""
+                        }
+              ${p.screenshot
+                            ? `<img src="${p.screenshot}" class="proof" onclick="viewImage('${p.screenshot}')" />`
+                            : ""
+                        }
+            </div>
+          `;
+                    proofList.appendChild(row);
+                });
+
+                statusBox.textContent = data.proofs.length
+                    ? ""
+                    : "📭 No submissions yet.";
+            }
+
+            window.updateStatus = async (id, status) => {
+                const data = await apiFetch("/admin/update-status", "POST", { id, status });
+                if (data && data.success) {
+                    statusBox.textContent = "✅ Status updated successfully!";
+                    loadProofs();
+                } else {
+                    statusBox.textContent = "❌ Failed to update status.";
+                }
+            };
+
+            window.viewImage = (src) => {
+                modal.style.display = "flex";
+                modalImg.src = src;
+            };
+
+            modal.onclick = () => (modal.style.display = "none");
+            refreshBtn.onclick = loadProofs;
+            backBtn.onclick = () => (window.location.href = "admin.html");
+
+            // ✅ Verify admin access before loading
+            (async () => {
+                const me = await apiFetch("/me");
+                if (!me || (me.role !== "admin" && me.role !== "superadmin")) {
+                    alert("🚫 Only Admins can access this page.");
+                    window.location.href = "upload.html";
+                    return;
+                }
+                loadProofs();
+            })();
+
+        });
+    </script>
+</body>
+
+</html>

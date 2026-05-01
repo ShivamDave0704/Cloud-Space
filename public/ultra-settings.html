@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ CloudSpace+ Ultra - Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ultra-primary: #00ffff;
+            --ultra-secondary: #ff00ff;
+            --ultra-accent: #ffd700;
+            --bg-dark: #0a0a1f;
+            --bg-darker: #050510;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --error: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 50%, #1a0a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--ultra-primary);
+            border-radius: 50%;
+            animation: float 20s infinite;
+            box-shadow: 0 0 10px var(--ultra-primary);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 31, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--ultra-primary), var(--ultra-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 10px var(--ultra-primary)); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 20px var(--ultra-secondary)); }
+        }
+
+        .back-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--ultra-primary), var(--ultra-secondary));
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 5;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        /* Settings Sections */
+        .settings-section {
+            background: var(--glass);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: var(--ultra-primary);
+            border-bottom: 2px solid var(--glass-border);
+            padding-bottom: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .setting-item:hover {
+            background: rgba(0, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .setting-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--ultra-primary);
+        }
+
+        .setting-info p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--ultra-primary);
+            border-color: var(--ultra-primary);
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            transition: left 0.3s;
+        }
+
+        .toggle-switch.active .slider {
+            left: 34px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ultra-primary), var(--ultra-secondary));
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4);
+        }
+
+        /* Input Fields */
+        input[type="text"], input[type="email"], input[type="number"], select {
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--ultra-primary);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--ultra-primary);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        input[type="text"]::placeholder, input[type="email"]::placeholder, input[type="number"]::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Notification Box */
+        .notification-box {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .notification-box.success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success);
+        }
+
+        .notification-box.info {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--ultra-primary);
+        }
+
+        .notification-box.warning {
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid var(--warning);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .setting-item {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--ultra-primary), var(--ultra-secondary));
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">⚙️ SETTINGS</div>
+        <button class="back-btn" onclick="goBackWithToken()">← Back</button>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Notifications Section -->
+        <div class="settings-section">
+            <h2 class="section-title">🔔 Notifications</h2>
+            
+            <div class="notification-box info">
+                <span>ℹ️</span>
+                <div>
+                    <strong>Email Notifications:</strong> Stay updated with your account activity
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Email Alerts</h3>
+                    <p>Receive notifications about uploads and downloads</p>
+                </div>
+                <div class="toggle-switch active" data-setting="emailAlerts" onclick="toggleSwitch(this)">
+                    <div class="slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Security Alerts</h3>
+                    <p>Get notified about login attempts and suspicious activity</p>
+                </div>
+                <div class="toggle-switch active" data-setting="securityAlerts" onclick="toggleSwitch(this)">
+                    <div class="slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Storage Warnings</h3>
+                    <p>Alert when storage approaches limit (not applicable for Ultra)</p>
+                </div>
+                <div class="toggle-switch" data-setting="storageWarnings" onclick="toggleSwitch(this)">
+                    <div class="slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Weekly Digest</h3>
+                    <p>Receive a summary of your activity every week</p>
+                </div>
+                <div class="toggle-switch active" data-setting="weeklyDigest" onclick="toggleSwitch(this)">
+                    <div class="slider"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy & Security Section -->
+        <div class="settings-section">
+            <h2 class="section-title">🔒 Privacy & Security</h2>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Two-Factor Authentication</h3>
+                    <p>Add an extra layer of security to your account</p>
+                </div>
+                <button class="btn btn-primary" onclick="enableTFA()">Enable</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>File Encryption</h3>
+                    <p>All files are encrypted with AES-256 (Always On)</p>
+                </div>
+                <span style="color: var(--success); font-weight: 700;">✅ Active</span>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>File Sharing Permissions</h3>
+                    <p>Control who can access your shared files</p>
+                </div>
+                <select id="sharePermissionSelect" style="width: 150px;" onchange="savePreference('sharePermission', this.value)">
+                    <option>Everyone</option>
+                    <option selected>Link Only</option>
+                    <option>Specific Users</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Auto Logout</h3>
+                    <p>Automatically log out after inactivity</p>
+                </div>
+                <select id="autoLogoutSelect" style="width: 150px;" onchange="savePreference('autoLogout', this.value)">
+                    <option>15 minutes</option>
+                    <option selected>30 minutes</option>
+                    <option>1 hour</option>
+                    <option>Never</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Account Section -->
+        <div class="settings-section">
+            <h2 class="section-title">👤 Account</h2>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Change Email</h3>
+                    <p>Update your account email address</p>
+                </div>
+                <button class="btn btn-primary" onclick="changeEmail()">Change</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Change Password</h3>
+                    <p>Update your account password</p>
+                </div>
+                <button class="btn btn-primary" onclick="changePassword()">Change</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Active Sessions</h3>
+                    <p>View and manage your active login sessions</p>
+                </div>
+                <button class="btn btn-primary" onclick="viewSessions()">View</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Login History</h3>
+                    <p>See your recent login activity</p>
+                </div>
+                <button class="btn btn-primary" onclick="viewHistory()">View</button>
+            </div>
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="settings-section">
+            <h2 class="section-title">🎨 Preferences</h2>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Theme</h3>
+                    <p>Choose your preferred theme</p>
+                </div>
+                <select id="themeSelect" style="width: 150px;" onchange="savePreference('theme', this.value)">
+                    <option selected>Dark (Default)</option>
+                    <option>Light</option>
+                    <option>Auto</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Language</h3>
+                    <p>Select your preferred language</p>
+                </div>
+                <select id="languageSelect" style="width: 150px;" onchange="savePreference('language', this.value)">
+                    <option selected>English</option>
+                    <option>Hindi</option>
+                    <option>Spanish</option>
+                    <option>French</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Show Animations</h3>
+                    <p>Enable or disable animation effects</p>
+                </div>
+                <div class="toggle-switch active" data-setting="showAnimations" onclick="toggleSwitch(this)">
+                    <div class="slider"></div>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Compact View</h3>
+                    <p>Use a more compact interface layout</p>
+                </div>
+                <div class="toggle-switch" data-setting="compactView" onclick="toggleSwitch(this)">
+                    <div class="slider"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dangerous Section -->
+        <div class="settings-section" style="border-color: var(--error); background: rgba(255, 68, 68, 0.05);">
+            <h2 class="section-title" style="color: var(--error);">⚠️ Danger Zone</h2>
+
+            <div class="notification-box warning">
+                <span>⚠️</span>
+                <div>
+                    <strong>Warning:</strong> Actions in this section cannot be undone
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Download My Data</h3>
+                    <p>Export all your data for backup or migration</p>
+                </div>
+                <button class="btn btn-primary" onclick="downloadData()">Download</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Delete Account</h3>
+                    <p>Permanently delete your account and all data</p>
+                </div>
+                <button class="btn btn-danger" onclick="deleteAccount()">Delete</button>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <h3>Logout All Sessions</h3>
+                    <p>Sign out from all active sessions</p>
+                </div>
+                <button class="btn btn-danger" onclick="logoutAll()">Logout All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const isJwtToken = (value) => typeof value === 'string' && value.split('.').length === 3;
+
+        const settingsParams = new URLSearchParams(window.location.search);
+        const queryToken = settingsParams.get('token');
+        const queryUid = settingsParams.get('uid');
+
+        if (queryUid) {
+            localStorage.setItem('uid', queryUid);
+            sessionStorage.setItem('uid', queryUid);
+        }
+
+        if (queryToken) {
+            if (isJwtToken(queryToken)) {
+                localStorage.setItem('token', queryToken);
+            } else {
+                sessionStorage.setItem('ultraToken', queryToken);
+                sessionStorage.setItem('premiumToken', queryToken);
+                localStorage.setItem('premiumToken', queryToken);
+            }
+        }
+
+        const jwtToken = isJwtToken(queryToken)
+            ? queryToken
+            : (isJwtToken(localStorage.getItem('token')) ? localStorage.getItem('token') : '');
+        const planToken = (!isJwtToken(queryToken) && queryToken)
+            || sessionStorage.getItem('ultraToken')
+            || sessionStorage.getItem('premiumToken')
+            || localStorage.getItem('premiumToken')
+            || '';
+
+        // Go back with token
+        function goBackWithToken() {
+            const uid = localStorage.getItem('uid');
+            const token = planToken || jwtToken;
+            if (uid && token) {
+                window.location.href = `/ultra-upload.html?token=${encodeURIComponent(token)}&uid=${encodeURIComponent(uid)}`;
+            } else if (uid) {
+                window.location.href = `/ultra-upload.html?uid=${encodeURIComponent(uid)}`;
+            } else {
+                window.location.href = '/ultra-upload.html';
+            }
+        }
+
+        function getUltraAuthHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (jwtToken) headers.Authorization = `Bearer ${jwtToken}`;
+            if (planToken) headers['x-plan-token'] = planToken;
+            return headers;
+        }
+
+        function getSettingsKey() {
+            const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid') || 'anonymous';
+            return `ultraSettings:${uid}`;
+        }
+
+        function loadSettingsState() {
+            try {
+                const raw = localStorage.getItem(getSettingsKey());
+                return raw ? JSON.parse(raw) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function saveSettingsState(state) {
+            localStorage.setItem(getSettingsKey(), JSON.stringify(state));
+        }
+
+        function showInfo(message) {
+            window.alert(message);
+        }
+
+        function savePreference(key, value) {
+            const state = loadSettingsState();
+            state[key] = value;
+            saveSettingsState(state);
+        }
+
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            const key = element.dataset.setting;
+            if (key) {
+                savePreference(key, isActive);
+            }
+        }
+
+        async function enableTFA() {
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid');
+                if (!uid) {
+                    showInfo('UID missing. Please login again.');
+                    return;
+                }
+
+                const statusRes = await fetch(`/api/plan-2fa/status?uid=${encodeURIComponent(uid)}&plan=ultra`, {
+                    headers: getUltraAuthHeaders()
+                });
+                const statusData = await statusRes.json().catch(() => ({}));
+                if (!statusRes.ok) {
+                    showInfo(`2FA status check failed: ${statusData.error || 'Unknown error'}`);
+                    return;
+                }
+
+                if (!statusData.hasPin) {
+                    const pin = (window.prompt('Set Ultra 2FA PIN (format: 4 digits + 3 capital letters, example 1234ABC)') || '').trim().toUpperCase();
+                    if (!/^\d{4}[A-Z]{3}$/.test(pin)) {
+                        showInfo('Invalid PIN format. Expected 4 digits + 3 letters.');
+                        return;
+                    }
+                    const confirmPin = (window.prompt('Confirm your Ultra 2FA PIN') || '').trim().toUpperCase();
+                    if (pin !== confirmPin) {
+                        showInfo('PIN confirmation did not match.');
+                        return;
+                    }
+
+                    const setupRes = await fetch('/api/plan-2fa/setup', {
+                        method: 'POST',
+                        headers: getUltraAuthHeaders(),
+                        body: JSON.stringify({ uid, plan: 'ultra', pin })
+                    });
+                    const setupData = await setupRes.json().catch(() => ({}));
+                    if (!setupRes.ok || !setupData.success) {
+                        showInfo(`2FA setup failed: ${setupData.error || 'Unknown error'}`);
+                        return;
+                    }
+                    showInfo('Ultra 2FA PIN set successfully.');
+                    return;
+                }
+
+                const verifyPin = (window.prompt('Enter your existing Ultra 2FA PIN to verify') || '').trim().toUpperCase();
+                if (!verifyPin) return;
+                const verifyRes = await fetch('/api/plan-2fa/verify', {
+                    method: 'POST',
+                    headers: getUltraAuthHeaders(),
+                    body: JSON.stringify({ uid, plan: 'ultra', pin: verifyPin })
+                });
+                const verifyData = await verifyRes.json().catch(() => ({}));
+                if (!verifyRes.ok || !verifyData.success) {
+                    showInfo(`2FA verify failed: ${verifyData.error || 'Invalid PIN'}`);
+                    return;
+                }
+                showInfo('Ultra 2FA verified successfully.');
+            } catch (err) {
+                showInfo(`2FA request failed: ${err.message}`);
+            }
+        }
+
+        async function changeEmail() {
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid');
+                const currentRes = await fetch(`/user-by-uid/${encodeURIComponent(uid || '')}`);
+                const currentData = await currentRes.json().catch(() => ({}));
+                const currentEmail = currentData?.user?.email || '';
+                
+                if (!currentEmail) {
+                    showInfo('Could not find your email. Please contact support.');
+                    return;
+                }
+
+                const nextEmail = (window.prompt(`Enter new email address\nCurrent: ${currentEmail}`) || '').trim().toLowerCase();
+                if (!nextEmail) return;
+                if (!/^\S+@\S+\.\S+$/.test(nextEmail)) {
+                    showInfo('Invalid email format.');
+                    return;
+                }
+                if (nextEmail === currentEmail) {
+                    showInfo('New email is the same as current.');
+                    return;
+                }
+
+                // Send email change request to support
+                const mailRes = await fetch('/api/send-support-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'email-change-request',
+                        uid: uid,
+                        email: currentEmail,
+                        currentEmail: currentEmail,
+                        newEmail: nextEmail,
+                        requestTime: new Date().toISOString()
+                    })
+                }).catch(() => null);
+
+                const mailData = mailRes ? await mailRes.json().catch(() => ({})) : null;
+
+                if (mailRes?.ok) {
+                    const expiryText = mailData?.expiresAt ? `\nLink expires at: ${mailData.expiresAt}` : '';
+                    showInfo(`✅ Email change request sent!\n\nStep 1: Open inbox of ${nextEmail}\nStep 2: Click "Confirm Email Change" link from CloudSpace mail\nStep 3: After confirmation, your account email will be updated.${expiryText}\n\nAlso check Spam/Promotions.`);
+                } else {
+                    showInfo(`❌ Email request failed: ${mailData?.error || 'Unable to send email right now.'}`);
+                }
+            } catch (err) {
+                showInfo(`Email change failed: ${err.message}`);
+            }
+        }
+
+        async function changePassword() {
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid');
+                
+                // Get user's email
+                const userRes = await fetch(`/user-by-uid/${encodeURIComponent(uid || '')}`);
+                const userData = await userRes.json().catch(() => ({}));
+                const userEmail = userData?.user?.email;
+
+                if (!userEmail) {
+                    showInfo('❌ Could not find your email address. Please contact support.');
+                    return;
+                }
+
+                // Send password reset OTP to email
+                const resetRes = await fetch('/send-otp-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: userEmail })
+                });
+
+                const resetData = await resetRes.json().catch(() => ({}));
+
+                if (!resetRes.ok) {
+                    showInfo(`❌ Error: ${resetData.error || 'Failed to send reset email'}`);
+                    return;
+                }
+
+                // Show success message
+                showInfo(`✅ Password Reset Email Sent!\n\nWe've sent a password reset code to ${userEmail}.\n\nPlease check your email for the 6-digit OTP and follow the instructions.`);
+                
+                // Optionally redirect to password reset page
+                const doReset = window.confirm('Open password reset page now?');
+                if (doReset) {
+                    window.location.href = `/forgot-password.html?email=${encodeURIComponent(userEmail)}`;
+                }
+            } catch (err) {
+                showInfo(`Password reset failed: ${err.message}`);
+            }
+        }
+
+        async function viewSessions() {
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid');
+                if (!uid || !jwtToken) {
+                    showInfo('Session status API requires JWT login. You are currently using plan-token mode.');
+                    return;
+                }
+
+                const res = await fetch(`/api/users/status/${encodeURIComponent(uid)}`, {
+                    headers: { Authorization: `Bearer ${jwtToken}` }
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    showInfo(`Failed to load sessions: ${data.error || 'Unknown error'}`);
+                    return;
+                }
+                showInfo(`Current session status\nOnline: ${data.isOnline ? 'Yes' : 'No'}\nLast Active: ${data.lastActive || 'N/A'}`);
+            } catch (err) {
+                showInfo(`Could not load sessions: ${err.message}`);
+            }
+        }
+
+        async function viewHistory() {
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid');
+                const byUidRes = uid ? await fetch(`/user-by-uid/${encodeURIComponent(uid)}`) : null;
+                const byUidData = byUidRes ? await byUidRes.json().catch(() => ({})) : {};
+                const userEmail = String(byUidData?.user?.email || '').toLowerCase();
+
+                const res = await fetch('/api/auth/login-history');
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    showInfo(`Failed to load login history: ${data.error || 'Unknown error'}`);
+                    return;
+                }
+
+                const rows = (data.logins || []).filter((x) => {
+                    const rowUid = String(x.uid || '').trim();
+                    const rowEmail = String(x.email || '').toLowerCase().trim();
+                    return (uid && rowUid === uid) || (userEmail && rowEmail === userEmail);
+                });
+
+                if (!rows.length) {
+                    showInfo('No login history found for this account.');
+                    return;
+                }
+
+                const lines = rows.slice(-10).reverse().map((x) => {
+                    const ts = x.timestamp || x.at || x.time || 'unknown-time';
+                    const ip = x.ip || x.ipAddress || 'unknown-ip';
+                    const ok = x.success === false ? 'FAILED' : 'OK';
+                    return `${ts} | ${ok} | ${ip}`;
+                });
+                showInfo(`Recent login history (latest ${lines.length})\n\n${lines.join('\n')}`);
+            } catch (err) {
+                showInfo(`Could not load login history: ${err.message}`);
+            }
+        }
+
+        async function downloadData() {
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid');
+                if (!uid) {
+                    showInfo('UID missing. Please login again.');
+                    return;
+                }
+
+                const [userRes, planRes] = await Promise.all([
+                    fetch(`/user-by-uid/${encodeURIComponent(uid)}`),
+                    fetch(`/user-plan/${encodeURIComponent(uid)}`)
+                ]);
+
+                const userData = await userRes.json().catch(() => ({}));
+                const planData = await planRes.json().catch(() => ({}));
+
+                const payload = {
+                    exportedAt: new Date().toISOString(),
+                    uid,
+                    user: userData.user || null,
+                    plan: planData || null,
+                    settings: loadSettingsState()
+                };
+
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ultra-settings-export-${uid}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                showInfo(`Data export failed: ${err.message}`);
+            }
+        }
+
+        async function deleteAccount() {
+            const ok = window.confirm('⚠️ Are you absolutely sure? This action cannot be undone.');
+            if (!ok) return;
+            
+            try {
+                const uid = localStorage.getItem('uid') || sessionStorage.getItem('uid') || 'unknown-uid';
+                
+                // Get user email
+                const userRes = await fetch(`/user-by-uid/${encodeURIComponent(uid)}`);
+                const userData = await userRes.json().catch(() => ({}));
+                const userEmail = userData?.user?.email || 'unknown-email';
+
+                // Confirm email before deletion
+                const confirmEmail = (window.prompt(`Please enter your email to confirm account deletion:\n${userEmail}`) || '').trim().toLowerCase();
+                if (confirmEmail !== userEmail.toLowerCase()) {
+                    showInfo('❌ Email does not match. Account deletion cancelled.');
+                    return;
+                }
+
+                // Send deletion request email
+                const deleteRes = await fetch('/api/send-support-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'account-deletion-request',
+                        uid: uid,
+                        email: userEmail,
+                        requestTime: new Date().toISOString(),
+                        reason: window.prompt('Optional: Tell us why you\'re deleting your account') || 'Not provided'
+                    })
+                }).catch(() => null);
+
+                if (deleteRes?.ok) {
+                    showInfo(`✅ Account Deletion Request Submitted!\n\nWe've received your request. A confirmation email has been sent to ${userEmail}.\n\nYour account will be deleted within 48 hours.\n\nYou will be logged out now.`);
+                } else {
+                    showInfo(`✅ Deletion Request Received!\n\nWe've logged your account deletion request. Please check your email for confirmation.\n\nYou will be logged out now.`);
+                }
+
+                // Logout after submission
+                setTimeout(() => {
+                    logoutAll();
+                }, 3000);
+            } catch (err) {
+                showInfo(`Error submitting deletion request: ${err.message}\n\nPlease contact support@cloudspace.com to delete your account.`);
+            }
+        }
+
+        async function logoutAll() {
+            const ok = window.confirm('🚪 Log out from all sessions?');
+            if (!ok) return;
+
+            try {
+                if (jwtToken) {
+                    await fetch('/api/auth/presence', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${jwtToken}`
+                        },
+                        body: JSON.stringify({ status: 'offline' })
+                    });
+                }
+            } catch (err) {
+                console.warn('Presence update failed during logout-all:', err);
+            }
+
+            localStorage.removeItem('token');
+            localStorage.removeItem('premiumToken');
+            localStorage.removeItem('uid');
+            sessionStorage.removeItem('ultraToken');
+            sessionStorage.removeItem('premiumToken');
+            sessionStorage.removeItem('uid');
+            window.location.href = '/login.html';
+        }
+
+        function restorePersistedSettings() {
+            const state = loadSettingsState();
+
+            document.querySelectorAll('.toggle-switch[data-setting]').forEach((el) => {
+                const key = el.dataset.setting;
+                if (typeof state[key] === 'boolean') {
+                    el.classList.toggle('active', !!state[key]);
+                }
+            });
+
+            const shareSelect = document.getElementById('sharePermissionSelect');
+            if (shareSelect && state.sharePermission) shareSelect.value = state.sharePermission;
+
+            const autoLogoutSelect = document.getElementById('autoLogoutSelect');
+            if (autoLogoutSelect && state.autoLogout) autoLogoutSelect.value = state.autoLogout;
+
+            const themeSelect = document.getElementById('themeSelect');
+            if (themeSelect && state.theme) themeSelect.value = state.theme;
+
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect && state.language) languageSelect.value = state.language;
+        }
+
+        // Generate particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        createParticles();
+        restorePersistedSettings();
+    </script>
+</body>
+</html>

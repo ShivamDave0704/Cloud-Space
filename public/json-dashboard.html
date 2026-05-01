@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Ops Dashboard | Cloud Space</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b1021;
+            --surface: rgba(255, 255, 255, 0.06);
+            --surface-strong: rgba(255, 255, 255, 0.12);
+            --text: #e9ecf5;
+            --muted: #9ca3af;
+            --accent: #7dd3fc;
+            --accent-2: #a78bfa;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.22), transparent 30%),
+                radial-gradient(circle at 82% 8%, rgba(45, 212, 191, 0.25), transparent 25%),
+                linear-gradient(135deg, #0b1021 0%, #0d1729 70%, #0b1021 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 28px 22px 42px;
+        }
+        .container { max-width: 1480px; margin: 0 auto; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: linear-gradient(120deg, rgba(125, 211, 252, 0.14), rgba(167, 139, 250, 0.18));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(12px);
+            margin-bottom: 24px;
+        }
+        header h1 { font-size: 26px; letter-spacing: 0.4px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        button, a.button {
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 700;
+            color: #0b1021;
+            background: var(--accent);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+        }
+        button.secondary, a.button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        button:hover, a.button:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(125, 211, 252, 0.25); }
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 18px; }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .stat-label { color: var(--muted); font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .stat-value { font-size: 28px; font-weight: 800; margin-top: 8px; }
+        .toolbar {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .toolbar input {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+        }
+        .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; }
+        .panel {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            box-shadow: 0 16px 38px rgba(0,0,0,0.32);
+            overflow: hidden;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: linear-gradient(120deg, rgba(125, 211, 252, 0.12), rgba(167, 139, 250, 0.16));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .panel-title { font-weight: 700; letter-spacing: 0.3px; }
+        .badge { background: rgba(255, 255, 255, 0.12); padding: 6px 10px; border-radius: 12px; font-weight: 700; color: var(--text); font-size: 13px; }
+        .panel-body { padding: 16px; max-height: 640px; overflow-y: auto; }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+        .card:hover { border-color: rgba(125, 211, 252, 0.35); transform: translateY(-2px); }
+        .card-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .title { font-weight: 700; }
+        .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pill { padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.08); }
+        .pill.success { background: rgba(34,197,94,0.16); color: #bbf7d0; }
+        .pill.warn { background: rgba(245,158,11,0.16); color: #fef3c7; }
+        .pill.danger { background: rgba(239,68,68,0.18); color: #fecdd3; }
+        .pill.neutral { background: rgba(255,255,255,0.06); color: var(--text); }
+        .kv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+        .kv { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 8px 10px; }
+        .kv-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .kv-value { font-weight: 700; margin-top: 4px; color: var(--text); word-break: break-word; }
+        .json-view { background: #0f172a; border-radius: 10px; padding: 10px 12px; font-family: Consolas, monospace; font-size: 12px; max-height: 260px; overflow: auto; margin-top: 8px; border: 1px solid rgba(255,255,255,0.08); }
+        .json-view .key { color: #f472b6; }
+        .json-view .string { color: #a7f3d0; }
+        .json-view .number { color: #c4b5fd; }
+        .json-view .boolean { color: #fbbf24; }
+        .json-view .null { color: #9ca3af; }
+        .json-toggle { margin-top: 10px; display: inline-flex; gap: 8px; align-items: center; }
+        .json-toggle button { padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: var(--text); cursor: pointer; }
+        .json-view.collapsed { display: none; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .btn-sm { padding: 8px 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; }
+        .btn-edit { background: var(--accent-2); color: #0b1021; }
+        .btn-save { background: var(--success); color: #0b1021; }
+        .btn-cancel { background: rgba(255,255,255,0.12); color: var(--text); border: 1px solid rgba(255,255,255,0.12); }
+        .btn-delete { background: var(--danger); color: #0b1021; }
+        textarea { width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); color: var(--text); padding: 12px; font-family: Consolas, monospace; min-height: 200px; }
+        .edit-box { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; margin-top: 10px; }
+        .form-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+        .form-row label { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text); }
+        .form-row input[type="checkbox"], .form-row input[type="radio"] { transform: scale(1.1); accent-color: var(--accent-2); }
+        .toast { position: fixed; top: 18px; right: 18px; background: linear-gradient(130deg, #7dd3fc, #a78bfa); color: #0b1021; padding: 12px 16px; border-radius: 12px; font-weight: 800; box-shadow: 0 16px 30px rgba(0,0,0,0.3); z-index: 20; }
+        .empty { text-align: center; padding: 32px 12px; color: var(--muted); }
+        .loading { text-align: center; padding: 60px 10px; color: var(--text); }
+        @media (max-width: 768px) {
+            .panels { grid-template-columns: 1fr; }
+            header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cloud Space · Data Ops Dashboard</h1>
+            <div class="header-actions">
+                <a class="button secondary" href="admin.html">← Back</a>
+                <button onclick="refreshData()">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <div id="loading" class="loading">
+            <p>Loading JSON data…</p>
+        </div>
+
+        <div id="content" style="display:none;">
+            <div class="grid-stats">
+                <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value" id="stat-users">0</div></div>
+                <div class="stat-card"><div class="stat-label">Purchases</div><div class="stat-value" id="stat-purchases">0</div></div>
+                <div class="stat-card"><div class="stat-label">Proofs</div><div class="stat-value" id="stat-proofs">0</div></div>
+                <div class="stat-card"><div class="stat-label">Active Plans</div><div class="stat-value" id="stat-planactive">0</div></div>
+                <div class="stat-card"><div class="stat-label">Plan Types</div><div class="stat-value" id="stat-planprice">0</div></div>
+            </div>
+
+            <div class="toolbar">
+                <input id="search" placeholder="Search across users, purchases, proofs, plans…" />
+                <button class="secondary" onclick="refreshData()">Reload</button>
+            </div>
+
+            <div class="panels">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Users</div>
+                        <div class="badge" id="badge-users">0</div>
+                    </div>
+                    <div class="panel-body" id="users"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Purchases</div>
+                        <div class="badge" id="badge-purchases">0</div>
+                    </div>
+                    <div class="panel-body" id="purchases"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Proofs</div>
+                        <div class="badge" id="badge-proofs">0</div>
+                    </div>
+                    <div class="panel-body" id="proofs"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Active Plans</div>
+                        <div class="badge" id="badge-planactive">0</div>
+                    </div>
+                    <div class="panel-body" id="planActive"></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Plan Price</div>
+                        <div class="badge" id="badge-planprice">0</div>
+                    </div>
+                    <div class="panel-body" id="planPrice"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+        let filtered = {};
+
+        document.addEventListener('DOMContentLoaded', loadData);
+        document.getElementById('search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            if (!term) {
+                filtered = clone(allData);
+                renderAll();
+                return;
+            }
+            filtered.users = allData.users?.filter(u => JSON.stringify(u).toLowerCase().includes(term)) || [];
+            filtered.purchases = allData.purchases?.filter(p => JSON.stringify(p).toLowerCase().includes(term)) || [];
+            filtered.proofs = allData.proofs?.filter(p => JSON.stringify(p).toLowerCase().includes(term)) || [];
+            filtered.planActive = allData.planActive?.filter(p => JSON.stringify(p).toLowerCase().includes(term)) || [];
+            filtered.planPrice = allData.planPrice;
+            renderAll();
+        });
+
+        function clone(obj) { return JSON.parse(JSON.stringify(obj || {})); }
+        function safeDate(v) { return v ? new Date(v).toLocaleString() : '—'; }
+
+        async function loadData() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) { window.location.href = 'login.html'; return; }
+                const res = await fetch('/api/admin/all-json-data', { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) {
+                    if (res.status === 401 || res.status === 403) { window.location.href = 'login.html'; return; }
+                    throw new Error('Failed to fetch');
+                }
+                allData = await res.json();
+                filtered = clone(allData);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                updateStats();
+                renderAll();
+            } catch (err) {
+                document.getElementById('loading').innerHTML = `<p>❌ ${err.message}</p>`;
+                console.error(err);
+            }
+        }
+
+        function refreshData() {
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            loadData();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-users').textContent = allData.users?.length || 0;
+            document.getElementById('stat-purchases').textContent = allData.purchases?.length || 0;
+            document.getElementById('stat-proofs').textContent = allData.proofs?.length || 0;
+            const planCount = allData.planActive?.reduce((s, u) => s + (u.plans?.length || 0), 0) || 0;
+            document.getElementById('stat-planactive').textContent = planCount;
+            document.getElementById('stat-planprice').textContent = Object.keys(allData.planPrice?.plans || {}).length;
+        }
+
+        function renderAll() { renderUsers(); renderPurchases(); renderProofs(); renderPlanActive(); renderPlanPrice(); }
+
+        function renderUsers() {
+            const list = filtered.users || [];
+            document.getElementById('badge-users').textContent = list.length;
+            const wrap = document.getElementById('users');
+            if (!list.length) { wrap.innerHTML = '<div class="empty">No users</div>'; return; }
+            wrap.innerHTML = list.map((u, i) => {
+                const pills = [
+                    u.blocked ? '<span class="pill danger">Blocked</span>' : '<span class="pill success">Active</span>',
+                    u.verified ? '<span class="pill success">Verified</span>' : '<span class="pill warn">Not Verified</span>',
+                    `<span class="pill neutral">${u.role || 'user'}</span>`
+                ].join(' ');
+                const jsonId = `user-json-${i}`;
+                return `
+                <div class="card" id="user-${i}">
+                    <div class="card-head">
+                        <div>
+                            <div class="title">${u.username || 'N/A'} <span style="color:var(--muted);">(${u.email || 'N/A'})</span></div>
+                            <div class="pills">${pills}</div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm btn-edit" onclick="editUser(${i})">Edit</button>
+                            <button class="btn-sm btn-delete" onclick="deleteUser('${u.email}')">Delete</button>
+                        </div>
+                    </div>
+                    <div class="kv-grid">
+                        <div class="kv"><div class="kv-label">UID</div><div class="kv-value">${u.uid || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Phone</div><div class="kv-value">${u.phone || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Created</div><div class="kv-value">${safeDate(u.created_at)}</div></div>
+                        <div class="kv"><div class="kv-label">Profile</div><div class="kv-value">${u.profilePic || '—'}</div></div>
+                    </div>
+                    ${renderJSONToggle(u, jsonId)}
+                </div>`;
+            }).join('');
+        }
+
+        function editUser(i) {
+            const u = filtered.users[i];
+            document.getElementById(`user-${i}`).innerHTML = `
+                <div class="edit-box">
+                    <div class="title" style="margin-bottom:8px;">Edit User · ${u.email}</div>
+                    <div class="form-row">
+                        <label><input type="checkbox" id="chk-user-${i}-verified" ${u.verified ? 'checked' : ''}> Verified</label>
+                        <label><input type="checkbox" id="chk-user-${i}-blocked" ${u.blocked ? 'checked' : ''}> Blocked</label>
+                    </div>
+                    <div class="form-row">
+                        <span style="font-weight:700;">Role:</span>
+                        ${['user','admin','superadmin'].map(r => `<label><input type="radio" name="role-${i}" value="${r}" ${u.role === r ? 'checked' : ''}> ${r}</label>`).join('')}
+                    </div>
+                    <textarea id="edit-user-${i}">${JSON.stringify(u, null, 2)}</textarea>
+                    <div class="actions" style="margin-top:10px;">
+                        <button class="btn-sm btn-save" onclick="saveUser(${i})">Save</button>
+                        <button class="btn-sm btn-cancel" onclick="renderUsers()">Cancel</button>
+                    </div>
+                </div>`;
+        }
+
+        async function saveUser(i) {
+            const original = filtered.users[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById(`edit-user-${i}`).value);
+                updatedData.verified = document.getElementById(`chk-user-${i}-verified`).checked;
+                updatedData.blocked = document.getElementById(`chk-user-${i}-blocked`).checked;
+                const roleSel = document.querySelector(`input[name="role-${i}"]:checked`);
+                if (roleSel) updatedData.role = roleSel.value;
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/update-user', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ email: original.email, updatedData })
+                });
+                if (!res.ok) throw new Error('Update failed');
+                toast('User updated');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        async function deleteUser(email) {
+            if (!confirm(`Delete ${email}?`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/delete-user', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ email })
+                });
+                if (!res.ok) throw new Error('Delete failed');
+                toast('User deleted');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        function renderPurchases() {
+            const list = filtered.purchases || [];
+            document.getElementById('badge-purchases').textContent = list.length;
+            const wrap = document.getElementById('purchases');
+            if (!list.length) { wrap.innerHTML = '<div class="empty">No purchases</div>'; return; }
+            wrap.innerHTML = list.map((p, i) => {
+                const pill = p.isBlocked ? 'danger' : (p.isActive ? 'success' : 'warn');
+                const jsonId = `purchase-json-${i}`;
+                return `
+                <div class="card" id="purchase-${i}">
+                    <div class="card-head">
+                        <div>
+                            <div class="title">${p.username || 'N/A'} <span style="color:var(--muted);">(${p.email || 'N/A'})</span></div>
+                            <div class="pills"><span class="pill ${pill}">${p.isBlocked ? 'Blocked' : p.isActive ? 'Active' : 'Inactive'}</span><span class="pill neutral">${p.plan || 'N/A'}</span></div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm btn-edit" onclick="editPurchase(${i})">Edit</button>
+                            <button class="btn-sm btn-delete" onclick="deletePurchase('${p.transactionId}')">Delete</button>
+                        </div>
+                    </div>
+                    <div class="kv-grid">
+                        <div class="kv"><div class="kv-label">Txn</div><div class="kv-value">${p.transactionId || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Amount</div><div class="kv-value">₹${p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Final</div><div class="kv-value">₹${p.finalAmount || p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Storage</div><div class="kv-value">${p.storageTB || 0} TB</div></div>
+                        <div class="kv"><div class="kv-label">Duration</div><div class="kv-value">${p.durationDays || 0} days</div></div>
+                        <div class="kv"><div class="kv-label">Purchased</div><div class="kv-value">${safeDate(p.purchasedAt)}</div></div>
+                        <div class="kv"><div class="kv-label">Expires</div><div class="kv-value">${safeDate(p.expiresAt)}</div></div>
+                    </div>
+                    ${renderJSONToggle(p, jsonId)}
+                </div>`;
+            }).join('');
+        }
+
+        function editPurchase(i) {
+            const p = filtered.purchases[i];
+            document.getElementById(`purchase-${i}`).innerHTML = `
+                <div class="edit-box">
+                    <div class="title" style="margin-bottom:8px;">Edit Purchase · ${p.transactionId}</div>
+                    <div class="form-row">
+                        <label><input type="checkbox" id="chk-purchase-${i}-active" ${p.isActive ? 'checked' : ''}> Active</label>
+                        <label><input type="checkbox" id="chk-purchase-${i}-blocked" ${p.isBlocked ? 'checked' : ''}> Blocked</label>
+                    </div>
+                    <textarea id="edit-purchase-${i}">${JSON.stringify(p, null, 2)}</textarea>
+                    <div class="actions" style="margin-top:10px;">
+                        <button class="btn-sm btn-save" onclick="savePurchase(${i})">Save</button>
+                        <button class="btn-sm btn-cancel" onclick="renderPurchases()">Cancel</button>
+                    </div>
+                </div>`;
+        }
+
+        async function savePurchase(i) {
+            const original = filtered.purchases[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById(`edit-purchase-${i}`).value);
+                updatedData.isActive = document.getElementById(`chk-purchase-${i}-active`).checked;
+                updatedData.isBlocked = document.getElementById(`chk-purchase-${i}-blocked`).checked;
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/update-purchase', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ transactionId: original.transactionId, updatedData })
+                });
+                if (!res.ok) throw new Error('Update failed');
+                toast('Purchase updated');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        async function deletePurchase(transactionId) {
+            if (!confirm('Delete purchase?')) return;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/delete-purchase', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ transactionId })
+                });
+                if (!res.ok) throw new Error('Delete failed');
+                toast('Purchase deleted');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        function renderProofs() {
+            const list = filtered.proofs || [];
+            document.getElementById('badge-proofs').textContent = list.length;
+            const wrap = document.getElementById('proofs');
+            if (!list.length) { wrap.innerHTML = '<div class="empty">No proofs</div>'; return; }
+            wrap.innerHTML = list.map((p, i) => {
+                const status = (p.status || 'pending').toLowerCase();
+                const pillClass = status === 'approved' ? 'success' : status === 'rejected' ? 'danger' : 'warn';
+                const jsonId = `proof-json-${i}`;
+                return `
+                <div class="card" id="proof-${i}">
+                    <div class="card-head">
+                        <div>
+                            <div class="title">${p.email || 'N/A'}</div>
+                            <div class="pills"><span class="pill ${pillClass}">${p.status || 'pending'}</span></div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm btn-edit" onclick="editProof(${i})">Edit</button>
+                            <button class="btn-sm btn-delete" onclick="deleteProof('${p.transactionId || p._id}')">Delete</button>
+                        </div>
+                    </div>
+                    <div class="kv-grid">
+                        <div class="kv"><div class="kv-label">Plan</div><div class="kv-value">${p.plan || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Txn</div><div class="kv-value">${p.upi_txn_id || p.transactionId || '—'}</div></div>
+                        <div class="kv"><div class="kv-label">Amount</div><div class="kv-value">₹${p.amount || 0}</div></div>
+                        <div class="kv"><div class="kv-label">Discount</div><div class="kv-value">${p.discountPercent || 0}%</div></div>
+                        <div class="kv"><div class="kv-label">Submitted</div><div class="kv-value">${safeDate(p.submittedAt)}</div></div>
+                        <div class="kv"><div class="kv-label">Verified</div><div class="kv-value">${safeDate(p.verifiedAt)}</div></div>
+                    </div>
+                    ${renderJSONToggle(p, jsonId)}
+                </div>`;
+            }).join('');
+        }
+
+        function editProof(i) {
+            const p = filtered.proofs[i];
+            document.getElementById(`proof-${i}`).innerHTML = `
+                <div class="edit-box">
+                    <div class="title" style="margin-bottom:8px;">Edit Proof · ${p.transactionId || p._id}</div>
+                    <div class="form-row">
+                        <span style="font-weight:700;">Status:</span>
+                        ${['approved','pending','rejected'].map(s => `<label><input type="radio" name="proof-status-${i}" value="${s}" ${((p.status || 'pending').toLowerCase() === s) ? 'checked' : ''}> ${s}</label>`).join('')}
+                        <label><input type="checkbox" id="chk-proof-${i}-highlight" ${p.highlighted ? 'checked' : ''}> Highlight</label>
+                    </div>
+                    <textarea id="edit-proof-${i}">${JSON.stringify(p, null, 2)}</textarea>
+                    <div class="actions" style="margin-top:10px;">
+                        <button class="btn-sm btn-save" onclick="saveProof(${i})">Save</button>
+                        <button class="btn-sm btn-cancel" onclick="renderProofs()">Cancel</button>
+                    </div>
+                </div>`;
+        }
+
+        async function saveProof(i) {
+            const original = filtered.proofs[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById(`edit-proof-${i}`).value);
+                const statusSel = document.querySelector(`input[name="proof-status-${i}"]:checked`);
+                if (statusSel) updatedData.status = statusSel.value;
+                updatedData.highlighted = document.getElementById(`chk-proof-${i}-highlight`).checked;
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/update-proof', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ transactionId: original.transactionId, updatedData })
+                });
+                if (!res.ok) throw new Error('Update failed');
+                toast('Proof updated');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        async function deleteProof(transactionId) {
+            if (!confirm('Delete proof?')) return;
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/delete-proof', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ transactionId })
+                });
+                if (!res.ok) throw new Error('Delete failed');
+                toast('Proof deleted');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        function renderPlanActive() {
+            const list = filtered.planActive || [];
+            const totalPlans = list.reduce((s, u) => s + (u.plans?.length || 0), 0);
+            document.getElementById('badge-planactive').textContent = totalPlans;
+            const wrap = document.getElementById('planActive');
+            if (!list.length) { wrap.innerHTML = '<div class="empty">No active plans</div>'; return; }
+            wrap.innerHTML = list.map((u, i) => `
+                <div class="card" id="plan-${i}">
+                    <div class="card-head">
+                        <div>
+                            <div class="title">${u.self?.email || 'N/A'}</div>
+                            <div class="pills"><span class="pill neutral">${u.summary?.totalPlans || 0} plans</span></div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm btn-edit" onclick="editPlanActive(${i})">Edit</button>
+                        </div>
+                    </div>
+                    ${renderJSONToggle(u, `planactive-json-${i}`)}
+                </div>
+            `).join('');
+        }
+
+        function editPlanActive(i) {
+            const u = filtered.planActive[i];
+            document.getElementById(`plan-${i}`).innerHTML = `
+                <div class="edit-box">
+                    <div class="title" style="margin-bottom:8px;">Edit Plans · ${u.self?.email || u.self?.uid}</div>
+                    <textarea id="edit-plan-${i}">${JSON.stringify(u, null, 2)}</textarea>
+                    <div class="actions" style="margin-top:10px;">
+                        <button class="btn-sm btn-save" onclick="savePlanActive(${i})">Save</button>
+                        <button class="btn-sm btn-cancel" onclick="renderPlanActive()">Cancel</button>
+                    </div>
+                </div>`;
+        }
+
+        async function savePlanActive(i) {
+            const original = filtered.planActive[i];
+            try {
+                const updatedData = JSON.parse(document.getElementById(`edit-plan-${i}`).value);
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/update-plan-active', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ uid: original.self?.uid, updatedData })
+                });
+                if (!res.ok) throw new Error('Update failed');
+                toast('Active plans updated');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        function renderPlanPrice() {
+            const price = filtered.planPrice || {};
+            document.getElementById('badge-planprice').textContent = Object.keys(price.plans || {}).length;
+            const wrap = document.getElementById('planPrice');
+            wrap.innerHTML = `
+                <div class="card" id="planprice-card">
+                    <div class="card-head">
+                        <div class="title">Pricing JSON</div>
+                        <div class="actions"><button class="btn-sm btn-edit" onclick="editPlanPrice()">Edit</button></div>
+                    </div>
+                    ${renderJSONToggle(price, 'planprice-json')}
+                </div>`;
+        }
+
+        function editPlanPrice() {
+            const price = filtered.planPrice || {};
+            document.getElementById('planprice-card').innerHTML = `
+                <div class="edit-box">
+                    <div class="title" style="margin-bottom:8px;">Edit Pricing</div>
+                    <textarea id="edit-planprice">${JSON.stringify(price, null, 2)}</textarea>
+                    <div class="actions" style="margin-top:10px;">
+                        <button class="btn-sm btn-save" onclick="savePlanPrice()">Save</button>
+                        <button class="btn-sm btn-cancel" onclick="renderPlanPrice()">Cancel</button>
+                    </div>
+                </div>`;
+        }
+
+        async function savePlanPrice() {
+            try {
+                const updatedData = JSON.parse(document.getElementById('edit-planprice').value);
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/update-plan-price', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ updatedData })
+                });
+                if (!res.ok) throw new Error('Update failed');
+                toast('Plan price updated');
+                await loadData();
+            } catch (err) { alert(err.message); }
+        }
+
+        function syntaxHighlight(obj) {
+            const json = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+            const esc = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return esc.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, match => {
+                let cls = 'number';
+                if (/^"/.test(match)) {
+                    cls = /:$/.test(match) ? 'key' : 'string';
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return `<span class="${cls}">${match}</span>`;
+            });
+        }
+
+        function renderJSONToggle(data, id) {
+            const safe = syntaxHighlight(data);
+            return `
+                <div class="json-toggle">
+                    <button onclick="toggleJSON('${id}')">View JSON</button>
+                </div>
+                <div id="${id}" class="json-view collapsed">${safe}</div>
+            `;
+        }
+
+        function toggleJSON(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const isCollapsed = el.classList.contains('collapsed');
+            el.classList.toggle('collapsed');
+            const btn = el.previousElementSibling?.querySelector('button');
+            if (btn) btn.textContent = isCollapsed ? 'Hide JSON' : 'View JSON';
+        }
+
+        function toast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2600);
+        }
+    </script>
+</body>
+</html>

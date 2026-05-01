@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platinum Plan Upload Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0a1f 60%, #003a3a 100%) fixed;
+            min-height: 100vh;
+            color: #e0fff7;
+            font-family: 'Share Tech Mono', 'Orbitron', 'Poppins', monospace;
+        }
+        .neon-title {
+            font-family: 'Orbitron', 'Share Tech Mono', monospace;
+            font-size: 2.8em;
+            color: #00fff7;
+            text-shadow: 0 0 18px #00fff7, 0 0 32px #00ffcc, 0 0 48px #00ffcc99;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+        }
+        .neon-card {
+            background: rgba(10,20,40,0.98);
+            border-radius: 28px;
+            box-shadow: 0 0 32px #00ffcc55, 0 0 0 3px #00ffcc55;
+            border: 2px solid #00ffcc;
+            padding: 36px 32px;
+            margin-bottom: 32px;
+            color: #e0fff7;
+        }
+        .floating-neon-card {
+            position: fixed;
+            z-index: 1002;
+            min-width: 320px;
+            max-width: 400px;
+            padding: 28px 24px;
+            border-radius: 24px;
+            box-shadow: 0 0 32px #00ffcc99, 0 0 0 3px #00ffcc55;
+            background: rgba(10,20,40,0.98);
+            border: 2px solid #00ffcc;
+            color: #e0fff7;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .floating-neon-card:hover {
+            box-shadow: 0 0 48px #00ffcccc, 0 0 0 5px #00ffcc99;
+            transform: scale(1.03);
+        }
+        #floatingCoin { bottom: 32px; right: 32px; }
+        #floatingSupport { bottom: 32px; left: 32px; }
+        @media (max-width: 900px) {
+            #floatingCoin, #floatingSupport { min-width: 220px; max-width: 90vw; padding: 18px 8px; }
+        }
+        .profile-section, .pin-section {
+            margin: 40px auto;
+            max-width: 500px;
+            background: rgba(0,255,200,0.08);
+            border-radius: 20px;
+            box-shadow: 0 0 18px #00ffcc55;
+            padding: 32px 28px;
+        }
+        .profile-section h2, .pin-section h2 {
+            color: #00fff7;
+            text-shadow: 0 0 12px #00ffcc99;
+            margin-bottom: 18px;
+        }
+        .profile-section label, .pin-section label {
+            color: #bff;
+            font-weight: 500;
+        }
+        .profile-section input, .pin-section input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px 0;
+            border-radius: 8px;
+            border: 1px solid #00ffcc;
+            background: #0a1a1f;
+            color: #e0fff7;
+            font-size: 1.1em;
+        }
+        .neon-btn {
+            background: linear-gradient(135deg,#00ffcc,#0099ff);
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 0 18px #00ffcc99;
+            cursor: pointer;
+            font-size: 1.1em;
+            padding: 16px 36px;
+            margin: 0 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .neon-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 32px #00ffcccc;
+        }
+        .voice-btn {
+            background: linear-gradient(135deg,#0099ff,#00ffcc);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            margin: 0 8px;
+            font-size: 1em;
+            box-shadow: 0 0 12px #0099ff99;
+            cursor: pointer;
+        }
+        .voice-btn.active {
+            box-shadow: 0 0 24px #00ffcc99;
+            border: 2px solid #00ffcc;
+        }
+    </style>
+</head>
+<body>
+    <div id="pinOnlyWrapper">
+        <form class="neon-card" id="pinForm" style="max-width:440px;margin:90px auto 0 auto;padding:38px 32px 32px 32px;box-shadow:0 0 32px #00fff799,0 0 0 3px #00ffcc88;background:rgba(10,20,40,0.99);border:2.5px solid #00fff7;display:flex;flex-direction:column;align-items:center;gap:0;">
+            <h2 class="neon-title" style="font-size:2em;text-align:center;margin-bottom:18px;" id="pinTitle">🔒 Set Your Platinum PIN</h2>
+            <label id="pinLabel" style="color:#bff;font-size:1.1em;margin-bottom:18px;text-align:center;width:100%;">Enter your PIN in this format:</label>
+            <div style="display:flex;align-items:center;justify-content:center;width:100%;background:none;border:none;box-shadow:none;margin-bottom:18px;gap:0;">
+                <span id="pinPrefix" style="font-family:'Share Tech Mono','Orbitron',monospace;font-size:1.15em;color:#00fff7;background:none;border:none;outline:none;letter-spacing:1px;width:180px;min-width:180px;max-width:180px;text-align:right;display:inline-block;">(USR-1234567--PLATINUMPLAN-</span>
+                <input type="password" id="pinInput" maxlength="6" pattern="\d{6}" placeholder="6-digit PIN" style="width:120px;min-width:120px;max-width:120px;padding:12px 10px;font-size:1.2em;border-radius:10px;border:2px solid #00fff7;background:#0a1a1f;color:#e0fff7;box-shadow:0 0 8px #00fff799;outline:none;transition:border 0.2s;text-align:center;">
+                <span style="font-family:'Share Tech Mono','Orbitron',monospace;font-size:1.15em;color:#00fff7;width:40px;min-width:40px;max-width:40px;text-align:left;display:inline-block;">)</span>
+            </div>
+            <button class="neon-btn" style="width:100%;font-size:1.2em;margin-top:10px;" id="pinBtn" type="button" onclick="handlePinAction()">Set PIN</button>
+        </form>
+    </div>
+    <div id="mainPlatinumContent" style="display:none;">
+        <h1 class="neon-title">PLATINUM PLAN UPLOAD</h1>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:32px 32px;margin:40px auto 0 auto;max-width:1200px;">
+            <div class="neon-card" style="width:370px;min-width:320px;max-width:370px;flex:1 1 370px;">
+                <h2 class="neon-title" style="font-size:1.5em;">👤 Update Profile</h2>
+                <label>Name</label>
+                <input type="text" id="profileName" placeholder="Enter your name">
+                <label>Email</label>
+                <input type="email" id="profileEmail" placeholder="Enter your email">
+                <button class="neon-btn" style="margin-top:10px;width:100%;" onclick="alert('Profile update coming soon!')">Update Profile</button>
+            </div>
+            <div class="neon-card" style="width:370px;min-width:320px;max-width:370px;flex:1 1 370px;text-align:center;">
+                <h2 class="neon-title" style="font-size:1.5em;">🚀 Upload Files</h2>
+                <div id="dropZone" style="border:2px dashed #00ffcc;padding:38px 0;margin:18px 0 12px 0;border-radius:18px;background:rgba(0,255,200,0.04);cursor:pointer;transition:background 0.2s;">
+                    <span style="font-size:2.2em;">📤</span>
+                    <div style="margin-top:10px;color:#bff;font-size:1.05em;">Drag & drop files here or <label for='fileInput' style='color:#00fff7;cursor:pointer;text-decoration:underline;'>browse</label></div>
+                    <input type="file" id="fileInput" multiple style="display:none;">
+                </div>
+                <div id="uploadList"></div>
+            </div>
+            <div class="neon-card" style="width:370px;min-width:320px;max-width:370px;flex:1 1 370px;">
+                <h2 class="neon-title" style="font-size:1.15em;">📂 Recent Uploads</h2>
+                <div id="recentUploads" style="color:#bff;">(Coming soon)</div>
+            </div>
+            <div class="neon-card" style="width:370px;min-width:320px;max-width:370px;flex:1 1 370px;">
+                <h2 class="neon-title" style="font-size:1.15em;">💾 Storage Stats</h2>
+                <div id="storageStats" style="color:#bff;">(Coming soon)</div>
+            </div>
+            <div class="neon-card" style="width:370px;min-width:320px;max-width:370px;flex:1 1 370px;">
+                <h2 class="neon-title" style="font-size:1.15em;">🛡️ Security Center</h2>
+                <div id="securityCenter" style="color:#bff;">(Coming soon)</div>
+            </div>
+        </div>
+        <!-- Floating Cloud Coin System -->
+        <section id="floatingCoin" class="floating-neon-card">
+            <h2 class="neon-title" style="font-size:1.3em;margin-bottom:10px;">💰 Cloud Coin System</h2>
+            <p style="font-size:1em;color:#bff;font-weight:500;margin-bottom:14px;text-align:center;max-width:320px;">Earn and redeem Cloud Coins for discounts, rewards, and premium features. Every upload and referral earns you coins!</p>
+            <div style="display:flex;gap:12px;align-items:center;justify-content:center;width:100%;margin-bottom:6px;">
+                <div style="background:rgba(0,255,200,0.12);border-radius:14px;padding:10px 18px;box-shadow:0 0 12px #00ffcc88;display:flex;align-items:center;border:2px solid #00ffcc;">
+                    <span class="neon-coin">🪙</span>
+                    <span style="font-size:1.2em;font-weight:bold;margin-left:8px;color:#fff;text-shadow:0 0 8px #00ffcc99;" id="userCloudCoins">0</span>
+                    <span style="color:#bff;margin-left:6px;font-size:1em;">coins</span>
+                </div>
+                <button class="neon-btn" style="padding:8px 18px;font-size:1em;" onclick="alert('Cloud Coin redemption coming soon!')">Redeem</button>
+            </div>
+        </section>
+        <!-- Floating Support System -->
+        <section id="floatingSupport" class="floating-neon-card">
+            <h2 class="neon-title" style="color:#00aaff;font-size:1.3em;margin-bottom:10px;text-shadow:0 0 12px #0099ff99;">🛟 Support System</h2>
+            <p style="font-size:1em;color:#bff;font-weight:500;margin-bottom:14px;text-align:center;max-width:320px;">Need help? Our support team is here for you 24/7. Get instant answers, live chat, and ticket support for all your cloud storage needs.</p>
+            <div style="display:flex;gap:12px;align-items:center;justify-content:center;width:100%;">
+                <button class="neon-btn" style="padding:8px 18px;font-size:1em;" onclick="window.location.href='mailto:support@cloudspaceplus.com'">Email</button>
+                <button class="neon-btn" style="padding:8px 18px;font-size:1em;" onclick="alert('Live chat coming soon!')">Chat</button>
+                <button class="neon-btn" style="padding:8px 18px;font-size:1em;" onclick="alert('Support ticket system coming soon!')">Ticket</button>
+            </div>
+        </section>
+        <div style="position:fixed;top:32px;right:32px;z-index:1003;">
+            <button class="voice-btn" id="femaleVoiceBtn" onclick="setVoice('female')">🔊 Female Voice</button>
+            <button class="voice-btn" id="maleVoiceBtn" onclick="setVoice('male')">🔊 Male Voice</button>
+        </div>
+    </div>
+    <script>
+        // Always use female voice for speech
+        function setVoice(type) {
+            document.getElementById('femaleVoiceBtn').classList.add('active');
+            document.getElementById('maleVoiceBtn').classList.remove('active');
+        }
+        setVoice('female');
+        function speak(text) {
+            if (!window.speechSynthesis) return;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.rate = 1.05;
+            utter.pitch = 1.5;
+            // Try to pick a female voice by name, gender, or common female names
+            function pickFemaleVoice() {
+                const voices = speechSynthesis.getVoices();
+                // Try by gender property
+                let female = voices.find(v => v.gender && v.gender.toLowerCase() === 'female');
+                if (female) return female;
+                // Try by name containing 'female', 'woman', or common female names
+                const femaleNames = ['female', 'woman', 'zira', 'susan', 'eva', 'samantha', 'karen', 'joanna', 'linda', 'mary', 'julie', 'lucy', 'emma', 'olivia', 'sara', 'mia', 'zoe', 'tessa', 'victoria', 'hazel', 'jenny', 'amy', 'alice', 'clara', 'grace', 'hannah', 'isabella', 'jessica', 'laura', 'melissa', 'nina', 'rachel', 'sophia', 'tina'];
+                for (const name of femaleNames) {
+                    const v = voices.find(v => v.name.toLowerCase().includes(name));
+                    if (v) return v;
+                }
+                // Try by language (en-US, en-GB, etc.) and not 'male' in name
+                let fallback = voices.find(v => v.lang && v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+                if (fallback) return fallback;
+                // Fallback to first voice
+                return voices[0];
+            }
+            // Some browsers load voices asynchronously
+            if (speechSynthesis.getVoices().length === 0) {
+                speechSynthesis.onvoiceschanged = function() {
+                    utter.voice = pickFemaleVoice();
+                    window.speechSynthesis.speak(utter);
+                };
+            } else {
+                utter.voice = pickFemaleVoice();
+                window.speechSynthesis.speak(utter);
+            }
+        }
+        // Show upload section after PIN unlock
+        // Simulate auto-fetch for UID and PLAN
+        function getAutoUid() {
+            // Replace with real fetch from backend/session
+            return localStorage.getItem('platinumUid') || 'USR-1234567';
+        }
+        function getAutoPlan() {
+            // Replace with real fetch from backend/session
+            return localStorage.getItem('platinumPlan') || 'PLATINUM';
+        }
+
+        // Check if PIN is already set (simulate with localStorage)
+        let isPinSet = false;
+        let platinumPin = '';
+        let platinumUid = getAutoUid();
+        let platinumPlan = getAutoPlan();
+        if (localStorage.getItem('platinumPin')) {
+            isPinSet = true;
+            platinumPin = localStorage.getItem('platinumPin');
+        }
+
+        // Set the prefix for the PIN format
+        function updatePinPrefix() {
+            const prefix = `(${platinumUid}--${platinumPlan}PLAN-`;
+            document.getElementById('pinPrefix').textContent = prefix;
+        }
+
+        // Update UI for PIN set/enter
+        window.onload = function() {
+            updatePinPrefix();
+            if (isPinSet) {
+                document.getElementById('pinTitle').textContent = '🔒 Enter Your Platinum PIN';
+                document.getElementById('pinLabel').textContent = 'Enter your PIN in this format:';
+                document.getElementById('pinBtn').textContent = 'Unlock';
+            } else {
+                document.getElementById('pinTitle').textContent = '🔒 Set Your Platinum PIN';
+                document.getElementById('pinLabel').textContent = 'Set your PIN in this format:';
+                document.getElementById('pinBtn').textContent = 'Set PIN';
+            }
+        };
+
+        function handlePinAction() {
+            const pin = document.getElementById('pinInput').value;
+            if (!/^\d{6}$/.test(pin)) {
+                speak('Please enter a valid 6 digit pin.');
+                alert('Please enter a valid 6 digit pin.');
+                return;
+            }
+            if (!isPinSet) {
+                // Save PIN (simulate saving to plan-token-pin.json via backend)
+                localStorage.setItem('platinumPin', pin);
+                platinumPin = pin;
+                isPinSet = true;
+                // Simulate backend save
+                fetch('/save-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: platinumUid, plan: platinumPlan, pin })
+                });
+                speak('PIN set successfully. Please use this PIN to unlock next time.');
+                document.getElementById('pinTitle').textContent = '🔒 Enter Your Platinum PIN';
+                document.getElementById('pinLabel').textContent = 'Enter your PIN in this format:';
+                document.getElementById('pinBtn').textContent = 'Unlock';
+                document.getElementById('pinInput').value = '';
+                return;
+            } else {
+                // Validate PIN
+                if (pin !== platinumPin) {
+                    speak('Incorrect PIN. Please try again.');
+                    alert('Incorrect PIN. Please try again.');
+                    return;
+                }
+                // Format: ({USRID--AUTO FETCH}-({PLAN-AUTO FETCH}PLAN-6DIGIT USER SETED PIN)
+                window.platinumUid = platinumUid;
+                window.platinumPlan = platinumPlan;
+                window.platinumToken = `(${platinumUid}--${platinumPlan}PLAN-${pin})`;
+                document.getElementById('pinOnlyWrapper').style.display = 'none';
+                document.getElementById('mainPlatinumContent').style.display = '';
+                speak('PIN accepted. Upload unlocked.');
+            }
+        }
+        // Upload logic
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadList = document.getElementById('uploadList');
+        if (dropZone && fileInput && uploadList) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.background = 'rgba(0,255,200,0.12)'; });
+            dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.style.background = 'rgba(0,255,200,0.04)'; });
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.style.background = 'rgba(0,255,200,0.04)';
+                handleFiles(e.dataTransfer.files);
+            });
+            fileInput.addEventListener('change', e => handleFiles(e.target.files));
+        }
+        function handleFiles(files) {
+            if (!window.platinumToken || !window.platinumUid) {
+                alert('PIN unlock required.');
+                return;
+            }
+            for (let file of files) {
+                const row = document.createElement('div');
+                row.style = 'margin:10px 0;padding:12px 18px;background:rgba(0,255,200,0.06);border-radius:10px;box-shadow:0 0 8px #00ffcc33;display:flex;align-items:center;gap:18px;';
+                row.innerHTML = `<span style='font-size:1.5em;'>📄</span> <span style='flex:1;'>${file.name}</span> <progress max='100' value='0' style='width:120px;height:12px;border-radius:8px;'></progress> <span class='upload-status' style='color:#bff;font-size:0.95em;'></span>`;
+                uploadList.appendChild(row);
+                uploadFile(file, row.querySelector('progress'), row.querySelector('.upload-status'));
+            }
+        }
+        function uploadFile(file, progress, status) {
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append('files', file);
+            // Send token and uid in both query and headers
+            const url = `/upload?uid=${encodeURIComponent(window.platinumUid)}&token=${encodeURIComponent(window.platinumToken)}`;
+            xhr.open('POST', url);
+            xhr.setRequestHeader('x-access-token', window.platinumToken);
+            xhr.setRequestHeader('x-uid', window.platinumUid);
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    progress.value = (e.loaded / e.total) * 100;
+                }
+            };
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    status.textContent = '✅ Uploaded';
+                    speak(`${file.name} uploaded successfully.`);
+                } else {
+                    let msg = '❌ Failed';
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp && resp.error) msg += ': ' + resp.error;
+                    } catch {}
+                    status.textContent = msg;
+                    speak(`${file.name} upload failed.`);
+                }
+            };
+            xhr.onerror = function() {
+                status.textContent = '❌ Error';
+                speak(`${file.name} upload error.`);
+            };
+            status.textContent = 'Uploading...';
+            xhr.send(formData);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+/* ===== Base Layout ===== */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(135deg, #141e30, #243b55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+    margin: 0;
+}
+
+main,
+.container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px 30px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    max-width: 520px;
+    width: 90%;
+}
+
+/* ===== File Input ===== */
+.file-input-wrapper {
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 25px;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s, transform 0.2s;
+    margin: 20px auto;
+}
+
+.file-input-wrapper:hover,
+.file-input-wrapper.dragover {
+    border-color: #00ccff;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
+}
+
+/* ===== Buttons ===== */
+button,
+.view-files-btn,
+.primary-btn,
+.secondary-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    display: inline-block;
+    text-decoration: none;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Primary action buttons */
+#uploadBtn,
+.primary-btn {
+    background: linear-gradient(90deg, #00ff99, #00ccff);
+    color: #f9f7f7;
+}
+
+#uploadBtn:hover,
+.primary-btn:hover {
+    box-shadow: 0 0 25px rgba(0, 255, 200, 1);
+    transform: translateY(-2px);
+}
+
+/* Cancel button */
+#cancelBtn {
+    background: linear-gradient(90deg, #ff4b2b, #ff416c);
+    color: #fff;
+}
+
+#cancelBtn:hover {
+    box-shadow: 0 0 25px rgba(255, 0, 100, 1);
+    transform: translateY(-2px);
+}
+
+/* Logout button */
+#logoutBtn {
+    background: linear-gradient(90deg, #06e3f7, #41dcff);
+    color: #0d0d0d;
+}
+
+#logoutBtn:hover {
+    box-shadow: 0 0 20px rgb(23, 239, 149);
+    transform: translateY(-2px);
+}
+
+/* Secondary navigation buttons */
+.view-files-btn,
+.secondary-btn {
+    margin-top: 15px;
+    background: linear-gradient(90deg, #00ff99, #00ccff);
+    color: #000;
+}
+
+.view-files-btn:hover,
+.secondary-btn:hover {
+    box-shadow: 0 0 25px rgba(0, 255, 200, 1);
+    transform: translateY(-2px);
+}
+
+/* ===== Progress Bar ===== */
+.progress-bar {
+    width: 80%;
+    max-width: 420px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    margin: 25px auto;
+    position: relative;
+    overflow: hidden;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 15px rgba(0, 255, 200, 0.25);
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #00ff99, #00ccff, #0077ff);
+    border-radius: 14px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 200, 255, 0.7);
+}
+
+.progress-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+/* ===== Messages ===== */
+.message {
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-weight: bold;
+    display: inline-block;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.4s ease;
+    position: relative;
+}
+
+.message::before {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+.message.info {
+    background: linear-gradient(90deg, #2196f3, #42a5f5);
+    color: #fff;
+}
+
+.message.info::before {
+    content: "ℹ️";
+}
+
+.message.warn {
+    background: linear-gradient(90deg, #ff9800, #ffb74d);
+    color: #fff;
+}
+
+.message.warn::before {
+    content: "⚠️";
+}
+
+.message.error {
+    background: linear-gradient(90deg, #f44336, #e57373);
+    color: #fff;
+}
+
+.message.error::before {
+    content: "❌";
+}
+
+.message.success {
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    color: #fff;
+}
+
+.message.success::before {
+    content: "✅";
+}
+
+@keyframes fadeOutBg {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+}
+
+/* 🌟 Futuristic Custom Alert */
+.custom-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 20, 30, 0.8);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    animation: fadeIn 0.3s ease;
+}
+
+.custom-alert-box {
+    background: rgba(20, 30, 48, 0.95);
+    border: 2px solid #00ffcc;
+    border-radius: 16px;
+    padding: 25px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 0 25px #00ffcc, 0 0 45px #00ccff;
+    animation: popUp 0.4s ease;
+}
+
+.custom-alert-box span {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+    text-shadow: 0 0 15px #ff4b2b, 0 0 25px #ff0000;
+}
+
+.custom-alert-box p {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.custom-alert-box button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(90deg, #ff4b2b, #ff0000);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    transition: 0.3s;
+}
+
+.custom-alert-box button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px #ff0000;
+}
+
+/* Animations */
+@keyframes popUp {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Animation for fade */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ===== File List ===== */
+.file-list ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+.file-list li {
+    padding: 12px 15px;
+    margin: 6px 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #eee;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.file-list li:hover {
+    background: rgba(0, 255, 200, 0.1);
+    transform: scale(1.02);
+}
+
+.file-list a {
+    color: #00ccff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.file-list a:hover {
+    text-decoration: underline;
+}
+
+/* ===== Profile Picture + Logout ===== */
+#profile-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+}
+
+#profile-container img {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 3px solid #00ccff;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.7);
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ===== Auth Forms ===== */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.auth-form input {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-form input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Avatar preview in signup */
+.avatar-preview {
+    margin: 15px auto;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #00ccff;
+    box-shadow: 0 0 10px rgba(0, 255, 200, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ===== Accessibility ===== */
+.sr-only {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

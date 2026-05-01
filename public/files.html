@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📂 Uploaded Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="files.css">
+</head>
+
+<body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <div class="bg-grid"></div>
+
+    <main>
+
+        <!-- Profile -->
+        <div id="profile-container" style="display:none;">
+            <span id="profile-name"></span>
+            <img id="profilePic" src="default-avatar.png" alt="Profile Picture">
+            <div id="profile-dropdown">
+                <button id="viewDetails">👤 View Details</button>
+                <button id="logoutBtn">🚪 Logout</button>
+            </div>
+        </div>
+
+        <header class="page-header">
+            <h1>📂 Uploaded Files</h1>
+            <p>Manage, sort, and download everything from one clean command center.</p>
+        </header>
+
+        <!-- Sorting -->
+        <section class="controls">
+            <label for="sortSelect">Sort Files</label>
+            <select id="sortSelect">
+                <option value="name">Name</option>
+                <option value="size">Size</option>
+                <option value="date" selected>Date (Newest)</option>
+                <option value="type">Type</option>
+            </select>
+        </section>
+
+        <div id="fileError"></div>
+        <div id="loadingIndicator"><span></span><span></span><span></span></div>
+
+        <!-- File List -->
+        <section class="file-list">
+            <ul id="fileList"></ul>
+        </section>
+
+        <nav class="page-nav">
+            <a href="friends.html" class="view-files-btn">👥 Friends & Coins</a>
+            <a href="upload.html" class="view-files-btn">⬅ Back to Upload</a>
+        </nav>
+    </main>
+
+    <!-- User Modal -->
+    <div id="userModal">
+        <div class="modal-content">
+            <h3>👤 User Details</h3>
+            <div id="userDetails"></div>
+            <button id="copyUid">📋 Copy UID</button>
+            <button onclick="document.getElementById('userModal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- 🚪 Logout Confirmation Modal -->
+    <div id="logoutModal">
+        <div class="logout-content">
+            <span class="logout-icon">⚠️</span>
+            <h3>Are you sure you want to logout?</h3>
+            <div class="logout-actions">
+                <button id="confirmLogout">Logout</button>
+                <button id="cancelLogout">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌌 Custom Alert (still available for other use cases) -->
+    <div id="customAlert">
+        <span id="alertIcon">ℹ️</span>
+        <span id="alertMessage">Message</span>
+        <div id="alertButtons">
+            <button onclick="closeAlert()">✖</button>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="files.js"></script>
+</body>
+
+</html>

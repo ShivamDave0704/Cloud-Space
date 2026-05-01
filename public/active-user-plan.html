@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active User Plans</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .page-wrap {
+            max-width: 1200px;
+            margin: 90px auto 40px;
+            padding: 0 16px;
+        }
+        .page-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .pill-btn {
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,255,204,0.4);
+            background: rgba(0,255,204,0.12);
+            color: #00ffcc;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 12px rgba(0,255,204,0.35);
+        }
+        .pill-btn:hover { background: rgba(0,255,204,0.2); transform: translateY(-1px); }
+        .pill-btn.danger { border-color: rgba(255,99,132,0.45); color: #ff8fa3; background: rgba(255,99,132,0.12); box-shadow: 0 0 12px rgba(255,99,132,0.35); }
+        .pill-btn.danger:hover { background: rgba(255,99,132,0.2); }
+        .subtle {
+            color: #a7b7c5;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .admin-actions {
+            margin: 12px 0 22px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,255,204,0.25);
+            background: linear-gradient(135deg, rgba(0,255,204,0.08), rgba(0,157,255,0.05));
+            box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 14px;
+        }
+        @media (max-width: 840px) { .admin-actions { grid-template-columns: 1fr; } }
+        .admin-actions__title { font-weight: 700; color: #00ffcc; margin-bottom: 6px; letter-spacing: 0.4px; }
+        .admin-actions__group { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0; }
+        .admin-actions__group label { color: #d7e7f5; font-size: 14px; cursor: pointer; }
+        .timer-row { gap: 8px; }
+        .timer-input, .admin-input {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(0,255,204,0.35);
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: #e8f4ff;
+            min-width: 120px;
+        }
+        .timer-input:focus, .admin-input:focus { outline: 1px solid #00ffcc; }
+        .admin-actions__right {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(0,255,204,0.25);
+        }
+        .plan-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,255,204,0.15);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        }
+        .plan-card h4 { margin: 6px 0 8px; color: #00ffcc; }
+        .plan-meta { font-size: 13px; color: #bcd4e6; line-height: 1.5; }
+        .plan-badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+        .badge {
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            background: rgba(0,255,204,0.12);
+            border: 1px solid rgba(0,255,204,0.25);
+            color: #00ffcc;
+        }
+        .badge.warn { background: rgba(255,193,7,0.12); border-color: rgba(255,193,7,0.4); color: #ffdd57; }
+        .badge.error { background: rgba(255,75,43,0.14); border-color: rgba(255,75,43,0.45); color: #ff8a73; }
+        .plan-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+        .confirm-sheet {
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(5,10,20,0.7); backdrop-filter: blur(12px);
+            z-index: 9999; animation: fadeIn 0.2s ease;
+        }
+        .confirm-card {
+            background: linear-gradient(145deg, #0f1c2e, #0a1322);
+            border: 1px solid rgba(255,99,132,0.35);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 24px rgba(255,99,132,0.25);
+            border-radius: 16px; padding: 22px; width: min(420px, 92vw);
+            color: #f1f5f9; text-align: center; animation: pop 0.24s ease;
+        }
+        .confirm-card h4 { margin: 0 0 6px; color: #ff8fa3; }
+        .confirm-card p { margin: 0; color: #cbd5e1; font-size: 14px; }
+        .confirm-actions { display:flex; gap:10px; margin-top:14px; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes pop { from { transform: translateY(8px) scale(0.97); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
+        .table-wrap { overflow-x: auto; }
+        .muted { color: #9fb0c0; font-size: 13px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid rgba(0,255,204,0.15); }
+        .tab { padding: 10px 16px; border: none; background: none; color: #a7b7c5; cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent; transition: all 0.25s ease; }
+        .tab.active { color: #00ffcc; border-bottom-color: #00ffcc; }
+        .tab:hover { color: #00ffcc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .json-editor { display: flex; gap: 12px; min-height: 600px; }
+        .json-files-list { flex: 0 0 280px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; overflow-y: auto; border: 1px solid rgba(0,255,204,0.15); }
+        .json-file-item { padding: 10px; margin-bottom: 6px; border-radius: 8px; background: rgba(0,255,204,0.08); border: 1px solid rgba(0,255,204,0.2); cursor: pointer; transition: all 0.2s ease; font-size: 12px; color: #d7e7f5; }
+        .json-file-item:hover { background: rgba(0,255,204,0.15); border-color: rgba(0,255,204,0.4); }
+        .json-file-item.active { background: rgba(0,255,204,0.25); border-color: #00ffcc; color: #00ffcc; font-weight: 600; }
+        .json-editor-area { flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; border: 1px solid rgba(0,255,204,0.15); }
+        .json-editor-textarea { flex: 1; background: rgba(0,0,0,0.3); color: #e8f4ff; border: 1px solid rgba(0,255,204,0.2); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; resize: none; }
+        .json-editor-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .json-editor-actions button { flex: 1; padding: 10px 14px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.25s ease; }
+        .save-btn { background: linear-gradient(135deg, #7bf7d0, #00ffcc); color: #041221; box-shadow: 0 0 15px rgba(0,255,204,0.35); }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(0,255,204,0.5); }
+        .reset-btn { background: rgba(255,255,255,0.1); color: #d7e7f5; border: 1px solid rgba(255,255,255,0.2); }
+        .reset-btn:hover { background: rgba(255,255,255,0.15); }
+        .json-status { margin-top: 8px; padding: 8px 12px; border-radius: 8px; font-size: 12px; display: none; }
+        .json-status.success { display: block; background: rgba(123,247,208,0.15); color: #7bf7d0; border: 1px solid rgba(123,247,208,0.3); }
+        .json-status.error { display: block; background: rgba(255,107,107,0.15); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.3); }
+
+        /* Cool visual pass */
+        body {
+            background:
+                radial-gradient(circle at 10% 12%, rgba(0, 255, 204, 0.12), transparent 34%),
+                radial-gradient(circle at 86% 6%, rgba(0, 157, 255, 0.12), transparent 36%),
+                linear-gradient(155deg, #060c18, #0b1728 52%, #091423);
+            color: #e7f2ff;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: 0.65;
+        }
+
+        header {
+            backdrop-filter: blur(10px);
+            background: linear-gradient(145deg, rgba(8, 18, 36, 0.92), rgba(5, 12, 24, 0.92));
+            border-bottom: 1px solid rgba(0, 255, 204, 0.25);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+        }
+
+        .page-wrap {
+            max-width: 1280px;
+        }
+
+        .page-actions {
+            padding: 14px 16px;
+            border: 1px solid rgba(0,255,204,0.22);
+            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(11, 23, 43, 0.85), rgba(8, 16, 31, 0.85));
+            box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+        }
+
+        .actions-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .quick-filter {
+            min-width: 240px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,255,204,0.3);
+            background: rgba(255,255,255,0.06);
+            color: #dff8ff;
+        }
+
+        .quick-filter:focus {
+            outline: none;
+            border-color: #00ffcc;
+            box-shadow: 0 0 0 3px rgba(0,255,204,0.16);
+        }
+
+        .selection-pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,255,204,0.45);
+            background: rgba(0,255,204,0.12);
+            color: #aefde8;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .admin-actions,
+        section.active,
+        .tabs,
+        .json-editor,
+        .json-editor-area,
+        .json-files-list {
+            backdrop-filter: blur(8px);
+        }
+
+        section.active {
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,255,204,0.16);
+            background: linear-gradient(145deg, rgba(12,22,42,0.65), rgba(7,14,28,0.65));
+            box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+        }
+
+        .dashboard .card {
+            border: 1px solid rgba(0,255,204,0.22);
+            background: linear-gradient(145deg, rgba(10, 24, 44, 0.86), rgba(7, 16, 32, 0.9));
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .dashboard .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0,255,204,0.55);
+            box-shadow: 0 16px 30px rgba(0,0,0,0.45), 0 0 24px rgba(0,255,204,0.16);
+        }
+
+        .plan-card {
+            transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0,255,204,0.45);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.42);
+        }
+
+        #summaryTable {
+            border: 1px solid rgba(0,255,204,0.18);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #summaryTable thead th {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 24, 42, 0.88);
+            z-index: 1;
+        }
+
+        #summaryTable tbody tr:hover {
+            background: rgba(0,255,204,0.08);
+        }
+
+        .tabs {
+            border-bottom: 1px solid rgba(0,255,204,0.25);
+            padding-bottom: 4px;
+        }
+
+        .tab {
+            border-radius: 10px 10px 0 0;
+        }
+
+        .tab.active {
+            background: linear-gradient(180deg, rgba(0,255,204,0.16), rgba(0,255,204,0.02));
+            box-shadow: inset 0 -2px 0 #00ffcc;
+        }
+
+        .toast-wrap {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 10001;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 220px;
+            max-width: 360px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: #dff9ff;
+            background: rgba(8, 20, 40, 0.95);
+            border: 1px solid rgba(0,255,204,0.45);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.45);
+            animation: toastIn 0.22s ease;
+        }
+
+        .toast.error {
+            border-color: rgba(255,99,132,0.5);
+            color: #ffd6df;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .quick-filter {
+                min-width: 100%;
+            }
+            .actions-right {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>🌌 Active User Plans</div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button id="backToAdmin" class="pill-btn" style="box-shadow:none;">⬅️ Back to Admin</button>
+            <button id="logoutBtn" data-logout>🚪 Logout</button>
+        </div>
+    </header>
+
+    <div class="page-wrap">
+        <div class="page-actions">
+            <div>
+                <h2 style="margin:0; color:#00ffcc;">Live Plan Overview</h2>
+                <div class="subtle" id="lastUpdated">Loading...</div>
+            </div>
+            <div class="actions-right">
+                <input id="quickFilter" class="quick-filter" type="text" placeholder="Filter by UID, email, username, plan, record ID...">
+                <span id="selectionPill" class="selection-pill">0 selected</span>
+                <button id="refreshBtn" class="pill-btn">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="admin-actions">
+            <div class="admin-actions__left">
+                <div class="admin-actions__title">Admin Actions</div>
+                <span style="color:#e0eaf5; font-size:14px;">Plan Block Controls</span>
+                <div class="admin-actions__group">
+                    <label><input type="radio" name="actionType" value="blockPlan" checked> Block plan (requires reason)</label>
+                    <label><input type="radio" name="actionType" value="unblockPlan"> Unblock plan</label>
+                </div>
+                <span style="color:#e0eaf5; font-size:14px;">User Controls</span>
+                <div class="admin-actions__group">
+                    <label><input type="radio" name="actionType" value="blockUser"> Block user (timer optional)</label>
+                    <label><input type="radio" name="actionType" value="unblockUser"> Unblock user</label>
+                </div>
+                <div class="admin-actions__group">
+                    <label><input type="checkbox" id="applyTimerChk"> Set timer</label>
+                    <div class="timer-row" id="timerRow" style="display:none;">
+                        <input type="number" id="timerHours" min="0" max="720" placeholder="Hours" class="timer-input">
+                        <input type="number" id="timerMinutes" min="0" max="59" placeholder="Minutes" class="timer-input">
+                    </div>
+                </div>
+                <div class="admin-actions__group">
+                    <input type="text" id="adminReason" placeholder="Reason (optional)" class="admin-input">
+                </div>
+            </div>
+            <div class="admin-actions__right">
+                <div class="admin-actions__title">Quick Tips</div>
+                <p style="margin:4px 0;color:#e0eaf5;font-size:13px;">• Select users to toggle user blocks; select plan IDs for plan blocks.</p>
+                <p style="margin:4px 0;color:#e0eaf5;font-size:13px;">• Plan blocks need a reason; user blocks can be timed.</p>
+                <p style="margin:4px 0;color:#e0eaf5;font-size:13px;">• Timer off = indefinite block.</p>
+                <button id="applyAdminAction" class="pill-btn" style="width:100%; margin-top:8px;">🚀 Apply Action</button>
+                <div id="adminActionStatus" class="muted" style="margin-top:8px;">No action applied yet.</div>
+            </div>
+        </div>
+
+        <div class="dashboard" style="margin-top:0;">
+            <div class="card">
+                <h2 id="totalUsers">0</h2>
+                <p>👥 Users</p>
+            </div>
+            <div class="card">
+                <h2 id="totalPlans">0</h2>
+                <p>🗂️ Total Plans</p>
+            </div>
+            <div class="card">
+                <h2 id="activePlans">0</h2>
+                <p>✅ Active Plans</p>
+            </div>
+            <div class="card">
+                <h2 id="blockedPlans">0</h2>
+                <p>🚫 Blocked Plans</p>
+            </div>
+        </div>
+
+        <section class="active" style="margin-top:10px;">
+            <h3 style="margin-top:0;">User Summaries</h3>
+            <div class="table-wrap">
+                <table id="summaryTable">
+                    <thead>
+                        <tr>
+                            <th>UID</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Total</th>
+                            <th>Active</th>
+                            <th>Blocked</th>
+                            <th>Storage (TB)</th>
+                            <th>Spent (₹)</th>
+                            <th>Discount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="active" style="margin-top:12px;">
+            <h3 style="margin-top:0;">Plan Details</h3>
+            <div id="plansContainer" class="plan-grid"></div>
+            <p class="muted" id="emptyState" style="display:none;">No plans found.</p>
+        </section>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs" style="margin-top: 30px;">
+            <button class="tab active" data-tab="plans">📊 Plans & Users</button>
+            <button class="tab" data-tab="json-editor">⚙️ JSON Editor</button>
+        </div>
+
+        <!-- Plans Tab Content -->
+        <div id="plans-tab" class="tab-content active"></div>
+
+        <!-- JSON Editor Tab Content -->
+        <div id="json-editor-tab" class="tab-content">
+            <section class="active">
+                <h3 style="margin-top:0;">🔧 Project JSON Files Editor</h3>
+                <div class="json-editor">
+                    <div class="json-files-list" id="jsonFilesList">
+                        <p style="color:#8fb3d9; font-size:12px;">Loading files...</p>
+                    </div>
+                    <div class="json-editor-area">
+                        <textarea id="jsonEditorTextarea" class="json-editor-textarea" placeholder="Select a JSON file to edit..."></textarea>
+                        <div class="json-editor-actions">
+                            <button class="save-btn" id="jsonSaveBtn">💾 Save File</button>
+                            <button class="reset-btn" id="jsonResetBtn">↻ Reset Changes</button>
+                        </div>
+                        <div id="jsonStatus" class="json-status"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="toastWrap" class="toast-wrap"></div>
+
+    <script>
+        const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : window.location.origin;
+        const token = localStorage.getItem("token");
+        const email = localStorage.getItem("email");
+        let currentUser = null;
+        let selectedJsonFile = null;
+        let originalJsonContent = null;
+        let allUsersData = [];
+
+        function showToast(message, isError = false) {
+            const wrap = document.getElementById("toastWrap");
+            if (!wrap) return;
+            const t = document.createElement("div");
+            t.className = "toast" + (isError ? " error" : "");
+            t.textContent = message;
+            wrap.appendChild(t);
+            setTimeout(() => {
+                t.style.opacity = "0";
+                t.style.transform = "translateY(6px)";
+                setTimeout(() => t.remove(), 180);
+            }, 2200);
+        }
+
+        function updateSelectionPill() {
+            const usersCount = document.querySelectorAll(".target-user:checked").length;
+            const plansCount = document.querySelectorAll(".target-plan:checked").length;
+            const total = usersCount + plansCount;
+            const pill = document.getElementById("selectionPill");
+            if (!pill) return;
+            pill.textContent = `${total} selected`;
+        }
+
+        function filteredUsers(source = []) {
+            const q = (document.getElementById("quickFilter")?.value || "").trim().toLowerCase();
+            if (!q) return source;
+
+            const matches = (value) => String(value || "").toLowerCase().includes(q);
+
+            return source
+                .map((u) => {
+                    const userMatch =
+                        matches(u.self?.uid) ||
+                        matches(u.self?.email) ||
+                        matches(u.self?.username);
+
+                    if (userMatch) {
+                        return u;
+                    }
+
+                    const plans = (u.plans || []).filter((p) =>
+                        matches(p.plan) ||
+                        matches(p.recordId) ||
+                        matches(p.transaction?.transactionId) ||
+                        matches(p.transaction?.paymentMethod)
+                    );
+
+                    if (!plans.length) return null;
+
+                    const summary = {
+                        totalPlans: plans.length,
+                        activePlans: plans.filter((p) => p.status?.isActive && !p.status?.isBlocked).length,
+                        blockedPlans: plans.filter((p) => p.status?.isBlocked).length,
+                        totalStorageTB: plans.reduce((s, p) => s + Number(p.planDetails?.storageTB || 0), 0),
+                        totalSpent: plans.reduce((s, p) => s + Number(p.transaction?.finalAmount || 0), 0),
+                        totalDiscount: plans.reduce((s, p) => s + Number(p.transaction?.discountAmount || 0), 0)
+                    };
+
+                    return { ...u, plans, summary };
+                })
+                .filter(Boolean);
+        }
+
+        if (!token || !email) {
+            window.location.href = "login.html";
+        }
+
+        // Tab switching
+        document.querySelectorAll(".tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                const tabName = tab.dataset.tab;
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
+                tab.classList.add("active");
+                document.getElementById(tabName + "-tab").classList.add("active");
+                
+                if (tabName === "json-editor" && !selectedJsonFile) {
+                    loadJsonFiles();
+                }
+            });
+        });
+
+        document.getElementById("quickFilter")?.addEventListener("input", () => {
+            renderData(filteredUsers(allUsersData));
+        });
+
+        // JSON Editor Functions
+        async function loadJsonFiles() {
+            const listEl = document.getElementById("jsonFilesList");
+            const headers = { "Authorization": "Bearer " + token };
+            
+            try {
+                const res = await fetch(`${API}/admin/json-files`, { headers });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+                
+                listEl.innerHTML = data.files.map(f => `
+                    <div class="json-file-item" data-path="${f.path}" data-rel="${f.relativePath}">
+                        <div style="font-weight:600;">${f.name}</div>
+                        <div style="font-size:11px; opacity:0.7;">${(f.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                `).join("");
+
+                document.querySelectorAll(".json-file-item").forEach(item => {
+                    item.addEventListener("click", () => loadJsonFile(item));
+                });
+            } catch (err) {
+                listEl.innerHTML = `<p style="color:#ff6b6b;">Error: ${err.message}</p>`;
+            }
+        }
+
+        async function loadJsonFile(item) {
+            document.querySelectorAll(".json-file-item").forEach(i => i.classList.remove("active"));
+            item.classList.add("active");
+            
+            selectedJsonFile = { path: item.dataset.path, rel: item.dataset.rel, name: item.textContent.trim().split("\n")[0] };
+            
+            const headers = { "Authorization": "Bearer " + token };
+            const textarea = document.getElementById("jsonEditorTextarea");
+            
+            try {
+                const res = await fetch(`${API}/admin/json-file?path=${encodeURIComponent(item.dataset.rel)}`, { headers });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+                
+                originalJsonContent = JSON.stringify(data.content, null, 2);
+                textarea.value = originalJsonContent;
+                showJsonStatus("", "");
+            } catch (err) {
+                textarea.value = "";
+                showJsonStatus(`Error loading file: ${err.message}`, "error");
+            }
+        }
+
+        function showJsonStatus(msg, type) {
+            const el = document.getElementById("jsonStatus");
+            el.textContent = msg;
+            el.className = "json-status";
+            if (msg) el.classList.add(type);
+        }
+
+        document.getElementById("jsonSaveBtn").addEventListener("click", async () => {
+            if (!selectedJsonFile) {
+                showJsonStatus("No file selected", "error");
+                return;
+            }
+            
+            const textarea = document.getElementById("jsonEditorTextarea");
+            const content = textarea.value;
+            
+            try {
+                JSON.parse(content);
+            } catch {
+                showJsonStatus("Invalid JSON format", "error");
+                return;
+            }
+
+            const headers = {
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json"
+            };
+
+            try {
+                const res = await fetch(`${API}/admin/json-file`, {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify({ path: selectedJsonFile.rel, content })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.message);
+                
+                originalJsonContent = content;
+                
+                // If saving plan-price.json, reload plans on server and frontend
+                if (selectedJsonFile.name === "plan-price.json") {
+                    await fetch(`${API}/admin/reload-plans`, {
+                        method: "POST",
+                        headers
+                    });
+                    showJsonStatus(`✅ ${selectedJsonFile.name} saved and plans reloaded!`, "success");
+                    showToast(`${selectedJsonFile.name} saved and plans reloaded`);
+                } else {
+                    showJsonStatus(`✅ ${selectedJsonFile.name} saved successfully!`, "success");
+                    showToast(`${selectedJsonFile.name} saved`);
+                }
+            } catch (err) {
+                showJsonStatus(`❌ Save error: ${err.message}`, "error");
+                showToast(`Save failed: ${err.message}`, true);
+            }
+        });
+
+        document.getElementById("jsonResetBtn").addEventListener("click", () => {
+            if (!selectedJsonFile) return;
+            document.getElementById("jsonEditorTextarea").value = originalJsonContent || "";
+            showJsonStatus("Changes reset", "");
+            showToast("Editor reset");
+        });
+
+        document.getElementById("backToAdmin").onclick = () => window.location.href = "admin.html";
+
+        // Simple logout reuse
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.clear();
+            window.location.href = "login.html";
+        });
+
+        document.getElementById("refreshBtn").addEventListener("click", loadPlans);
+
+        function fmt(num = 0) {
+            return Number(num || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function showAccessDeniedOverlay(message, redirectUrl) {
+            const overlay = document.createElement("div");
+            overlay.style.cssText = `
+                position: fixed; inset: 0; background: rgba(4,10,20,0.78);
+                backdrop-filter: blur(10px);
+                display: flex; align-items: center; justify-content: center;
+                z-index: 99999; animation: fadeIn 0.35s ease;
+            `;
+
+            const card = document.createElement("div");
+            card.style.cssText = `
+                width: min(420px, 90vw); padding: 26px 24px; border-radius: 18px;
+                background: linear-gradient(145deg, #102033, #0c1524);
+                border: 1px solid rgba(0,255,204,0.3);
+                box-shadow: 0 18px 45px rgba(0,0,0,0.55), 0 0 24px rgba(0,255,204,0.22);
+                color: #e8f4ff; text-align: center; position: relative;
+                animation: popUp 0.4s ease;
+            `;
+
+            card.innerHTML = `
+                <div style="font-size:38px; margin-bottom:10px;">🚫</div>
+                <div style="font-size:20px; font-weight:700; letter-spacing:0.5px;">Access Denied</div>
+                <p style="margin:10px 0 16px; color:#c8d7e4; font-size:14px; line-height:1.5;">${message}</p>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <button id="admRedirect" class="pill-btn" style="background:linear-gradient(135deg,#00ffcc,#00a2ff); color:#041221; border:none; box-shadow:0 0 20px rgba(0,255,204,0.35);">Redirect Now</button>
+                </div>
+                <div style="margin-top:12px; font-size:12px; color:#8fb3d9;">
+                    <div>Redirecting automatically in <span id="admCountdown">3</span>s...</div>
+                </div>
+            `;
+
+            const style = document.createElement("style");
+            style.textContent = `
+                @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+                @keyframes popUp { from { transform: translateY(14px) scale(0.97); opacity:0; } to { transform: translateY(0) scale(1); opacity:1; } }
+            `;
+            document.head.appendChild(style);
+
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+
+            const doRedirect = () => { window.location.href = redirectUrl || "login.html"; };
+            let countdown = 3;
+            const countdownEl = card.querySelector("#admCountdown");
+            const timer = setInterval(() => {
+                countdown--;
+                if (countdownEl) countdownEl.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    doRedirect();
+                }
+            }, 1000);
+
+            overlay.querySelector("#admRedirect").onclick = doRedirect;
+        }
+
+        async function ensureAdminAccess() {
+            try {
+                const res = await fetch(`${API}/me`, {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+                if (!res.ok) {
+                    localStorage.clear();
+                    showAccessDeniedOverlay("Session expired or missing. Please sign in again.", "login.html");
+                    return false;
+                }
+                const me = await res.json();
+                if (me.role !== "admin" && me.role !== "superadmin") {
+                    showAccessDeniedOverlay("This page is for admins only. Redirecting to user view...", "upload.html");
+                    return false;
+                }
+                currentUser = me;
+                return true;
+            } catch (err) {
+                console.error("Admin check failed", err);
+                localStorage.clear();
+                showAccessDeniedOverlay("Unexpected error. Please sign in again.", "login.html");
+                return false;
+            }
+        }
+
+        async function loadPlans() {
+            const headers = { "Authorization": "Bearer " + token };
+            document.getElementById("lastUpdated").textContent = "Updating...";
+            try {
+                const res = await fetch(`${API}/api/plan-active`, { headers });
+                const data = await res.json();
+                if (!data?.success) throw new Error(data?.message || "Failed to load");
+                allUsersData = data.data || [];
+                renderData(filteredUsers(allUsersData));
+                document.getElementById("lastUpdated").textContent = `Updated ${new Date().toLocaleString()}`;
+                showToast("Plan data refreshed");
+            } catch (err) {
+                console.error(err);
+                document.getElementById("lastUpdated").textContent = "⚠️ Failed to load";
+                showToast("Failed to load plan data", true);
+            }
+        }
+
+        function renderData(users = []) {
+            // Top stats
+            const totalUsers = users.length;
+            const totalPlans = users.reduce((s,u)=> s + (u.summary?.totalPlans || 0), 0);
+            const activePlans = users.reduce((s,u)=> s + (u.summary?.activePlans || 0), 0);
+            const blockedPlans = users.reduce((s,u)=> s + (u.summary?.blockedPlans || 0), 0);
+            document.getElementById("totalUsers").textContent = totalUsers;
+            document.getElementById("totalPlans").textContent = totalPlans;
+            document.getElementById("activePlans").textContent = activePlans;
+            document.getElementById("blockedPlans").textContent = blockedPlans;
+
+            // Summary table
+            const tbody = document.querySelector("#summaryTable tbody");
+            tbody.innerHTML = users.map(u => {
+                const s = u.summary || {};
+                return `
+                    <tr>
+                        <td>${u.self?.uid || ""}</td>
+                        <td>${u.self?.email || ""}</td>
+                        <td>${u.self?.username || ""}</td>
+                        <td>${fmt(s.totalPlans)}</td>
+                        <td>${fmt(s.activePlans)}</td>
+                        <td>${fmt(s.blockedPlans)}</td>
+                        <td>${fmt(s.totalStorageTB)}</td>
+                        <td>${fmt(s.totalSpent)}</td>
+                        <td>${fmt(s.totalDiscount)}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            // Plan cards
+            const container = document.getElementById("plansContainer");
+            container.innerHTML = "";
+            document.getElementById("emptyState").style.display = users.length ? "none" : "block";
+
+            users.forEach(u => {
+                const userHeader = document.createElement("div");
+                userHeader.className = "plan-card";
+                userHeader.style.gridColumn = "1 / -1";
+                userHeader.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div>
+                            <div style="color:#00ffcc; font-weight:700;">${u.self?.username || "Unknown"}</div>
+                            <div class="muted">${u.self?.email || ""} · ${u.self?.uid || ""}</div>
+                        </div>
+                        <div class="plan-badges">
+                            <span class="badge">Plans: ${fmt(u.summary?.totalPlans)}</span>
+                            <span class="badge">Active: ${fmt(u.summary?.activePlans)}</span>
+                            <span class="badge ${u.summary?.blockedPlans ? "warn" : ""}">Blocked: ${fmt(u.summary?.blockedPlans)}</span>
+                            <label class="badge" style="cursor:pointer;">
+                                    <input type="checkbox" class="target-user" data-uid="${u.self?.uid || ""}" data-email="${u.self?.email || ""}" style="margin-right:6px;"> Select User
+                            </label>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(userHeader);
+
+                (u.plans || []).forEach(plan => {
+                    const card = document.createElement("div");
+                    card.className = "plan-card";
+                    const isBlocked = plan.status?.isBlocked;
+                    const isActive = plan.status?.isActive && !isBlocked;
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                            <h4 style="margin:0;">${plan.plan?.toUpperCase() || "PLAN"} ${isActive ? "✅" : isBlocked ? "🚫" : ""}</h4>
+                            <label class="badge" style="cursor:pointer; margin:0;">
+                                <input type="checkbox" class="target-plan" data-record-id="${plan.recordId || ""}" data-uid="${u.self?.uid || ""}" style="margin-right:6px;"> Select Plan
+                            </label>
+                        </div>
+                        <div class="plan-badges">
+                            <span class="badge">Storage: ${fmt(plan.planDetails?.storageTB)} TB</span>
+                            <span class="badge">Duration: ${fmt(plan.planDetails?.durationDays)} days</span>
+                            <span class="badge">Paid: ₹${fmt(plan.transaction?.finalAmount)}</span>
+                            ${isActive ? "<span class=\"badge\">Active</span>" : ""}
+                            ${isBlocked ? "<span class=\"badge warn\">Blocked</span>" : ""}
+                        </div>
+                        <div class="plan-meta">
+                            <div>Transaction: ${plan.transaction?.transactionId || "-"}</div>
+                            <div>Payment: ${plan.transaction?.paymentMethod || "-"}</div>
+                            <div>Purchased: ${plan.transaction?.purchasedAt ? new Date(plan.transaction.purchasedAt).toLocaleString() : "-"}</div>
+                            <div>Expires: ${plan.transaction?.expiresAt ? new Date(plan.transaction.expiresAt).toLocaleString() : "-"}</div>
+                            <div>Record ID: ${plan.recordId || "-"}</div>
+                        </div>
+                        <div class="plan-meta" style="margin-top:6px;">Features: ${(plan.planDetails?.features || []).join(', ')}</div>
+                        <div class="plan-actions">
+                            <button class="pill-btn danger" data-delete-plan="${plan.recordId || ""}" data-plan-name="${plan.plan || "Plan"}" data-uid="${u.self?.uid || ""}">🗑️ Delete Plan</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+
+            // Wire delete buttons after render
+            document.querySelectorAll("[data-delete-plan]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const purchaseId = btn.dataset.deletePlan;
+                    const planName = btn.dataset.planName || "Plan";
+                    const uid = btn.dataset.uid || "";
+                    showDeleteConfirm(purchaseId, planName, uid);
+                });
+            });
+
+            document.querySelectorAll(".target-user, .target-plan").forEach(el => {
+                el.addEventListener("change", updateSelectionPill);
+            });
+
+            updateSelectionPill();
+        }
+
+        function showDeleteConfirm(purchaseId, planName, uid) {
+            if (!purchaseId) return;
+            const sheet = document.createElement("div");
+            sheet.className = "confirm-sheet";
+            sheet.innerHTML = `
+                <div class="confirm-card">
+                    <div style="font-size:40px;">🗑️</div>
+                    <h4>Delete ${planName?.toUpperCase?.() || "Plan"}?</h4>
+                    <p>This will remove the plan record for UID ${uid || "unknown"}. This cannot be undone.</p>
+                    <div class="confirm-actions">
+                        <button class="pill-btn" data-cancel>Cancel</button>
+                        <button class="pill-btn danger" data-confirm>Yes, delete</button>
+                    </div>
+                    <div id="deleteStatus" class="muted" style="margin-top:10px;">Action is permanent.</div>
+                </div>
+            `;
+
+            const cleanup = () => sheet.remove();
+            sheet.querySelector("[data-cancel]").onclick = cleanup;
+
+            sheet.querySelector("[data-confirm]").onclick = async () => {
+                const statusEl = sheet.querySelector("#deleteStatus");
+                statusEl.textContent = "⏳ Deleting...";
+                try {
+                    const res = await fetch(`${API}/admin/delete-plan`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({ purchaseId })
+                    });
+                    const data = await res.json();
+                    if (!data?.success) throw new Error(data?.message || "Failed");
+                    statusEl.textContent = "✅ Deleted. Refreshing...";
+                    await loadPlans();
+                    showToast(`${planName || "Plan"} deleted`);
+                    setTimeout(cleanup, 400);
+                } catch (err) {
+                    console.error(err);
+                    statusEl.textContent = "❌ Delete failed: " + err.message;
+                    showToast(`Delete failed: ${err.message}`, true);
+                }
+            };
+
+            document.body.appendChild(sheet);
+        }
+
+        // Admin action wiring
+        const timerChk = document.getElementById("applyTimerChk");
+        timerChk.addEventListener("change", () => {
+            document.getElementById("timerRow").style.display = timerChk.checked ? "flex" : "none";
+        });
+
+        document.getElementById("applyAdminAction").addEventListener("click", async () => {
+            const action = document.querySelector("input[name='actionType']:checked")?.value;
+            const reason = document.getElementById("adminReason").value || "";
+            const hours = parseInt(document.getElementById("timerHours").value || "0", 10);
+            const minutes = parseInt(document.getElementById("timerMinutes").value || "0", 10);
+            const durationMinutes = timerChk.checked ? (hours * 60 + minutes) : null;
+
+            const selectedUsers = Array.from(document.querySelectorAll(".target-user:checked")).map(c => ({
+                uid: c.dataset.uid,
+                email: c.dataset.email
+            })).filter(u => u.email);
+            const selectedPlans = Array.from(document.querySelectorAll(".target-plan:checked")).map(c => ({
+                recordId: c.dataset.recordId,
+                uid: c.dataset.uid
+            })).filter(p => p.recordId);
+
+            const statusEl = document.getElementById("adminActionStatus");
+            if (!selectedUsers.length && !selectedPlans.length) {
+                statusEl.textContent = "⚠️ Select at least one user or plan.";
+                showToast("Select at least one user or plan", true);
+                return;
+            }
+            if ((action === "blockPlan" || action === "unblockPlan") && !selectedPlans.length) {
+                statusEl.textContent = "⚠️ Select at least one plan for this action.";
+                statusEl.style.color = "#ffb3b3";
+                showToast("Select at least one plan", true);
+                return;
+            }
+            if ((action === "blockUser" || action === "unblockUser") && !selectedUsers.length) {
+                statusEl.textContent = "⚠️ Select at least one user for this action.";
+                statusEl.style.color = "#ffb3b3";
+                showToast("Select at least one user", true);
+                return;
+            }
+            if (action === "blockPlan" && !reason.trim()) {
+                statusEl.textContent = "⚠️ Reason is required to block a plan.";
+                statusEl.style.color = "#ffb3b3";
+                showToast("Reason is required to block a plan", true);
+                return;
+            }
+
+            const headers = {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            };
+
+            const postJson = async (path, body) => {
+                const res = await fetch(`${API}${path}`, {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify(body || {})
+                });
+                if (!res.ok) throw new Error(`${path} failed (${res.status})`);
+                return res.json().catch(() => ({}));
+            };
+
+            const fetchDirectory = async () => {
+                const res = await fetch(`${API}/admin/users`, { headers });
+                if (!res.ok) throw new Error("Failed to load user directory");
+                return res.json();
+            };
+
+            statusEl.textContent = "⏳ Applying action...";
+            statusEl.style.color = "#e0eaf5";
+            document.getElementById("applyAdminAction").disabled = true;
+
+            try {
+                let success = 0;
+                let failed = 0;
+
+                if (action === "blockPlan" || action === "unblockPlan") {
+                    for (const plan of selectedPlans) {
+                        try {
+                            if (action === "blockPlan") {
+                                await postJson("/admin/block-plan", { purchaseId: plan.recordId, reason: reason || "Admin action" });
+                            } else {
+                                await postJson("/admin/unblock-plan", { purchaseId: plan.recordId });
+                            }
+                            success++;
+                        } catch (err) {
+                            console.error("Plan action failed", plan.recordId, err);
+                            failed++;
+                        }
+                    }
+                }
+
+                if (action === "blockUser" || action === "unblockUser") {
+                    const directory = await fetchDirectory();
+                    const mapByEmail = new Map(directory.map(u => [u.email, u]));
+                    const shouldBlock = action === "blockUser";
+
+                    for (const user of selectedUsers) {
+                        const current = mapByEmail.get(user.email) || {};
+                        const isBlocked = Boolean(current.blocked || current.isBlocked);
+                        const needsCall = shouldBlock ? !isBlocked : isBlocked;
+                        if (!needsCall) continue;
+
+                        try {
+                            const payload = { targetEmail: user.email };
+                            if (shouldBlock) {
+                                payload.durationMinutes = durationMinutes ?? 0; // 0 = indefinite
+                            } else {
+                                payload.durationMinutes = 0; // toggle off
+                            }
+                            await postJson("/admin/block-user", payload);
+                            success++;
+                        } catch (err) {
+                            console.error("User action failed", user.email, err);
+                            failed++;
+                        }
+                    }
+                }
+
+                const summaryParts = [];
+                if (success) summaryParts.push(`${success} succeeded`);
+                if (failed) summaryParts.push(`${failed} failed`);
+                statusEl.textContent = summaryParts.join(" • ") || "No change performed (state already matched).";
+                statusEl.style.color = failed ? "#ffb3b3" : "#7bf7d0";
+                showToast(statusEl.textContent, Boolean(failed));
+
+                // Clear selections and refresh data
+                document.querySelectorAll(".target-user:checked, .target-plan:checked").forEach(c => c.checked = false);
+                updateSelectionPill();
+                await loadPlans();
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = "❌ Action failed. Check console/logs.";
+                statusEl.style.color = "#ffb3b3";
+                showToast("Action failed. Check logs.", true);
+            } finally {
+                document.getElementById("applyAdminAction").disabled = false;
+            }
+        });
+
+        // Initial load with admin guard
+        (async function init() {
+            const ok = await ensureAdminAccess();
+            if (!ok) return;
+            loadPlans();
+        })();
+    </script>
+</body>
+</html>

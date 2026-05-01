@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>🌌 Cloud Space Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style></style>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <!-- 🌌 Fullscreen Alert -->
+    <div id="fullscreenAlert" class="fullscreen-alert">
+        <div class="fullscreen-alert-box">
+            <span id="fullscreenIcon">⚠️</span>
+            <p id="fullscreenMessage">This is a custom alert</p>
+            <button onclick="closeFullscreenAlert()">OK</button>
+        </div>
+    </div>
+
+    <header>
+        🌌 Cloud Space Admin Panel
+        <button onclick="logout()">🚪 Logout</button>
+    </header>
+
+    <!-- 📊 Dashboard -->
+    <div class="dashboard">
+        <div class="card">
+            <h2 id="totalUsers">0</h2>
+            <p>👥 Total Users</p>
+        </div>
+        <div class="card">
+            <h2 id="activeUsers">0</h2>
+            <p>✅ Active Users</p>
+        </div>
+        <div class="card">
+            <h2 id="blockedUsers">0</h2>
+            <p>🚫 Blocked Users</p>
+        </div>
+        <div class="card">
+            <h2 id="totalFiles">0</h2>
+            <p>📂 Files Uploaded</p>
+        </div>
+        <div class="card">
+            <h2 id="totalStorage">0 MB</h2>
+            <p>💾 Storage Used</p>
+        </div>
+    </div>
+
+    <nav>
+        <button data-tab="users" class="active">👥 Users</button>
+        <button data-tab="files">📂 Files</button>
+        <button data-tab="stats">📊 Stats</button>
+        <button data-tab="logs">📝 Logs</button>
+        <button data-tab="mail">📩 Mail</button>
+        <button data-tab="proofs" id="proofsTabBtn">🛡️ Proofs</button>
+    </nav>
+
+    <!-- 👥 Users -->
+    <section id="users" class="active">
+        <h2>👥 User Management</h2>
+        <input type="text" id="userSearch" placeholder="🔍 Search users...">
+        <table id="usersTable"></table>
+        <div id="usersPagination"></div>
+    </section>
+
+    <!-- 📂 Files -->
+    <section id="files">
+        <h2>📂 File Management</h2>
+        <table id="filesTable"></table>
+    </section>
+
+    <!-- 📊 Stats -->
+    <section id="stats">
+        <h2>📊 System Stats</h2>
+        <div id="statsBox"></div>
+        <br>
+        <button onclick="autoBlock()" class="warn">⏳ Auto-Block Inactive Users</button>
+    </section>
+
+    <!-- 📝 Logs -->
+    <section id="logs">
+        <h2>📝 Activity Logs</h2>
+        <h3>🔑 Reset Requests</h3>
+        <pre id="resetLogs"></pre>
+        <h3>🔒 Password Changes</h3>
+        <pre id="passLogs"></pre>
+        <h3>📤 File Uploads</h3>
+        <pre id="uploadLogs"></pre>
+        <h3>🔐 Login Attempts</h3>
+        <pre id="loginLogs"></pre>
+        <h3>📩 Mail Activity</h3>
+        <pre id="mailLogs"></pre>
+        <h3>🚨 Account Flags / Bans</h3>
+        <pre id="flagsLogs"></pre>
+    </section>
+
+    <!-- 📩 Mail -->
+    <section id="mail">
+        <h2>📩 Send Email</h2>
+        <label>Recipient:</label><br>
+        <select id="mailTo">
+            <option value="all">🌍 All Users</option>
+            <option value="admins">👑 Admins Only</option>
+            <option value="users">👥 Normal Users</option>
+            <option value="active">✅ Active Users</option>
+            <option value="blocked">🚫 Blocked Users</option>
+            <option value="custom">🎯 Custom Selection</option>
+        </select><br><br>
+
+        <select id="customUsers" multiple style="display:none;height:100px;"></select><br><br>
+        <input id="mailSub" placeholder="Subject"><br><br>
+        <textarea id="mailMsg" placeholder="Message"></textarea><br><br>
+        <button id="sendMailBtn" class="success">📩 Send</button>
+    </section>
+
+    <!-- ✅ Alert Container -->
+    <div id="alertContainer"></div>
+
+    <script src="admin.js"></script>
+    <script>
+        // ✅ Wait until the full DOM is ready
+        document.addEventListener("DOMContentLoaded", () => {
+            const proofsTabBtn = document.getElementById("proofsTabBtn");
+
+            if (proofsTabBtn) {
+                proofsTabBtn.addEventListener("click", (e) => {
+                    e.preventDefault(); // 🛡️ Prevent any unwanted default behavior
+                    console.log("✅ Proofs button clicked — navigating to proof.html");
+
+                    // Use a small delay for smoother transition (optional)
+                    setTimeout(() => {
+                        window.location.href = "proof.html";
+                    }, 150);
+                });
+            } else {
+                console.error("❌ Proofs Tab Button not found in DOM!");
+            }
+        });
+
+
+        // ✅ Universal Alert System
+        function showAlert(message, type = "error", duration = 4000) {
+            const container = document.getElementById("alertContainer");
+            const alert = document.createElement("div");
+            alert.className = `custom-alert ${type}`;
+            alert.innerHTML = `
+                    <i>${type === "success" ? "✅" :
+                    type === "warning" ? "⚠️" : "❌"}</i>
+                    <span>${message}</span>
+                `;
+            container.appendChild(alert);
+            setTimeout(() => alert.classList.add("show"), 50);
+
+            setTimeout(() => {
+                alert.style.animation = "fadeOut 0.6s forwards";
+                setTimeout(() => alert.remove(), 600);
+            }, duration);
+        }
+
+        function showFullscreenAlert(msg, icon = "⚠️") {
+            const box = document.getElementById("fullscreenAlert");
+            document.getElementById("fullscreenIcon").textContent = icon;
+            document.getElementById("fullscreenMessage").textContent = msg;
+            box.style.display = "flex";
+        }
+
+        function closeFullscreenAlert() {
+            document.getElementById("fullscreenAlert").style.display = "none";
+        }
+
+        // ✅ Test backend connection
+        fetch(`${API}/api/admin/data`)
+            .then(res => {
+                if (!res.ok) throw new Error("Server unreachable");
+                return res.json();
+            })
+            .then(data => {
+                console.log("✅ Connected to Cloud Space Server:", data);
+                showAlert("Connected to Cloud Space Server!", "success");
+            })
+            .catch(err => {
+                console.error("❌ Connection Error:", err);
+                showFullscreenAlert("🚫 Failed to connect to Cloud Space server.", "❌");
+            });
+
+        // Optional global fetch error handler
+        window.addEventListener("error", (e) => {
+            if (e.message.includes("Failed to fetch")) {
+                e.preventDefault();
+                showAlert("⚠️ Network Error — Unable to connect to the server!", "error");
+            }
+        });
+    </script>
+</body>
+
+</html>

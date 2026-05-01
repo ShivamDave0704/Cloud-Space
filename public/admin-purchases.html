@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Management - CloudSpace+ Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #00ffff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: #00ffff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .controls {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 1em;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #00ffff, #0099ff);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .table-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            overflow: auto;
+            max-height: 600px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+
+        thead {
+            background: rgba(0, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        tbody tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .status-completed {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+
+        .status-pending {
+            background: rgba(255, 200, 0, 0.2);
+            color: #ffff00;
+        }
+
+        .status-blocked {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+        }
+
+        .plan-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .plan-silver { background: rgba(192, 192, 192, 0.3); color: #c0c0c0; }
+        .plan-gold { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+        .plan-platinum { background: rgba(0, 255, 255, 0.2); color: #00ffcc; }
+        .plan-ultra { background: rgba(255, 0, 255, 0.2); color: #ff00ff; }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.8em;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-block {
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .btn-block:hover {
+            background: rgba(255, 0, 0, 0.5);
+        }
+
+        .btn-unblock {
+            background: rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .btn-unblock:hover {
+            background: rgba(0, 255, 0, 0.5);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            color: #00ffff;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #00ffff;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ffff;
+        }
+
+        .error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff6b6b;
+            color: #ff9999;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            color: #90ff90;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .currency {
+            color: #ffd700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💎 Purchase Management</h1>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPurchases">0</div>
+                    <div class="stat-label">Total Purchases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRevenue">₹0</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="activePlans">0</div>
+                    <div class="stat-label">Active Plans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="blockedPlans">0</div>
+                    <div class="stat-label">Blocked Plans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendingVerification">0</div>
+                    <div class="stat-label">Pending Verification</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Filter by Plan:</label>
+                <select id="filterPlan">
+                    <option value="">All Plans</option>
+                    <option value="silver">Silver</option>
+                    <option value="gold">Gold</option>
+                    <option value="platinum">Platinum</option>
+                    <option value="ultra">Ultra</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Filter by Status:</label>
+                <select id="filterStatus">
+                    <option value="">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending_verification">Pending Verification</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <input type="text" id="searchUser" placeholder="Search by email or UID...">
+            </div>
+
+            <button onclick="applyFilters()">🔍 Apply Filters</button>
+            <button onclick="loadPurchases()">🔄 Refresh</button>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="table-container">
+            <div id="loadingContainer" class="loading">
+                <p>Loading purchase data...</p>
+            </div>
+            <table id="purchasesTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Discount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Purchased</th>
+                        <th>Expires</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="purchasesBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Block Modal -->
+    <div class="modal" id="blockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Block Plan
+                <button class="close-btn" onclick="closeBlockModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Purchase ID:</label>
+                    <input type="text" id="blockPurchaseId" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Reason for blocking:</label>
+                    <textarea id="blockReason" placeholder="Enter reason..."></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeBlockModal()">Cancel</button>
+                <button onclick="submitBlockAction()">Block</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get auth token
+        const token = localStorage.getItem('token');
+        let allPurchases = [];
+
+        // Load purchases on page load
+        window.addEventListener('load', loadPurchases);
+
+        async function loadPurchases() {
+            try {
+                document.getElementById('loadingContainer').style.display = 'block';
+                document.getElementById('purchasesTable').style.display = 'none';
+
+                const response = await fetch('/admin/purchases', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    showMessage('Failed to load purchases', 'error');
+                    return;
+                }
+
+                const { purchases, totalPurchases, totalRevenue } = await response.json();
+                allPurchases = purchases || [];
+
+                // Load stats
+                await loadStats();
+
+                // Render table
+                renderTable(allPurchases);
+
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('purchasesTable').style.display = 'table';
+            } catch (err) {
+                console.error('Error loading purchases:', err);
+                showMessage('Error: ' + err.message, 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/admin/purchase-stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) return;
+
+                const { stats } = await response.json();
+
+                document.getElementById('totalPurchases').textContent = stats.totalPurchases;
+                document.getElementById('totalRevenue').textContent = '₹' + stats.totalRevenue.toLocaleString('en-IN');
+                document.getElementById('activePlans').textContent = stats.activePlans;
+                document.getElementById('blockedPlans').textContent = stats.blockedPlans;
+                document.getElementById('pendingVerification').textContent = stats.pendingVerification;
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        function renderTable(purchases) {
+            const tbody = document.getElementById('purchasesBody');
+            tbody.innerHTML = '';
+
+            if (purchases.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">No purchases found</td></tr>';
+                return;
+            }
+
+            purchases.forEach(p => {
+                const row = document.createElement('tr');
+                const expiryDate = p.expiresAt ? new Date(p.expiresAt).toLocaleDateString() : '1 Year';
+                const purchaseDate = new Date(p.purchasedAt).toLocaleDateString();
+                const isBlocked = p.isBlocked ? '🚫' : '✅';
+
+                row.innerHTML = `
+                    <td><strong>${p.username || 'N/A'}</strong></td>
+                    <td>${p.email || 'N/A'}</td>
+                    <td><span class="plan-badge plan-${p.plan}">${p.plan.toUpperCase()}</span></td>
+                    <td><span class="currency">₹${p.finalAmount}</span></td>
+                    <td>${p.discountApplied}% (₹${p.amountDiscount})</td>
+                    <td>${p.paymentMethod.toUpperCase()}</td>
+                    <td><span class="status-badge status-${p.status}">${p.status.replace('_', ' ').toUpperCase()}</span></td>
+                    <td>${purchaseDate}</td>
+                    <td>${expiryDate}</td>
+                    <td>${isBlocked}</td>
+                    <td>
+                        <div class="action-buttons">
+                            ${!p.isBlocked ? `<button class="btn-sm btn-block" onclick="openBlockModal('${p._id}')">Block</button>` : `<button class="btn-sm btn-unblock" onclick="unblockPlan('${p._id}')">Unblock</button>`}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function applyFilters() {
+            const plan = document.getElementById('filterPlan').value;
+            const status = document.getElementById('filterStatus').value;
+            const search = document.getElementById('searchUser').value.toLowerCase();
+
+            let filtered = allPurchases;
+
+            if (plan) {
+                filtered = filtered.filter(p => p.plan === plan);
+            }
+
+            if (status) {
+                filtered = filtered.filter(p => p.status === status);
+            }
+
+            if (search) {
+                filtered = filtered.filter(p => 
+                    (p.email || '').toLowerCase().includes(search) ||
+                    (p.uid || '').toLowerCase().includes(search) ||
+                    (p.username || '').toLowerCase().includes(search)
+                );
+            }
+
+            renderTable(filtered);
+        }
+
+        function openBlockModal(purchaseId) {
+            document.getElementById('blockPurchaseId').value = purchaseId;
+            document.getElementById('blockReason').value = '';
+            document.getElementById('blockModal').classList.add('active');
+        }
+
+        function closeBlockModal() {
+            document.getElementById('blockModal').classList.remove('active');
+        }
+
+        async function submitBlockAction() {
+            const purchaseId = document.getElementById('blockPurchaseId').value;
+            const reason = document.getElementById('blockReason').value;
+
+            if (!reason.trim()) {
+                alert('Please enter a reason');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/block-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ purchaseId, reason })
+                });
+
+                if (response.ok) {
+                    showMessage('Plan blocked successfully', 'success');
+                    closeBlockModal();
+                    loadPurchases();
+                } else {
+                    showMessage('Failed to block plan', 'error');
+                }
+            } catch (err) {
+                showMessage('Error: ' + err.message, 'error');
+            }
+        }
+
+        async function unblockPlan(purchaseId) {
+            if (!confirm('Unblock this plan?')) return;
+
+            try {
+                const response = await fetch('/admin/unblock-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ purchaseId })
+                });
+
+                if (response.ok) {
+                    showMessage('Plan unblocked successfully', 'success');
+                    loadPurchases();
+                } else {
+                    showMessage('Failed to unblock plan', 'error');
+                }
+            } catch (err) {
+                showMessage('Error: ' + err.message, 'error');
+            }
+        }
+
+        function showMessage(msg, type) {
+            const container = document.getElementById('messageContainer');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = msg;
+            container.innerHTML = '';
+            container.appendChild(div);
+
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

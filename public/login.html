@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>🔑 Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSS -->
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="login-animations.css">
+</head>
+
+<body>
+    <!-- 🌌 Futuristic Alert -->
+    <div id="customAlert" class="custom-alert">
+        <div class="custom-alert-box">
+            <span id="alertIcon">⚠️</span>
+            <p id="alertMessage">This is a custom alert</p>
+            <button onclick="closeAlert()">OK</button>
+        </div>
+    </div>
+
+    <main>
+        <h1>🔑 Login</h1>
+        <form id="loginForm" class="auth-form">
+            <input type="email" id="email" placeholder="Enter Email" required>
+            <input type="password" id="password" placeholder="Enter Password" required>
+
+            <!-- Main login -->
+            <button type="submit" class="login-btn">🚀 Login</button>
+
+            <!-- 🔹 Links as separate glowing buttons -->
+            <div class="link-group">
+                <a href="index.html" class="link-btn new-btn">🆕 Create Account</a>
+                <a id="forgotLink" class="link-btn forgot-btn">❓ Forgot Password?</a>
+            </div>
+        </form>
+    </main>
+
+    <!-- 🔹 Forgot Password Modal -->
+    <div id="forgotModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="forgotClose">&times;</span>
+            <h3>🔒 Forgot Password</h3>
+
+            <input type="email" id="fpEmail" placeholder="Enter Email" required>
+            <input type="tel" id="fpPhone" placeholder="Enter Phone" required>
+
+            <div class="uid-wrapper">
+                <input type="text" id="fpUid" placeholder="Enter UID" required>
+                <button type="button" id="uidInfoBtn" class="info-btn">?</button>
+                <div id="uidTooltip" class="tooltip">
+                    ℹ️ Your <b>UID</b> was sent to your email during signup.
+                    Please check your <b>Inbox</b> or <b>Spam</b> folder.
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="forgotSubmit">✅ Verify</button>
+                <!-- Cancel closes modal -->
+                <button type="button" class="cancel-btn" id="forgotClose2"
+                    onclick="document.getElementById('forgotModal').style.display='none'">❌ Cancel</button>
+            </div>
+            <p id="forgotMsg"></p>
+        </div>
+    </div>
+
+    <!-- 🔹 Reset Password Modal -->
+    <div id="resetModalForgot" class="modal">
+        <div class="modal-content">
+            <span class="close" id="resetForgotClose">&times;</span>
+            <h3>🔑 Reset Password</h3>
+            <input type="password" id="newPassForgot" placeholder="New Password" required>
+            <input type="password" id="confirmPassForgot" placeholder="Confirm Password" required>
+
+            <div class="modal-actions">
+                <button id="resetForgotSubmit">💾 Reset</button>
+                <!-- Cancel closes modal -->
+                <button type="button" class="cancel-btn" id="resetForgotClose2"
+                    onclick="document.getElementById('resetModalForgot').style.display='none'">❌ Cancel</button>
+            </div>
+            <p id="resetForgotMsg"></p>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="login.js"></script>
+</body>
+
+</html>

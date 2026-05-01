@@ -1,0 +1,3815 @@
+import express from "express";
+import multer from "multer";
+import cors from "cors";
+import path from "path";
+import fs from "fs";
+import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from "uuid";
+import session from "express-session";
+import passport from "passport";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
+// Socket.IO removed — switching to simple HTTP server (no realtime)
+import feedbackRoutes from "./server2.js"; // import feedback router
+import archiver from "archiver"; // 📦 for ZIP export (npm install archiver)
+import QRCode from "qrcode";
+import { createPlatinumToken, validateToken, getTokenByUID, markTokenAsUsed } from "./TOKEN_SYSTEM.js";
+dotenv.config();
+//import "./Faltu Stufs/socialAuth.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ================== PAYMENT SUPPORT FOLDERS (MUST BE TOP) ==================
+const paymentSupportDir = path.join(__dirname, "support", "payments");
+const paymentProofsDir = path.join(paymentSupportDir, "proofs");
+
+if (!fs.existsSync(paymentSupportDir)) {
+    fs.mkdirSync(paymentSupportDir, { recursive: true });
+    console.log("📁 support/payments created");
+}
+if (!fs.existsSync(paymentProofsDir)) {
+    fs.mkdirSync(paymentProofsDir, { recursive: true });
+    console.log("📁 support/payments/proofs created");
+}
+
+// Proofs JSON
+const proofsFile = path.join(paymentSupportDir, "proofs.json");
+if (!fs.existsSync(proofsFile)) fs.writeFileSync(proofsFile, "[]");
+
+// Purchases JSON - Track all plan purchases
+const purchasesFile = path.join(paymentSupportDir, "purchases.json");
+if (!fs.existsSync(purchasesFile)) fs.writeFileSync(purchasesFile, "[]");
+
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
+const PRICE_PER_TB = Number(process.env.PRICE_PER_TB || 350);
+const PRICE_128GB = Number(process.env.PRICE_128GB || 999); // Base price for 128GB
+// ================== Super Admin ==================
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "owner@cloudspace.com";
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || "Owner@123";
+// ================== Admin ==================
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@cloudspace.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@123";
+
+// ✅ Discount config
+const DISCOUNT_PERCENT = Number(process.env.DISCOUNT_PERCENT || 40); // e.g., 15
+const VALID_COUPON = process.env.COUPON_CODE || "GET40"; // Optional: single coupon code
+
+
+// ================== Middleware ==================
+app.use(cors());
+app.use(express.json({ limit: "1gb" }));
+app.use(express.urlencoded({ extended: true, limit: "1gb" }));
+
+// ================== Use Feedback Routes ==================
+app.use("/api", feedbackRoutes);  // all routes in server2.js will be prefixed with /api
+
+// CSP headers
+app.use((req, res, next) => {
+    res.setHeader(
+  "Content-Security-Policy",
+  "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; " +
+  "font-src 'self' https: data:; " +
+  "style-src 'self' https: 'unsafe-inline'; " +
+  "script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; " +
+  "img-src 'self' data: https:; " +
+  "connect-src 'self' https: data: ws: wss:;"
+);
+    next();
+});
+
+// Sessions
+app.use(
+    session({
+        secret: "my_super_secret",
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+    })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// ================== Folders ==================
+const uploadsDir = path.join(__dirname, "uploads");
+const publicDir = path.join(__dirname, "public");
+const supportDir = path.join(__dirname, "support");
+const logsDir = path.join(supportDir, "logs");
+const planActiveFile = path.join(supportDir, "plan-active.json");
+
+// Create all necessary folders
+[uploadsDir, publicDir, supportDir, logsDir].forEach((d) => {
+    if (!fs.existsSync(d)) {
+        fs.mkdirSync(d, { recursive: true });
+        console.log(`📁 ${d.replace(__dirname, '.')} folder created`);
+    }
+});
+
+// Users and files metadata in support folder
+const usersFile = path.join(supportDir, "users.json");
+const filesMetaFile = path.join(supportDir, "files.json");
+const planActiveExists = fs.existsSync(planActiveFile);
+
+// Ensure users.json and files.json exist in support folder
+if (!fs.existsSync(usersFile)) {
+    fs.writeFileSync(usersFile, "[]");
+    console.log("📄 support/users.json created");
+}
+if (!fs.existsSync(filesMetaFile)) {
+    fs.writeFileSync(filesMetaFile, "[]");
+    console.log("📄 support/files.json created");
+}
+if (!planActiveExists) {
+    fs.writeFileSync(planActiveFile, "[]");
+    console.log("📄 support/plan-active.json created");
+}
+
+// ================== Files Metadata & Logs ==================
+
+// All logs (text logs)
+const mailLog = path.join(logsDir, "mail.log");
+const resetRequestsLog = path.join(logsDir, "reset_requests.log");
+const passwordChangesLog = path.join(logsDir, "password_changes.log");
+const uploadsLog = path.join(logsDir, "uploads.log");
+const loginAttemptsLog = path.join(logsDir, "login_attempts.log");
+const accountFlagsLog = path.join(logsDir, "account_flags.log");
+const flagsLog = path.join(logsDir, "flags.log");
+
+// JSON logs
+const passwordChangesJsonFile = path.join(logsDir, "password_changes.json");
+
+// ✅ Ensure all files exist
+[
+    { file: filesMetaFile, defaultContent: "[]" },          // JSON
+    { file: passwordChangesJsonFile, defaultContent: "[]" },// JSON
+    { file: mailLog, defaultContent: "" },
+    { file: resetRequestsLog, defaultContent: "" },
+    { file: passwordChangesLog, defaultContent: "" },
+    { file: uploadsLog, defaultContent: "" },
+    { file: loginAttemptsLog, defaultContent: "" },
+    { file: accountFlagsLog, defaultContent: "" },
+    { file: flagsLog, defaultContent: "" }
+].forEach(({ file, defaultContent }) => {
+    if (!fs.existsSync(file)) fs.writeFileSync(file, defaultContent);
+});
+
+// ================== Helpers ==================
+// Utility to sanitize names
+function safeName(name) {
+    return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+}
+function generateUID() {
+    return "USR-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+}
+function generateStrongPassword() {
+    // 6-digit numeric for easy SMS/email sharing
+    return String(Math.floor(100000 + Math.random() * 900000));
+}
+function signToken(user) {
+    return jwt.sign({ email: user.email, role: user.role, uid: user.uid }, JWT_SECRET, {
+        expiresIn: "2h",
+    });
+}
+function verifyToken(req, res, next) {
+    // Accept token from Authorization header, query param `token`, or cookie named `token`
+    let token = null;
+    const auth = req.headers["authorization"];
+    if (auth && auth.split(" ").length > 1) token = auth.split(" ")[1];
+    if (!token && req.query && req.query.token) token = req.query.token;
+    if (!token && req.headers && req.headers.cookie) {
+        const cookies = req.headers.cookie.split(";").map(c => c.trim());
+        for (const c of cookies) {
+            if (c.startsWith('token=')) {
+                token = c.split('=')[1];
+                break;
+            }
+        }
+    }
+
+    if (!token) return res.status(401).json({ error: "No token" });
+    try {
+        req.user = jwt.verify(token, JWT_SECRET);
+        next();
+    } catch {
+        return res.status(403).json({ error: "Invalid token" });
+    }
+}
+function isAdmin(req, res, next) {
+    if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+        return res.status(403).json({ error: "Admins only" });
+    }
+    next();
+}
+function normalizeEmail(email) {
+    return email ? email.trim().toLowerCase() : "";
+}
+
+// Resolve both email and uid from body/header/token
+function resolveUserContext(req) {
+    const body = req.body || {};
+    const headers = req.headers || {};
+
+    let email = normalizeEmail(
+        body.email ||
+        body.uploadedBy ||
+        headers["x-email"] ||
+        headers["x-user"]
+    );
+
+    let uid = body.uid || body.userId || body.id || headers["x-uid"];
+
+    // Fallback to JWT token if present
+    let token = null;
+    const auth = headers["authorization"];
+    if (auth && auth.split(" ").length > 1) token = auth.split(" ")[1];
+    if (!token && req.query && req.query.token) token = req.query.token;
+    if (!token && headers.cookie) {
+        const cookies = headers.cookie.split(";").map(c => c.trim());
+        for (const c of cookies) {
+            if (c.startsWith("token=")) {
+                token = c.split("=")[1];
+                break;
+            }
+        }
+    }
+
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            if (!email && decoded.email) email = normalizeEmail(decoded.email);
+            if (!uid && decoded.uid) uid = decoded.uid;
+        } catch (err) {
+            // ignore and fall back
+        }
+    }
+
+    return { email, uid };
+}
+
+// Backward-compatible single identifier
+function resolveUploadedBy(req) {
+    const ctx = resolveUserContext(req);
+    return ctx.uid || ctx.email || "guest";
+}
+
+// Create uploads/email/uid/(files|profile|chunks)
+function ensureUserDirs(email, uid) {
+    const safeEmail = email ? safeName(email) : "";
+    const safeUid = uid ? safeName(uid) : "";
+    const pathSegment = safeEmail && safeUid ? path.join(safeEmail, safeUid) : (safeEmail || safeUid || "guest");
+
+    const baseDir = path.join(uploadsDir, pathSegment);
+    const filesDir = path.join(baseDir, "files");
+    const profileDir = path.join(baseDir, "profile");
+    const chunksDir = path.join(baseDir, "chunks");
+
+    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+    [filesDir, profileDir, chunksDir].forEach(d => {
+        if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+    });
+
+    // Default profile.png
+    const defaultProfileSrc = path.join(publicDir, "images", "default-profile.png");
+    const defaultProfileDest = path.join(profileDir, "profile.png");
+    if (fs.existsSync(defaultProfileSrc) && !fs.existsSync(defaultProfileDest)) {
+        fs.copyFileSync(defaultProfileSrc, defaultProfileDest);
+        console.log(`📷 Default profile.png added for ${pathSegment}`);
+    }
+
+    return { base: baseDir, files: filesDir, profile: profileDir, chunks: chunksDir, pathSegment };
+}
+function appendLog(filePath, msg) {
+    const logs = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath)) : {};
+    const timestamp = new Date().toLocaleString();
+    if (!logs.flagLogs) logs.flagLogs = "";
+    logs.flagLogs += `[${timestamp}] ${msg}\n`;
+    fs.writeFileSync(filePath, JSON.stringify(logs, null, 2));
+}
+
+/// ================== Ensure Default Super Admin & Default Admin ==================
+let users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+
+// 👑 Ensure Default Super Admin (owner)
+if (!users.some(u => u.role === "superadmin")) {
+    const superAdmin = {
+        uid: "SUPER-001",
+        username: "Owner of CloudSpace",
+        email: SUPER_ADMIN_EMAIL,
+        phone: "NULL",
+        password: SUPER_ADMIN_PASSWORD,
+        role: "superadmin",      // ✅ protected role
+        profilePic: "/images/default-avatar.png",
+        created_at: new Date(),
+        verified: true,
+        blocked: false
+    };
+    users.push(superAdmin);
+    ensureUserDirs(superAdmin.email);
+    console.log(`👑 Super Admin created → ${SUPER_ADMIN_EMAIL} / ${SUPER_ADMIN_PASSWORD}`);
+}
+
+// 👨‍💼 Ensure Default Admin (secondary admin)
+const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || "admin@cloudspace.com";
+const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || "Admin@123";
+
+if (!users.some(u => u.email === DEFAULT_ADMIN_EMAIL)) {
+    const defaultAdmin = {
+        uid: "ADMIN-001",
+        username: "Admin",
+        email: DEFAULT_ADMIN_EMAIL,
+        phone: "NULL",
+        password: DEFAULT_ADMIN_PASSWORD,
+        role: "admin",            // ✅ standard admin role
+        profilePic: "/images/default-avatar.png",
+        created_at: new Date(),
+        verified: true,
+        blocked: false
+    };
+    users.push(defaultAdmin);
+    ensureUserDirs(defaultAdmin.email);
+    console.log(`👨‍💼 Default Admin created → ${DEFAULT_ADMIN_EMAIL} / ${DEFAULT_ADMIN_PASSWORD}`);
+}
+
+// Save back
+fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+
+// ================== Nodemailer ==================
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+});
+
+// ================== Styled Mail Helper ==================
+async function sendStyledMail(to, subject, bodyHtml) {
+    return transporter.sendMail({
+        from: `"🌌 Cloud Space" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html: `
+        <body style="margin:0;padding:0;background:#0d1117;
+                     font-family:'Segoe UI',Arial,sans-serif;color:#e6edf3;">
+            <div style="max-width:640px;margin:25px auto;padding:30px;
+                        border-radius:16px;background:linear-gradient(145deg,#141e30,#243b55);
+                        box-shadow:0 0 25px rgba(0,255,200,0.3),0 0 50px rgba(0,153,255,0.25);">
+
+                <h1 style="text-align:center;color:#00e0ff;margin-bottom:15px;
+                           text-shadow:0 0 12px #00ffcc,0 0 24px #00e0ff;">
+                    🌌 Cloud Space
+                </h1>
+
+                <div style="font-size:15px;line-height:1.6;color:#f0f0f0;">
+                    ${bodyHtml}
+                </div>
+
+                <hr style="border:none;border-top:1px solid #333;margin:25px 0;" />
+
+                <p style="font-size:12px;color:#888;text-align:center;">
+                    🚀 Sent securely by <b>Cloud Space</b>
+                </p>
+            </div>
+        </body>
+        `
+    });
+}
+
+// Storage for normal file uploads
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const email = resolveUploadedBy(req);
+        const userFolder = ensureUserDirs(email || "guest");
+        cb(null, userFolder.files);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "-" + file.originalname);
+    },
+});
+const uploadFiles = multer({ storage: fileStorage });
+
+// ✅ FIXED Storage for profile pictures (email OR uid support)
+const profileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        let email = req.body.email;
+
+        // 🧩 If no email, try to get from uid
+        if (!email && req.body.uid) {
+            try {
+                const users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+                const found = users.find(u => u.uid === req.body.uid);
+                if (found) email = found.email;
+            } catch (err) {
+                console.error("⚠️ UID lookup failed:", err);
+            }
+        }
+
+        if (!email) return cb(new Error("Email or UID required for profile pic"), null);
+
+        const userFolder = ensureUserDirs(email);
+        cb(null, userFolder.profile);
+    },
+    filename: (req, file, cb) => {
+        cb(null, "profile-" + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const uploadProfile = multer({ storage: profileStorage });
+
+// ================== Payment Support Proofs ==================
+app.use("/support/payments", express.static(paymentSupportDir));
+
+// Serve uploads statically
+app.use("/uploads", express.static("uploads"));
+
+// ================== MAGIC LINK STORAGE ==================
+const magicLinks = {};
+let publicUrl = "";
+
+// Socket.IO removed; no realtime placeholder
+// ================== UPDATE PROFILE ==================
+app.post("/update-profile", uploadProfile.single("profilePic"), (req, res) => {
+    let email = normalizeEmail(req.body.email);
+    const uid = req.body.uid;
+    // If email not provided, try to lookup by uid
+    if (!email && uid) {
+        try {
+            const all = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+            const found = all.find(u => u.uid === uid);
+            if (found && found.email) email = normalizeEmail(found.email);
+        } catch (e) {
+            console.error('UID lookup failed in update-profile', e);
+        }
+    }
+    const username = req.body.username;
+    const phone = req.body.phone;
+    if (!email) return res.status(400).json({ error: "Email required" });
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const idx = users.findIndex(u => normalizeEmail(u.email) === email || (req.body.uid && u.uid === req.body.uid));
+    if (idx === -1) return res.status(404).json({ error: "User not found" });
+
+    // Update fields
+    if (username) users[idx].username = username;
+    if (phone) users[idx].phone = phone;
+
+    // ✅ Save new profile picture if uploaded
+    if (req.file) {
+        users[idx].profilePic = `/uploads/${safeName(email)}/profile/${req.file.filename}`;
+    }
+
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    const { password, ...safeUser } = users[idx];
+    res.json({ message: "✅ Profile updated", user: safeUser });
+});
+
+// ================== Read-only user endpoints (for frontend profile display)
+// Get user by email (case-insensitive)
+app.get('/user-by-email/:email', (req, res) => {
+    try {
+        const email = normalizeEmail(req.params.email);
+        const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        const u = users.find(x => normalizeEmail(x.email) === email);
+        if (!u) return res.status(404).json({ success: false, error: 'User not found' });
+        const { password, ...safe } = u;
+        return res.json({ success: true, user: safe });
+    } catch (err) {
+        console.error('Error fetching user by email', err);
+        return res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get user by uid
+app.get('/user-by-uid/:uid', (req, res) => {
+    try {
+        const uid = (req.params.uid || '').trim();
+        const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        const u = users.find(x => x.uid === uid);
+        if (!u) return res.status(404).json({ success: false, error: 'User not found' });
+        const { password, ...safe } = u;
+        return res.json({ success: true, user: safe });
+    } catch (err) {
+        console.error('Error fetching user by uid', err);
+        return res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Helper: get active plan snapshot for a user from plan-active.json
+function getActivePlanSnapshot(uid) {
+    const planActive = readPlanActiveFile();
+    const entry = planActive.find((u) => u?.self?.uid === uid);
+    if (!entry) return { plan: 'free', storageTB: 0.5, planExpiry: null, purchasedAt: null };
+
+    const candidates = (entry.plans || []).filter((p) => p.status?.isActive && !p.status?.isBlocked).sort((a, b) => {
+        const aTs = new Date(a.transaction?.activatedAt || 0).getTime();
+        const bTs = new Date(b.transaction?.activatedAt || 0).getTime();
+        return bTs - aTs;
+    });
+    const fallback = (entry.plans || []).slice().sort((a, b) => {
+        const aTs = new Date(a.transaction?.activatedAt || 0).getTime();
+        const bTs = new Date(b.transaction?.activatedAt || 0).getTime();
+        return bTs - aTs;
+    });
+
+    const chosen = candidates.length ? candidates[0] : (fallback[0] || null);
+    if (!chosen) return { plan: 'free', storageTB: 0.5, planExpiry: null, purchasedAt: null };
+
+    const expiresAt = chosen.transaction?.expiresAt;
+    const planExpiry = expiresAt ? new Date(expiresAt).getTime() : null;
+    const storageTB = chosen.planDetails?.storageTB ?? 0.5;
+    const purchasedAt = chosen.transaction?.purchasedAt ? new Date(chosen.transaction.purchasedAt).getTime() : null;
+    return { plan: chosen.plan || 'free', storageTB, planExpiry, purchasedAt };
+}
+
+// Get user plan details by uid (used by frontend)
+app.get('/user-plan/:uid', (req, res) => {
+    try {
+        const uid = (req.params.uid || '').trim();
+        const snapshot = getActivePlanSnapshot(uid);
+        return res.json({ success: true, ...snapshot });
+    } catch (err) {
+        console.error('Error fetching plan', err);
+        return res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+// Get all plans and pricing from JSON files
+app.get('/api/plans-pricing', (req, res) => {
+    try {
+        // Read plan pricing from JSON
+        const planPricePath = path.join(__dirname, 'support', 'plan-price.json');
+        let plansData = [];
+
+        if (fs.existsSync(planPricePath)) {
+            const content = fs.readFileSync(planPricePath, 'utf-8');
+            const jsonData = JSON.parse(content);
+            
+            // Map JSON data to plan cards format
+            if (jsonData.plans && typeof jsonData.plans === 'object') {
+                // Handle plan-price.json structure with plans object
+                Object.entries(jsonData.plans).forEach(([key, plan]) => {
+                    // Convert amount from paise to rupees (amount / 100)
+                    const priceInRupees = (plan.amount || 0) / 100;
+                    const storageGB = (plan.storageTB || 0) * 1024; // Convert TB to GB
+                    
+                    plansData.push({
+                        name: plan.name || 'Plan',
+                        price: priceInRupees,
+                        storage: storageGB > 0 ? (plan.storageTB + ' TB') : '0 GB',
+                        features: plan.features || [
+                            `${plan.storageTB || 0} TB Storage`,
+                            `${plan.durationDays || 30} Days Access`,
+                            plan.note || ''
+                        ],
+                        badge: key.toUpperCase(),
+                        key: key
+                    });
+                });
+            } else if (Array.isArray(jsonData)) {
+                // Handle array format
+                plansData = jsonData.map(plan => ({
+                    name: plan.name || 'Plan',
+                    price: parseFloat(plan.price) || 0,
+                    storage: plan.storage || '0 GB',
+                    features: plan.features || [],
+                    badge: plan.badge || 'PLAN'
+                }));
+            }
+        }
+
+        // Default plans if file doesn't exist or is empty
+        if (plansData.length === 0) {
+            plansData = [
+                {
+                    name: 'Basic',
+                    price: 4.99,
+                    storage: '10 GB',
+                    features: ['10 GB Storage', 'Basic Support', '5 File Uploads/Day'],
+                    badge: 'STARTER'
+                },
+                {
+                    name: 'Platinum',
+                    price: 19.99,
+                    storage: '1 TB',
+                    features: ['1 TB Storage', '24/7 Support', 'Unlimited Uploads'],
+                    badge: 'POPULAR'
+                },
+                {
+                    name: 'Ultra',
+                    price: 49.99,
+                    storage: 'Unlimited',
+                    features: ['Unlimited Storage', 'Priority Support', 'Advanced Analytics'],
+                    badge: 'ULTIMATE'
+                }
+            ];
+        }
+
+        return res.json(plansData);
+    } catch (error) {
+        console.error('Error fetching plans pricing:', error);
+        return res.status(500).json({ success: false, error: 'Error loading plans' });
+    }
+});
+
+// 🔐 Get platinum/ultra access token (for purchased users)
+app.get('/get-platinum-token/:uid', (req, res) => {
+    try {
+        const uid = (req.params.uid || '').trim();
+        if (!uid) return res.status(400).json({ success: false, error: 'UID required' });
+        
+        const token = getTokenByUID(uid);
+        if (!token) {
+            return res.status(404).json({ success: false, error: 'No active token for this user' });
+        }
+        
+        return res.json({ success: true, token: token.token });
+    } catch (err) {
+        console.error('Error getting token', err);
+        return res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
+
+/* ===================================================
+   UPLOAD ROUTES
+=================================================== */
+
+// Normal upload
+app.post("/upload", uploadFiles.array("files"), (req, res) => {
+    if (!req.files?.length) return res.status(400).json({ error: "No files uploaded" });
+
+    const uploadedBy = safeName(resolveUploadedBy(req));
+    console.log("📥 Normal upload from:", req.body.uploadedBy, req.headers["x-user"]);
+    const host = req.headers.host || `localhost:${PORT}`;
+
+    let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile));
+    const fileUrls = req.files.map(file => {
+        const ctx = resolveUserContext(req);
+        const dirs = ensureUserDirs(ctx.email, ctx.uid);
+        const uploadedBy = ctx.uid || ctx.email || "guest";
+        const host = req.headers.host || `localhost:${PORT}`;
+
+        const fileData = {
+          filename: file.filename,
+          originalname: file.originalname,
+          bytes: file.size,
+          created_at: new Date(),
+          secure_url: `http://${host}/uploads/${dirs.pathSegment}/files/${file.filename}`,
+          format: path.extname(file.originalname).substring(1).toLowerCase() || "unknown",
+          uploadedBy,
+          ownerEmail: ctx.email || null,
+          ownerUid: ctx.uid || null,
+        };
+        filesMeta.push(fileData);
+        return fileData;
+    });
+    fs.writeFileSync(filesMetaFile, JSON.stringify(filesMeta, null, 2));
+
+    res.json({ message: "✅ Files uploaded", files: fileUrls });
+});
+
+// ================== Chunk Upload ==================
+const chunkStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadedBy = safeName(resolveUploadedBy(req));
+
+        // ✅ get fileId from query/header/body
+        const fileId = req.query.fileId || req.headers["x-file-id"] || req.body.fileId;
+        if (!fileId) {
+            console.error("❌ fileId missing in request!");
+            return cb(new Error("Missing fileId"), null);
+        }
+
+        const tempDir = path.join(uploadsDir, uploadedBy, "chunks", fileId);
+        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+
+        console.log(`📥 Chunk upload from: ${uploadedBy}, fileId=${fileId}`);
+        cb(null, tempDir);
+    },
+    filename: (req, file, cb) => {
+        let chunkIndex = 0;
+
+        if (req.query.chunkIndex !== undefined) {
+            chunkIndex = parseInt(req.query.chunkIndex, 10);
+        } else if (req.headers["x-chunk-index"] !== undefined) {
+            chunkIndex = parseInt(req.headers["x-chunk-index"], 10);
+        } else if (req.body.chunkIndex !== undefined) {
+            chunkIndex = parseInt(req.body.chunkIndex, 10);
+        }
+
+        if (isNaN(chunkIndex)) chunkIndex = 0; // ✅ fallback
+        cb(null, `${chunkIndex}.part`);
+    }
+});
+
+const uploadChunk = multer({ storage: chunkStorage });
+
+app.post("/upload-chunk", uploadChunk.single("chunk"), (req, res) => {
+    const chunkIndex = req.query.chunkIndex || req.body.chunkIndex || req.headers["x-chunk-index"];
+    res.json({ message: `✅ Chunk ${chunkIndex} stored` });
+});
+
+
+// ================== Merge Chunks ==================
+app.post("/merge-chunks", (req, res) => {
+    const { fileId, fileName } = req.body;
+    const uploadedBy = req.body.uploadedBy || resolveUploadedBy(req);
+    if (!fileId || !fileName || !uploadedBy) {
+        return res.status(400).json({ error: "❌ Missing fileId, fileName or uploadedBy" });
+    }
+
+    const safeEmail = safeName(uploadedBy || req.headers["x-user"] || "guest");
+    const chunkDir = path.join(uploadsDir, safeEmail, "chunks", fileId);
+    const finalDir = path.join(uploadsDir, safeEmail, "files");
+    if (!fs.existsSync(finalDir)) fs.mkdirSync(finalDir, { recursive: true });
+
+    let chunkFiles = fs.readdirSync(chunkDir).filter(f => f.endsWith(".part"));
+    if (chunkFiles.length === 0) {
+        return res.status(400).json({ error: "❌ No chunks found for file" });
+    }
+
+    // ✅ sort numerically, not lexically
+    chunkFiles.sort((a, b) => parseInt(a) - parseInt(b));
+    console.log("🔗 Merging chunks:", chunkFiles);
+
+    const finalPath = path.join(finalDir, fileName);
+    const writeStream = fs.createWriteStream(finalPath);
+
+    let idx = 0;
+    function appendNext() {
+        if (idx >= chunkFiles.length) {
+            writeStream.end();
+            fs.rmSync(chunkDir, { recursive: true, force: true });
+
+            let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile));
+            const host = req.headers.host || `localhost:${PORT}`;
+            const fileData = {
+                filename: path.basename(finalPath),
+                originalname: fileName,
+                bytes: fs.statSync(finalPath).size,
+                created_at: new Date(),
+                secure_url: `http://${host}/uploads/${safeEmail}/files/${path.basename(finalPath)}`,
+                format: path.extname(fileName).substring(1).toLowerCase() || "unknown",
+                uploadedBy,
+            };
+            filesMeta.push(fileData);
+            fs.writeFileSync(filesMetaFile, JSON.stringify(filesMeta, null, 2));
+
+            return res.json({ message: "✅ File merged successfully", file: fileData });
+        }
+
+        const chunkPath = path.join(chunkDir, chunkFiles[idx]);
+        const readStream = fs.createReadStream(chunkPath);
+
+        readStream.pipe(writeStream, { end: false });
+        readStream.on("end", () => {
+            fs.unlinkSync(chunkPath);
+            idx++; // ✅ FIX: increment index
+            appendNext();
+        });
+        readStream.on("error", err => {
+            console.error("❌ Merge error at:", chunkPath, err);
+            res.status(500).json({ error: "Failed during merge", details: err.message });
+        });
+    }
+
+    appendNext();
+});
+
+// ================== List all files ==================
+app.get("/files", (req, res) => {
+    try {
+        let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+        res.json(filesMeta);
+    } catch (err) {
+        console.error("❌ Error reading files:", err);
+        res.status(500).json({ error: "Failed to fetch all files" });
+    }
+});
+
+// ========== List files per user ==========
+app.get("/files/:email", (req, res) => {
+    const email = normalizeEmail(req.params.email);
+    const safeEmail = safeName(email);
+
+    try {
+        let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+
+        // ✅ normalize both sides
+        const userFiles = filesMeta.filter(f => safeName(normalizeEmail(f.uploadedBy)) === safeEmail);
+
+        res.json(userFiles);
+    } catch (err) {
+        console.error("❌ Error reading user files:", err);
+        res.status(500).json({ error: "Failed to fetch user files" });
+    }
+});
+
+// ================== USER STORAGE ==================
+// ✅ Updated dynamic storage API
+app.get("/storage/:email", (req, res) => {
+    const email = normalizeEmail(req.params.email);
+    const safeEmail = safeName(email);
+    let users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+    const user = users.find((u) => u.email === email);
+
+    const snapshot = user?.uid ? getActivePlanSnapshot(user.uid) : { plan: "free", storageTB: 0.5, planExpiry: null };
+    const now = Date.now();
+    let maxTB = snapshot.storageTB || 0.5;
+    if (snapshot.planExpiry && snapshot.planExpiry < now) {
+        maxTB = 0.5;
+    }
+    const maxBytes = maxTB * 1024 * 1024 * 1024 * 1024; // TB → bytes
+
+    let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+    const userFiles = filesMeta.filter(f => safeName(normalizeEmail(f.uploadedBy)) === safeEmail);
+    const usedBytes = userFiles.reduce((sum, f) => sum + (f.bytes || 0), 0);
+    const percent = ((usedBytes / maxBytes) * 100).toFixed(2);
+
+    res.json({
+        email,
+        usedBytes,
+        maxGB: maxTB * 1024,
+        usedFormatted: `${(usedBytes / (1024 ** 3)).toFixed(2)} GB`,
+        percent: percent > 100 ? 100 : percent
+    });
+});
+
+// ================== DOWNLOAD ROUTE ==================
+app.get("/download/:uploadedBy/:filename", (req, res) => {
+    const { uploadedBy, filename } = req.params;
+    const safeEmail = safeName(normalizeEmail(uploadedBy));
+    const filePath = path.join(uploadsDir, safeEmail, "files", filename);
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "❌ File not found" });
+    }
+
+    res.download(filePath, filename, (err) => {
+        if (err) {
+            console.error("❌ Download error:", err);
+            if (!res.headersSent) {
+                res.status(500).json({ error: "Download failed" });
+            }
+        }
+    });
+});
+
+// ================== LOGIN ==================  
+app.post("/login", async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const password = req.body.password;
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+        return res.status(401).json({ error: "❌ Invalid credentials" });
+    }
+
+    // 🚫 Permanent ban
+    if (user.permanentBan) {
+        fs.appendFileSync(flagsLog, `${new Date().toISOString()} | ${email} | ❌ Tried login (permanent ban)\n`);
+        return res.status(403).json({
+            error: "❌ Account permanently banned. Contact Admin for support.",
+            reason: "permanent",
+            contact: SUPER_ADMIN_EMAIL || "owner@cloudspace.com"
+        });
+    }
+
+    // 🚫 Block check (temporary or manual)
+    if (user.blocked) {
+        // ✅ If timed block expired → auto-unblock
+        if (user.blockUntil && Date.now() >= user.blockUntil) {
+            user.blocked = false;
+            delete user.blockUntil;
+            delete user.blockedBy;
+
+            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+            console.log(`✅ Auto-unblocked ${user.email} after timer expired`);
+        } else {
+            // ⏳ Still blocked
+            return res.status(403).json({
+                error: "🚫 Account blocked.",
+                reason: user.blockedBy || "system",
+                retryUntil: user.blockUntil || null
+            });
+        }
+    }
+
+    // 👑 Force Super Admin role for master account
+    if (email === SUPER_ADMIN_EMAIL) {
+        user.role = "superadmin";
+    }
+
+    // ⚠️ Unverified user → staged auto-block system
+    if (!user.verified) {
+        const verifyToken = uuidv4();
+        magicLinks[verifyToken] = { email, expiresAt: Date.now() + 10 * 60 * 1000 }; // 10 min
+        const verifyLink = `${publicUrl || `http://localhost:${PORT}`}/magic-login?token=${verifyToken}`;
+
+        await sendStyledMail(
+            email,
+            "⚠️ Verify Your Cloud Space Account",
+            `
+            <h2 style="color:#ffcc00;">Hello Cloud Space User,</h2>
+            <p>Please verify your account within <b>10 minutes</b>.</p>
+            <p>Otherwise, your account May be <b>Suspended for 24 hours</b>.</p>
+            <div style="text-align:center;margin:20px 0;">
+                <a href="${verifyLink}" style="display:inline-block;padding:12px 25px;
+                   background:linear-gradient(135deg,#00ffcc,#0099ff);
+                   color:#111;text-decoration:none;border-radius:8px;
+                   font-weight:bold;box-shadow:0 0 15px #00e0ff;">
+                   ✅ Verify Now
+                </a>
+            </div>
+            <p style="text-align:center;color:#ccefff;font-size:13px;margin:6px 0 0;">
+                If the button does not work, paste this link into your browser:<br>
+                <a href="${verifyLink}" style="color:#00ffcc;word-break:break-all;">${verifyLink}</a>
+            </p>
+            <p style="text-align:center;color:#9bd7ff;font-size:12px;margin-top:4px;">
+                After verification, the CloudSpace+ switch will unlock on your upload page for Platinum/Ultra users.
+            </p>
+            `
+        );
+
+        fs.appendFileSync(flagsLog, `${new Date().toISOString()} | ${email} | 📧 Sent verification mail\n`);
+
+        // Stage 1: 10 min later → block for 24h
+        setTimeout(async () => {
+            let freshUsers = JSON.parse(fs.readFileSync(usersFile));
+            const idx = freshUsers.findIndex(u => u.email === email);
+            if (idx !== -1 && !freshUsers[idx].verified && !freshUsers[idx].blocked) {
+                freshUsers[idx].blocked = true;
+                freshUsers[idx].blockUntil = Date.now() + 24 * 60 * 60 * 1000; // 24h
+                freshUsers[idx].blockedBy = "system";
+                fs.writeFileSync(usersFile, JSON.stringify(freshUsers, null, 2));
+
+                fs.appendFileSync(flagsLog, `${new Date().toISOString()} | ${email} | ⚠️ Auto-blocked 24h (unverified)\n`);
+
+                // Stage 2: After 24h → send mail (warn about 30-day block)
+                setTimeout(async () => {
+                    let u2 = JSON.parse(fs.readFileSync(usersFile));
+                    const i2 = u2.findIndex(u => u.email === email);
+                    if (i2 !== -1 && !u2[i2].verified) {
+                        await sendStyledMail(
+                            email,
+                            "🚫 Verify Now or Face 30-Day Block",
+                            `
+                            <h2 style="color:#ff4444;">Final Reminder</h2>
+                            <p>Your account is blocked for <b>24 hours</b>.</p>
+                            <p>If not verified within this time, you will be <b>blocked for 30 days</b>.</p>
+                            <div style="text-align:center;margin:20px 0;">
+                                <a href="${verifyLink}" style="display:inline-block;padding:12px 25px;
+                                   background:linear-gradient(135deg,#ff4d4d,#ff9900);
+                                   color:#111;text-decoration:none;border-radius:8px;
+                                   font-weight:bold;box-shadow:0 0 15px #ff4444;">
+                                   ✅ Verify Now
+                                </a>
+                            </div>
+                            `
+                        );
+
+                        fs.appendFileSync(flagsLog, `${new Date().toISOString()} | ${email} | 📧 Sent 24h final reminder mail\n`);
+
+                        // Stage 3: After 30 days → permanent ban
+                        setTimeout(() => {
+                            let u3 = JSON.parse(fs.readFileSync(usersFile));
+                            const i3 = u3.findIndex(u => u.email === email);
+                            if (i3 !== -1 && !u3[i3].verified) {
+                                u3[i3].blocked = true;
+                                u3[i3].permanentBan = true;
+                                u3[i3].blockedBy = "system";
+                                fs.writeFileSync(usersFile, JSON.stringify(u3, null, 2));
+
+                                fs.appendFileSync(flagsLog, `${new Date().toISOString()} | ${email} | ❌ Permanently banned (never verified)\n`);
+
+                                sendStyledMail(
+                                    email,
+                                    "❌ Account Permanently Banned",
+                                    `<p>Sorry, your account has been permanently banned due to non-verification.</p>`
+                                );
+                            }
+                        }, 30 * 24 * 60 * 60 * 1000); // 30 days
+                    }
+                }, 24 * 60 * 60 * 1000); // 24h
+            }
+        }, 10 * 60 * 1000); // 10 min
+
+        return res.status(403).json({
+            error: "⚠️ Please verify your account. A verification mail has been sent.",
+            reason: "system"
+        });
+    }
+
+    // ✅ Normal verified login
+    ensureUserDirs(user.email);
+    const token = signToken(user);
+
+    res.json({
+        message: "✅ Login successful",
+        token,
+        uid: user.uid,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic || null,
+        // Plan details so frontend can decide which dashboard to show
+        plan: user.plan || 'free',
+        storageTB: user.storageTB || 0.5,
+        planExpiry: user.planExpiry || null,
+        uiAccess: user.uiAccess || null,
+        cloudplusUI: user.cloudplusUI || null
+    });
+});
+
+// ================== FORGOT PASSWORD ==================
+app.post("/forgot-password", (req, res) => {
+    // after
+    const email = normalizeEmail(req.body.email);
+    const phone = req.body.phone;
+    const uid = req.body.uid;
+    if (!email || !phone || !uid) {
+        return res.status(400).json({ error: "❌ Email, phone and UID are required" });
+    }
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const user = users.find(u => u.email === email && u.uid === uid && u.phone === phone);
+
+    if (!user) {
+        return res.status(404).json({ error: "❌ User not found or details do not match" });
+    }
+
+    // ✅ Verified
+    fs.appendFileSync(resetRequestsLog, `${new Date().toISOString()} | ${email} | Password reset verified\n`);
+    res.json({ verified: true, message: "✅ User verified. You may reset your password." });
+});
+
+// ================== RESET PASSWORD (FORGOT) ==================
+app.post("/reset-password-forgot", (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const newPassword = req.body.newPassword;
+    if (!email || !newPassword) {
+        return res.status(400).json({ error: "❌ Email and new password required" });
+    }
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const idx = users.findIndex(u => u.email === email);
+    if (idx === -1) return res.status(404).json({ error: "❌ User not found" });
+
+    const oldPassword = users[idx].password;
+    users[idx].password = newPassword;
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+    const ip = req.ip || req.headers["x-forwarded-for"] || "Unknown IP";
+    const device = req.headers["user-agent"] || "Unknown Device";
+    const timestamp = new Date().toISOString();
+
+    // ✅ Log change
+    fs.appendFileSync(
+        passwordChangesLog,
+        `${timestamp} | ${email} | Password Reset (Forgot)\nold: ${oldPassword} → new: ${newPassword}\nIP: ${ip} | Device: ${device}\n\n`
+    );
+
+    res.json({ message: "✅ Password reset successfully" });
+});
+
+// ================== CURRENT USER ==================
+app.get("/me", verifyToken, (req, res) => {
+    let users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+    const u = users.find(x => x.email === req.user.email);
+
+    if (!u) {
+        return res.status(404).json({ error: "User not found" });
+    }
+
+    // 🚫 Permanent ban check
+    if (u.permanentBan) {
+        return res.status(403).json({
+            error: "❌ Account permanently banned.",
+            reason: "permanent",
+            forceLogout: true   // 👈 tell frontend to logout
+        });
+    }
+
+    // 🚫 Block check (timed or permanent)
+    if (u.blocked) {
+        if (u.blockUntil && Date.now() >= u.blockUntil) {
+            // ✅ expired → FULL UNBLOCK
+            u.blocked = false;
+            delete u.blockUntil;
+            delete u.blockedBy;
+
+            // save changes
+            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+            // 🔥 immediately return updated user (no 403 anymore)
+            const { password, ...safeUser } = u;
+            return res.json(safeUser);
+        } else {
+            // ⏳ still blocked
+            return res.status(403).json({
+                error: "🚫 Your account is blocked.",
+                reason: u.blockedBy || "system",
+                unblockAt: u.blockUntil || null, // send expiry timestamp
+                forceLogout: true
+            });
+        }
+    }
+
+    // ✅ Allow safe users
+    const { password, ...safeUser } = u;
+    res.json(safeUser);
+});
+
+// ================== USER ROUTES ==================
+app.post("/reset-password", (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const oldPassword = req.body.oldPassword;
+    const newPassword = req.body.newPassword;
+    const confirmPassword = req.body.confirmPassword;
+    if (!email || !oldPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({ error: "All fields required" });
+    }
+    if (newPassword !== confirmPassword) {
+        return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const idx = users.findIndex((u) => u.email === email);
+    if (idx === -1) return res.status(404).json({ error: "User not found" });
+
+    const user = users[idx];
+    if (user.password !== oldPassword) {
+        return res.status(403).json({ error: "Old password is incorrect" });
+    }
+
+    // ✅ Update password
+    users[idx].password = newPassword;
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+    // ✅ Collect logging details
+    const ip = req.ip || req.headers["x-forwarded-for"] || "Unknown IP";
+    const device = req.headers["user-agent"] || "Unknown Device";
+    const timestamp = new Date().toISOString();
+
+    // ✅ Log plain text
+    fs.appendFileSync(
+        passwordChangesLog,
+        `${timestamp} | ${email} | Password Changed\nold: ${oldPassword} → new: ${newPassword}\nIP: ${ip} | Device: ${device}\n\n`
+    );
+
+    // ✅ Log JSON
+    const passwordChangesJsonFile = path.join(logsDir, "password_changes.json");
+    if (!fs.existsSync(passwordChangesJsonFile)) fs.writeFileSync(passwordChangesJsonFile, "[]");
+
+    const existingJsonLogs = JSON.parse(fs.readFileSync(passwordChangesJsonFile, "utf8"));
+    existingJsonLogs.push({
+        timestamp,
+        email,
+        action: "Password Changed",
+        oldPassword,
+        newPassword,
+        ip,
+        device
+    });
+    fs.writeFileSync(passwordChangesJsonFile, JSON.stringify(existingJsonLogs, null, 2));
+
+    res.json({ message: "✅ Password updated successfully" });
+});
+
+app.post("/user-details", (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    if (!email) return res.status(400).json({ error: "Email required" });
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const user = users.find((u) => u.email === email);
+    if (!user) return res.json({ exists: false });
+
+    const { password, ...safeUser } = user;
+    res.json({ exists: true, user: safeUser });
+});
+
+// ================== REQUEST MAGIC LINK ==================
+app.post("/request-magic-link", async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const username = req.body.username;
+    const phone = req.body.phone;
+    if (!email) return res.status(400).json({ error: "Email required" });
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    let user = users.find((u) => u.email === email);
+
+    const tempPass = generateStrongPassword();
+    if (!user) {
+        user = {
+            uid: generateUID(),
+            username: username || email.split("@")[0],
+            email,
+            phone: phone || "",
+            password: tempPass,
+            role: "user",
+            blocked: false,
+            profilePic: "/images/default-avatar.png",
+            created_at: new Date(),
+            verified: false,
+        };
+        users.push(user);
+    } else {
+        user.username = username || user.username;
+        user.phone = phone || user.phone;
+        user.password = tempPass;
+        user.verified = false;
+    }
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+    const token = uuidv4();
+    magicLinks[token] = { email, expiresAt: Date.now() + 15 * 60 * 1000 };
+
+    const magicUrl = `${publicUrl || `http://localhost:${PORT}`}/magic-login?token=${token}`;
+
+    try {
+        await sendStyledMail(
+            email,
+            "🚀 Verify Your Cloud Space Account",
+            `
+            <h2 style="text-align:center;color:#00ffcc;">✨ Welcome to Cloud Space ✨</h2>
+            <p style="text-align:center;color:#bbb;">Your futuristic <b>personal vault</b> is almost ready.</p>
+
+            <div style="margin:25px 0;padding:18px;border-radius:12px;
+                        background:linear-gradient(135deg,#00ffcc,#0099ff);
+                        color:#111;text-align:center;font-size:16px;font-weight:bold;
+                        box-shadow:0 0 20px rgba(0,255,200,0.4),0 0 30px rgba(0,153,255,0.3);">
+                🆔 UID: <span style="color:#000;">${user.uid}</span><br/>
+                📧 Email: <span style="color:#000;">${user.email}</span><br/>
+                🔑 Temp Password: <span style="color:#000;font-weight:600;">${user.password}</span>
+            </div>
+
+            <div style="text-align:center;margin:30px 0;">
+                <a href="${magicUrl}" target="_blank"
+                   style="display:inline-block;padding:14px 28px;
+                          background:linear-gradient(135deg,#00ffcc,#0099ff);
+                          color:#111;text-decoration:none;border-radius:10px;
+                          font-size:16px;font-weight:bold;letter-spacing:1px;
+                          box-shadow:0 0 25px #00ffcc,0 0 45px #0099ff;">
+                   ✅ Verify My Account
+                </a>
+            </div>
+
+            <p style="text-align:center;color:#ccefff;font-size:13px;margin:8px 0 0;">
+                If the button does not work, copy and paste this link:<br>
+                <a href="${magicUrl}" style="color:#00ffcc;word-break:break-all;">${magicUrl}</a>
+            </p>
+
+            <p style="text-align:center;color:#9bd7ff;font-size:12px;margin-top:6px;">
+                After you verify, the Switch to CloudSpace+ button will appear on your upload page if you have Platinum or Ultra access.
+            </p>
+
+            <p style="text-align:center;color:#aaa;font-size:13px;margin-top:15px;">
+                ⏳ Link valid for <b>15 minutes</b>. Ignore if you didn’t request this.
+            </p>
+            `
+        );
+
+        res.json({ message: "✅ Magic link sent. Check your inbox/spam.", magicUrl });
+    } catch (err) {
+        console.error("❌ Email error:", err);
+        res.status(500).json({ error: "Email failed" });
+    }
+});
+
+// ================== MAGIC LOGIN ==================
+app.get("/magic-login", (req, res) => {
+    const { token } = req.query;
+    const record = magicLinks[token];
+    if (!record) return res.status(400).send("❌ Invalid or expired link");
+    if (Date.now() > record.expiresAt) {
+        delete magicLinks[token];
+        return res.status(400).send("❌ Link expired");
+    }
+
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const idx = users.findIndex((u) => u.email === normalizeEmail(record.email));
+    if (idx === -1) return res.status(404).send("❌ User not found");
+
+    // ✅ Mark verified
+    users[idx].verified = true;
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    ensureUserDirs(users[idx].email);
+
+    // ✅ Clean up used token
+    delete magicLinks[token];
+
+    // ✅ Only pass email + uid + flag
+    const email = users[idx].email;
+    const uid = users[idx].uid;
+
+    res.redirect(`/login.html?email=${encodeURIComponent(email)}&uid=${encodeURIComponent(uid)}&verified=true`);
+});
+
+// ✅ Connection test route for admin.html
+app.get("/api/admin/data", (req, res) => {
+    res.json({ message: "Cloud Space Server Active ✅" });
+});
+
+// 📊 Get all JSON data for dashboard
+app.get("/api/admin/all-json-data", verifyToken, isAdmin, (req, res) => {
+    try {
+        // Read all JSON files
+        const proofs = JSON.parse(fs.readFileSync(path.join(__dirname, 'support', 'payments', 'proofs.json'), 'utf8'));
+        const purchases = JSON.parse(fs.readFileSync(purchasesFile, 'utf8'));
+        const planActive = JSON.parse(fs.readFileSync(planActiveFile, 'utf8'));
+        const planPrice = JSON.parse(fs.readFileSync(planPriceFile, 'utf8'));
+        const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        
+        // Remove sensitive data from users
+        const safeUsers = users.map(({ password, ...rest }) => rest);
+        
+        res.json({
+            proofs,
+            purchases,
+            planActive,
+            planPrice,
+            users: safeUsers,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Error reading JSON files:', error);
+        res.status(500).json({ error: 'Failed to fetch JSON data', details: error.message });
+    }
+});
+
+    // 📝 Update User data
+    app.put("/api/admin/update-user", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { email, updatedData } = req.body;
+            if (!email || !updatedData) {
+                return res.status(400).json({ error: 'Email and updated data are required' });
+            }
+
+            let users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+            const userIndex = users.findIndex(u => u.email === email);
+        
+            if (userIndex === -1) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            // Preserve password if not provided in update
+            if (!updatedData.password) {
+                updatedData.password = users[userIndex].password;
+            }
+
+            users[userIndex] = { ...users[userIndex], ...updatedData };
+            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+            fs.appendFileSync(
+                flagsLog,
+                `${new Date().toISOString()} | 📝 User ${email} updated by ${req.user.email}\n`
+            );
+
+            res.json({ success: true, message: 'User updated successfully', user: users[userIndex] });
+        } catch (error) {
+            console.error('Error updating user:', error);
+            res.status(500).json({ error: 'Failed to update user', details: error.message });
+        }
+    });
+
+    // 📝 Update Purchase data
+    app.put("/api/admin/update-purchase", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { transactionId, updatedData } = req.body;
+            if (!transactionId || !updatedData) {
+                return res.status(400).json({ error: 'Transaction ID and updated data are required' });
+            }
+
+            let purchases = JSON.parse(fs.readFileSync(purchasesFile, 'utf8'));
+            const purchaseIndex = purchases.findIndex(p => p.transactionId === transactionId);
+        
+            if (purchaseIndex === -1) {
+                return res.status(404).json({ error: 'Purchase not found' });
+            }
+
+            purchases[purchaseIndex] = { ...purchases[purchaseIndex], ...updatedData };
+            fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+
+            res.json({ success: true, message: 'Purchase updated successfully', purchase: purchases[purchaseIndex] });
+        } catch (error) {
+            console.error('Error updating purchase:', error);
+            res.status(500).json({ error: 'Failed to update purchase', details: error.message });
+        }
+    });
+
+    // 📝 Update Proof data
+    app.put("/api/admin/update-proof", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { transactionId, updatedData } = req.body;
+            if (!transactionId || !updatedData) {
+                return res.status(400).json({ error: 'Transaction ID and updated data are required' });
+            }
+
+            const proofsPath = path.join(__dirname, 'support', 'payments', 'proofs.json');
+            let proofs = JSON.parse(fs.readFileSync(proofsPath, 'utf8'));
+            const proofIndex = proofs.findIndex(p => p.transactionId === transactionId);
+        
+            if (proofIndex === -1) {
+                return res.status(404).json({ error: 'Proof not found' });
+            }
+
+            proofs[proofIndex] = { ...proofs[proofIndex], ...updatedData };
+            fs.writeFileSync(proofsPath, JSON.stringify(proofs, null, 2));
+
+            res.json({ success: true, message: 'Proof updated successfully', proof: proofs[proofIndex] });
+        } catch (error) {
+            console.error('Error updating proof:', error);
+            res.status(500).json({ error: 'Failed to update proof', details: error.message });
+        }
+    });
+
+    // 📝 Update Plan Active data
+    app.put("/api/admin/update-plan-active", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { uid, updatedData } = req.body;
+            if (!uid || !updatedData) {
+                return res.status(400).json({ error: 'UID and updated data are required' });
+            }
+
+            let planActive = JSON.parse(fs.readFileSync(planActiveFile, 'utf8'));
+            const userIndex = planActive.findIndex(u => u.self?.uid === uid);
+        
+            if (userIndex === -1) {
+                return res.status(404).json({ error: 'User plan not found' });
+            }
+
+            planActive[userIndex] = { ...planActive[userIndex], ...updatedData };
+            fs.writeFileSync(planActiveFile, JSON.stringify(planActive, null, 2));
+
+            res.json({ success: true, message: 'Plan active updated successfully', data: planActive[userIndex] });
+        } catch (error) {
+            console.error('Error updating plan active:', error);
+            res.status(500).json({ error: 'Failed to update plan active', details: error.message });
+        }
+    });
+
+    // 📝 Update Plan Price data
+    app.put("/api/admin/update-plan-price", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { updatedData } = req.body;
+            if (!updatedData) {
+                return res.status(400).json({ error: 'Updated data is required' });
+            }
+
+            fs.writeFileSync(planPriceFile, JSON.stringify(updatedData, null, 2));
+
+            fs.appendFileSync(
+                flagsLog,
+                `${new Date().toISOString()} | 📝 Plan pricing updated by ${req.user.email}\n`
+            );
+
+            res.json({ success: true, message: 'Plan pricing updated successfully', data: updatedData });
+        } catch (error) {
+            console.error('Error updating plan price:', error);
+            res.status(500).json({ error: 'Failed to update plan price', details: error.message });
+        }
+    });
+
+    // ❌ Delete User
+    app.delete("/api/admin/delete-user", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                return res.status(400).json({ error: 'Email is required' });
+            }
+
+            let users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+            const userIndex = users.findIndex(u => u.email === email);
+        
+            if (userIndex === -1) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            // Prevent deleting super admin
+            if (users[userIndex].role === 'superadmin') {
+                return res.status(403).json({ error: 'Cannot delete super admin' });
+            }
+
+            users.splice(userIndex, 1);
+            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+            fs.appendFileSync(
+                flagsLog,
+                `${new Date().toISOString()} | ❌ User ${email} deleted by ${req.user.email}\n`
+            );
+
+            res.json({ success: true, message: 'User deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            res.status(500).json({ error: 'Failed to delete user', details: error.message });
+        }
+    });
+
+    // ❌ Delete Purchase
+    app.delete("/api/admin/delete-purchase", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { transactionId } = req.body;
+            if (!transactionId) {
+                return res.status(400).json({ error: 'Transaction ID is required' });
+            }
+
+            let purchases = JSON.parse(fs.readFileSync(purchasesFile, 'utf8'));
+            const purchaseIndex = purchases.findIndex(p => p.transactionId === transactionId);
+        
+            if (purchaseIndex === -1) {
+                return res.status(404).json({ error: 'Purchase not found' });
+            }
+
+            purchases.splice(purchaseIndex, 1);
+            fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+
+            res.json({ success: true, message: 'Purchase deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting purchase:', error);
+            res.status(500).json({ error: 'Failed to delete purchase', details: error.message });
+        }
+    });
+
+    // ❌ Delete Proof
+    app.delete("/api/admin/delete-proof", verifyToken, isAdmin, (req, res) => {
+        try {
+            const { transactionId } = req.body;
+            if (!transactionId) {
+                return res.status(400).json({ error: 'Transaction ID is required' });
+            }
+
+            const proofsPath = path.join(__dirname, 'support', 'payments', 'proofs.json');
+            let proofs = JSON.parse(fs.readFileSync(proofsPath, 'utf8'));
+            const proofIndex = proofs.findIndex(p => p.transactionId === transactionId);
+        
+            if (proofIndex === -1) {
+                return res.status(404).json({ error: 'Proof not found' });
+            }
+
+            proofs.splice(proofIndex, 1);
+            fs.writeFileSync(proofsPath, JSON.stringify(proofs, null, 2));
+
+            res.json({ success: true, message: 'Proof deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting proof:', error);
+            res.status(500).json({ error: 'Failed to delete proof', details: error.message });
+        }
+    });
+
+// ================== ADMIN ROUTES ==================
+app.get("/admin/users", verifyToken, isAdmin, (req, res) => {
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    res.json(users.map(({ password, ...rest }) => rest));
+});
+
+// 🚫 Block/Unblock User (with timed support)
+// 🚫 Block/Unblock User (with timed support for minutes & hours)
+app.post("/admin/block-user", verifyToken, isAdmin, (req, res) => {
+    const { targetEmail, durationMinutes, durationHours } = req.body;
+    const email = normalizeEmail(targetEmail);
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const u = users.find((u) => u.email === email);
+
+    if (!u) return res.status(404).json({ error: "User not found" });
+
+    // 👑 Super Admin fully protected
+    if (u.role === "superadmin") {
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | ❌ Attempt to BLOCK Super Admin (${u.email}) by ${req.user.email}\n`
+        );
+        return res.status(403).json({ error: "❌ Super Admin cannot be blocked." });
+    }
+
+    // 🚫 Prevent admins blocking admins (except Owner)
+    if (u.role === "admin" && req.user.email !== SUPER_ADMIN_EMAIL) {
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | ❌ ${req.user.email} tried to BLOCK another ADMIN (${u.email})\n`
+        );
+        return res.status(403).json({ error: "🚫 Only Owner can block other admins." });
+    }
+
+    // ✅ If duration provided → timed block (minutes or hours)
+    if ((durationMinutes && durationMinutes > 0) || (durationHours && durationHours > 0)) {
+        let durationMs = 0;
+        if (durationMinutes) durationMs += durationMinutes * 60 * 1000;
+        if (durationHours) durationMs += durationHours * 60 * 60 * 1000;
+
+        const until = Date.now() + durationMs;
+        u.blocked = true;
+        u.blockUntil = until;
+        u.blockedBy = req.user.email === SUPER_ADMIN_EMAIL ? "owner" : "admin";
+
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | 🚫 ${u.email} TIMED BLOCK until ${new Date(until).toISOString()} by ${req.user.email}\n`
+        );
+
+        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+        return res.json({ message: `${u.email} is BLOCKED until ${new Date(until).toLocaleString()}` });
+    }
+
+    // ✅ Otherwise toggle permanent block/unblock
+    u.blocked = !u.blocked;
+
+    if (u.blocked) {
+        u.blockUntil = null;
+        u.blockedBy = req.user.email === SUPER_ADMIN_EMAIL ? "owner" : "admin";
+
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | 🚫 ${u.email} was PERMANENTLY BLOCKED by ${req.user.email}\n`
+        );
+    } else {
+        delete u.blockUntil;
+        delete u.blockedBy;
+
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | ✅ ${u.email} was UNBLOCKED by ${req.user.email}\n`
+        );
+    }
+
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    res.json({ message: `${u.email} is now ${u.blocked ? "BLOCKED" : "ACTIVE"}` });
+});
+
+// 📊 Stats
+app.get("/admin/stats", verifyToken, isAdmin, (req, res) => {
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+
+    const totalUsers = users.length;
+    const blockedUsers = users.filter(u => u.blocked).length;
+    const activeUsers = totalUsers - blockedUsers;
+    const totalFiles = filesMeta.length;
+    const totalStorage = (filesMeta.reduce((sum, f) => sum + f.bytes, 0) / 1024 / 1024).toFixed(2) + " MB";
+
+    res.json({ totalUsers, activeUsers, blockedUsers, totalFiles, totalStorage });
+});
+
+// 📂 List all files
+app.get("/admin/files", verifyToken, isAdmin, (req, res) => {
+    let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+    res.json(filesMeta);
+});
+
+// ❌ Delete single file
+app.post("/admin/delete-file", verifyToken, isAdmin, (req, res) => {
+    const { filename, uploadedBy } = req.body;
+    if (!filename || !uploadedBy) {
+        return res.status(400).json({ error: "Missing filename or uploadedBy" });
+    }
+
+    let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+    const idx = filesMeta.findIndex(
+        f => f.filename === filename && f.uploadedBy === uploadedBy
+    );
+    if (idx === -1) return res.status(404).json({ error: "File not found" });
+
+    const filePath = path.join(uploadsDir, uploadedBy, "files", filename);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    filesMeta.splice(idx, 1);
+    fs.writeFileSync(filesMetaFile, JSON.stringify(filesMeta, null, 2));
+
+    res.json({ message: "✅ File deleted" });
+});
+
+// ❌ Delete ALL files of a user
+app.post("/admin/delete-user-files", verifyToken, isAdmin, (req, res) => {
+    const targetEmail = normalizeEmail(req.body.targetEmail);
+    if (!targetEmail) {
+        return res.status(400).json({ error: "Missing targetEmail" });
+    }
+
+    const safeEmail = safeName(targetEmail);
+    const userDir = path.join(uploadsDir, safeEmail, "files");
+
+    // Filter out user’s files from metadata
+    let filesMeta = JSON.parse(fs.readFileSync(filesMetaFile, "utf8"));
+    const beforeCount = filesMeta.length;
+    filesMeta = filesMeta.filter(f => f.uploadedBy !== safeEmail);
+    fs.writeFileSync(filesMetaFile, JSON.stringify(filesMeta, null, 2));
+
+    // Delete physical folder
+    if (fs.existsSync(userDir)) {
+        fs.rmSync(userDir, { recursive: true, force: true });
+    }
+
+    const deletedCount = beforeCount - filesMeta.length;
+    res.json({ message: `❌ Deleted ${deletedCount} file(s) of ${targetEmail}` });
+});
+
+// 🔼 Promote/Demote Admin / Super Admin
+app.post("/admin/toggle-admin", verifyToken, isAdmin, (req, res) => {
+    const { targetEmail, makeSuper, demoteSuper } = req.body;
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const u = users.find((u) => u.email === targetEmail);
+
+    if (!u) return res.status(404).json({ error: "User not found" });
+
+    const DEFAULT_SUPER = SUPER_ADMIN_EMAIL || "owner@cloudspace.com"; // 👑 Default Super Admin
+
+    // 🚫 Protect Default Super Admin
+    if (u.email === DEFAULT_SUPER) {
+        return res.status(403).json({ error: "❌ Default Super Admin cannot be modified." });
+    }
+
+    // 🚫 Prevent promoted Supers from demoting each other
+    if (u.role === "superadmin" && req.user.email !== DEFAULT_SUPER && demoteSuper) {
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | ❌ ${req.user.email} tried to DEMOTE SUPERADMIN (${u.email})\n`
+        );
+        return res.status(403).json({ error: "🚫 Only Default Super Admin can demote Super Admins." });
+    }
+
+    // 🚫 Prevent normal admins from demoting other admins
+    if (u.role === "admin" && req.user.email !== DEFAULT_SUPER && !makeSuper && demoteSuper) {
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | ❌ ${req.user.email} tried to DEMOTE ADMIN (${u.email})\n`
+        );
+        return res.status(403).json({ error: "🚫 Only Super Admin can demote other admins." });
+    }
+
+    // 🚫 Prevent promoting blocked users
+    if (u.blocked) {
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | ⚠️ Attempt to PROMOTE blocked user (${u.email}) by ${req.user.email}\n`
+        );
+        return res.status(403).json({ error: "🚫 Blocked users cannot be promoted. Unblock first." });
+    }
+
+    // ✅ Promote to Super Admin (only Default Super can)
+    if (makeSuper) {
+        if (req.user.email !== DEFAULT_SUPER) {
+            return res.status(403).json({ error: "🚫 Only Default Super Admin can promote users to Super Admin." });
+        }
+        u.role = "superadmin";
+    }
+    // ✅ Demote from Super Admin → Admin
+    else if (demoteSuper) {
+        if (req.user.email !== DEFAULT_SUPER) {
+            return res.status(403).json({ error: "🚫 Only Default Super Admin can demote Super Admins." });
+        }
+        if (u.role !== "superadmin") {
+            return res.status(400).json({ error: "User is not a Super Admin." });
+        }
+        u.role = "admin";
+    }
+    // ✅ Toggle between admin <-> user
+    else {
+        u.role = u.role === "admin" ? "user" : "admin";
+    }
+
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+
+    fs.appendFileSync(
+        flagsLog,
+        `${new Date().toISOString()} | 🔼 ${u.email} role changed to ${u.role.toUpperCase()} by ${req.user.email}\n`
+    );
+
+    res.json({ message: `${u.email} is now ${u.role.toUpperCase()}` });
+});
+
+// ================== LOGS ==================
+const flagsLogs = path.join(logsDir, "flags.log");
+if (!fs.existsSync(flagsLogs)) fs.writeFileSync(flagsLogs, "");
+
+// 📜 Enhanced Logs
+app.get("/admin/logs", verifyToken, isAdmin, (req, res) => {
+    const resetLog = fs.readFileSync(resetRequestsLog, "utf8");
+    const passLog = fs.readFileSync(passwordChangesLog, "utf8");
+    const loginLog = fs.readFileSync(loginAttemptsLog, "utf8");
+    const uploadLog = fs.readFileSync(uploadsLog, "utf8");
+    const mailLogs = fs.readFileSync(mailLog, "utf8");
+    const flagLogs = fs.readFileSync(flagsLog, "utf8");
+
+    // ✅ Structured JSON logs
+    let passLogJson = [];
+    if (fs.existsSync(passwordChangesJsonFile)) {
+        passLogJson = JSON.parse(fs.readFileSync(passwordChangesJsonFile, "utf8"));
+    }
+
+    res.json({
+        resetLog,
+        passLog,      // plain text log
+        passLogJson,  // structured JSON log
+        loginLog,
+        uploadLog,
+        mailLogs,
+        flagLogs
+    });
+});
+
+// ================== ADMIN: SEND MAIL ==================
+app.post("/admin/send-mail", verifyToken, isAdmin, async (req, res) => {
+    const { to, subject, message } = req.body;
+
+    if (!subject || !message) {
+        return res.status(400).json({ error: "Subject and message required" });
+    }
+
+    // Load all users
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    let recipients = [];
+
+    // ✅ Build recipients
+    if (!to || to === "all") {
+        recipients = users.map(u => u.email);
+    } else if (to === "admins") {
+        recipients = users.filter(u => u.role === "admin").map(u => u.email);
+    } else if (to === "users") {
+        recipients = users.filter(u => u.role !== "admin").map(u => u.email);
+    } else if (to === "active") {
+        recipients = users.filter(u => !u.blocked).map(u => u.email);
+    } else if (to === "blocked") {
+        recipients = users.filter(u => u.blocked).map(u => u.email);
+    } else if (Array.isArray(to)) {
+        // 🎯 Multiple selected users
+        recipients = users.filter(u => to.includes(u.email)).map(u => u.email);
+    } else {
+        // 🎯 Single specific user
+        const user = users.find(u => u.email === to.trim());
+        if (!user) return res.status(404).json({ error: "User not found" });
+        recipients = [user.email];
+    }
+
+    if (!recipients.length) {
+        return res.status(400).json({ error: "No recipients found" });
+    }
+
+    try {
+        // ✨ Use styled mail system
+        await sendStyledMail(
+            recipients.join(","),
+            subject,
+            `
+            <h2 style="color:#00ffcc;text-align:center;">📢 Cloud Space Notification</h2>
+            <p style="font-size:15px;line-height:1.6;color:#ddd;">
+                ${message.replace(/\n/g, "<br>")}
+            </p>
+            <hr style="border:none;border-top:1px solid #333;margin:20px 0;" />
+            <p style="text-align:center;color:#888;font-size:12px;">
+                🚀 Sent securely from <b>Cloud Space Admin Panel</b>
+            </p>
+            `
+        );
+
+        // ✅ Log mail activity
+        fs.appendFileSync(
+            mailLog,
+            `${new Date().toISOString()} | Sent to: ${recipients.join(", ")} | Subject: ${subject}\n`
+        );
+
+        res.json({ message: `✅ Mail sent to ${recipients.length} user(s)` });
+    } catch (err) {
+        console.error("❌ Mail error:", err);
+        res.status(500).json({ error: "❌ Failed to send email" });
+    }
+});
+
+// ⏳ Auto-Block Inactive (not verified in 10 minutes)
+app.post("/admin/auto-block", verifyToken, isAdmin, (req, res) => {
+    let users = JSON.parse(fs.readFileSync(usersFile));
+    const now = Date.now();
+    let blockedCount = 0;
+
+    users.forEach(u => {
+        // If user not verified and created_at older than 10 minutes
+        if (!u.verified && new Date(u.created_at).getTime() < now - 10 * 60 * 1000) {
+            u.blocked = true;
+            blockedCount++;
+        }
+    });
+
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+    res.json({ message: `🚫 ${blockedCount} users auto-blocked (older than 10 min).` });
+});
+
+// =========================
+// PREMIUM PLANS + PAYMENT SYSTEM (QR BASED)
+// =========================
+// ✅ UPI CONFIG (Replace this with your actual ID)
+const UPI_ID = process.env.UPI_ID || "9316378005-2.wallet@phonepe";
+
+// ✅ Load plan details from plan-price.json (single source of truth)
+const planPriceFile = path.join(supportDir, "plan-price.json");
+let PLANS = {};
+const DEFAULT_PLAN_PAYLOAD = {
+    plans: {
+        silver: { key: "silver", name: "Silver", amount: 5 * PRICE_PER_TB, storageTB: 5, durationDays: 30, note: "Monthly (30 days)" },
+        gold: { key: "gold", name: "Gold", amount: 20 * PRICE_PER_TB, storageTB: 20, durationDays: 90, note: "Quarterly (90 days)" },
+        platinum: { key: "platinum", name: "Platinum", amount: 100 * PRICE_PER_TB, storageTB: 100, durationDays: 180, note: "Half-yearly (180 days)" },
+        ultra: { key: "ultra", name: "Ultra", amount: 200 * PRICE_PER_TB, storageTB: 200, durationDays: 9999, note: "Lifetime" }
+    },
+    upiId: process.env.UPI_ID || "mycloudspace@upi",
+    lastUpdated: new Date().toISOString(),
+    pricePerTB: PRICE_PER_TB
+};
+
+function rebuildPlansWithRate(sourcePlans, rate) {
+    const plans = {};
+    Object.entries(sourcePlans || {}).forEach(([key, plan]) => {
+        const storageTB = Number(plan.storageTB) || 0;
+        const amount = Math.max(0, Math.round(storageTB * rate));
+        plans[key] = { ...plan, key: plan.key || key, amount };
+    });
+    return plans;
+}
+
+// Utility: read plan-active.json safely
+function readPlanActiveFile() {
+    try {
+        return JSON.parse(fs.readFileSync(planActiveFile, "utf8") || "[]");
+    } catch (err) {
+        console.error("⚠️ Failed to read plan-active.json", err);
+        return [];
+    }
+}
+
+// Utility: write plan-active.json
+function writePlanActiveFile(data) {
+    try {
+        fs.writeFileSync(planActiveFile, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.error("⚠️ Failed to write plan-active.json", err);
+    }
+}
+
+// Ensure plan-price.json exists on startup with defaults
+function ensurePlanPriceFile() {
+    try {
+        if (fs.existsSync(planPriceFile)) return;
+        const rate = PRICE_PER_TB;
+        const upi = process.env.UPI_ID || "mycloudspace@upi";
+        const plans = rebuildPlansWithRate(DEFAULT_PLAN_PAYLOAD.plans, rate);
+        const payload = {
+            plans,
+            upiId: upi,
+            pricePerTB: rate,
+            lastUpdated: new Date().toISOString()
+        };
+        fs.writeFileSync(planPriceFile, JSON.stringify(payload, null, 2));
+        console.log("✅ plan-price.json auto-created with defaults");
+    } catch (err) {
+        console.error("⚠️ Failed to create plan-price.json", err);
+    }
+}
+
+function loadPlans() {
+    try {
+        const rate = PRICE_PER_TB; // env-driven single source
+        let fileData = null;
+        let shouldRewrite = false;
+
+        if (fs.existsSync(planPriceFile)) {
+            fileData = JSON.parse(fs.readFileSync(planPriceFile, "utf8"));
+            console.log("✅ Plans loaded from plan-price.json");
+        } else {
+            console.warn("⚠️ plan-price.json not found, creating with defaults");
+            fileData = { ...DEFAULT_PLAN_PAYLOAD };
+            shouldRewrite = true;
+        }
+
+        const rebuiltPlans = rebuildPlansWithRate(fileData.plans || DEFAULT_PLAN_PAYLOAD.plans, rate);
+        PLANS = rebuiltPlans;
+
+        // Always sync pricePerTB, upiId, and recalculate plan amounts from .env
+        const envPricePerTB = Number(rate);
+        const envUpiId = process.env.UPI_ID || "mycloudspace@upi";
+        
+        // Check if amounts need recalculation based on current PRICE_PER_TB
+        let amountsNeedUpdate = false;
+        if (fileData.plans) {
+            Object.entries(fileData.plans).forEach(([key, plan]) => {
+                const expectedAmount = Math.round((plan.storageTB || 0) * envPricePerTB);
+                if (plan.amount !== expectedAmount) {
+                    amountsNeedUpdate = true;
+                }
+            });
+        }
+        
+        if (fileData.pricePerTB !== envPricePerTB || fileData.upiId !== envUpiId || amountsNeedUpdate) {
+            fileData.pricePerTB = envPricePerTB;
+            fileData.upiId = envUpiId;
+            // Recalculate all plan amounts based on current PRICE_PER_TB
+            Object.entries(fileData.plans || {}).forEach(([key, plan]) => {
+                fileData.plans[key].amount = Math.round((plan.storageTB || 0) * envPricePerTB);
+            });
+            fileData.lastUpdated = new Date().toISOString();
+            fs.writeFileSync(planPriceFile, JSON.stringify(fileData, null, 2));
+            console.log(`✅ Updated plan amounts based on PRICE_PER_TB=${envPricePerTB} from .env`);
+        }
+    } catch (err) {
+        console.error("❌ Error loading plans:", err);
+        PLANS = DEFAULT_PLAN_PAYLOAD.plans;
+    }
+}
+
+// Load plans on startup (auto-create file first)
+ensurePlanPriceFile();
+loadPlans();
+
+// Auto-reload plans if plan-price.json changes on disk
+let planReloadTimer = null;
+fs.watchFile(planPriceFile, { interval: 1000 }, () => {
+    if (planReloadTimer) return;
+    planReloadTimer = setTimeout(() => {
+        planReloadTimer = null;
+        console.log("♻️ Detected plan-price.json change → reloading plans");
+        loadPlans();
+    }, 500);
+});
+
+// Migrate any legacy plan fields stored in users.json into plan-active.json
+function migrateUsersPlansToPlanActive() {
+    try {
+        const users = JSON.parse(fs.readFileSync(usersFile, "utf8") || "[]");
+        const existingPlanActive = readPlanActiveFile();
+        const map = new Map();
+
+        existingPlanActive.forEach(entry => {
+            if (entry?.self?.uid) {
+                map.set(entry.self.uid, entry);
+            }
+        });
+
+        let usersUpdated = false;
+        const now = Date.now();
+
+        users.forEach((user) => {
+            if (!user.uid) return;
+            const plan = user.plan;
+            const storageTB = user.storageTB;
+            const planExpiry = user.planExpiry;
+
+            if (!plan || plan === "free") return;
+
+            let entry = map.get(user.uid);
+            if (!entry) {
+                entry = {
+                    self: {
+                        uid: user.uid,
+                        email: user.email,
+                        username: user.username,
+                    },
+                    plans: [],
+                    summary: {
+                        totalPlans: 0,
+                        activePlans: 0,
+                        blockedPlans: 0,
+                        totalSpent: 0,
+                        totalDiscount: 0,
+                        totalStorage: 0,
+                        totalStorageTB: 0,
+                    },
+                };
+                map.set(user.uid, entry);
+            }
+
+            const alreadyMigrated = (entry.plans || []).some(p => {
+                const tid = (p.transaction?.transactionId) || p.recordId || "";
+                return typeof tid === "string" && tid.startsWith("MIGRATED-");
+            });
+            if (alreadyMigrated) return;
+
+            const selected = PLANS[plan] || {};
+            const durationDays = selected.durationDays || null;
+            const expiresAt = planExpiry
+                ? new Date(planExpiry).toISOString()
+                : (durationDays === 9999 ? null : null);
+            const active = !planExpiry || Number(planExpiry) > now;
+            const storageValue = storageTB || selected.storageTB || 0.5;
+            const migratedRecordId = `MIGRATED-${user.uid}`;
+
+            const planRecord = {
+                plan,
+                planDetails: {
+                    storage: storageValue,
+                    storageTB: storageValue,
+                    durationDays: durationDays,
+                    maxUploadSize: getPlanUploadSize(plan),
+                    features: getPlanFeatures(plan, storageValue, durationDays || 0),
+                },
+                transaction: {
+                    transactionId: migratedRecordId,
+                    paymentMethod: "migrated",
+                    currency: "INR",
+                    amount: selected.amount || 0,
+                    amountDiscount: 0,
+                    discountApplied: 0,
+                    finalAmount: selected.amount || 0,
+                    purchasedAt: user.created_at || new Date().toISOString(),
+                    activatedAt: user.created_at || new Date().toISOString(),
+                    expiresAt,
+                    status: active ? "completed" : "expired",
+                    notes: "Migrated from users.json",
+                },
+                status: {
+                    isActive: active,
+                    isBlocked: !!user.blocked,
+                    blockedReason: user.blocked ? "user blocked" : null,
+                    blockedAt: null,
+                },
+                recordId: migratedRecordId,
+            };
+
+            entry.plans = entry.plans || [];
+            entry.plans.push(planRecord);
+        });
+
+        // Recompute summaries and write plan-active
+        const nextPlanActive = Array.from(map.values()).map((entry) => {
+            const summary = {
+                totalPlans: 0,
+                activePlans: 0,
+                blockedPlans: 0,
+                totalSpent: 0,
+                totalDiscount: 0,
+                totalStorage: 0,
+                totalStorageTB: 0,
+            };
+
+            (entry.plans || []).forEach((p) => {
+                summary.totalPlans += 1;
+                if (p.status?.isActive && !p.status?.isBlocked) summary.activePlans += 1;
+                if (p.status?.isBlocked) summary.blockedPlans += 1;
+                summary.totalSpent += p.transaction?.finalAmount || 0;
+                summary.totalDiscount += p.transaction?.amountDiscount || 0;
+                summary.totalStorage += p.planDetails?.storage || 0;
+                summary.totalStorageTB += p.planDetails?.storageTB || 0;
+            });
+
+            return { ...entry, summary };
+        });
+
+        writePlanActiveFile(nextPlanActive);
+
+        // Strip plan fields from users.json to keep it plan-free
+        users.forEach((u) => {
+            if (u.plan || u.storageTB || u.planExpiry) {
+                delete u.plan;
+                delete u.storageTB;
+                delete u.planExpiry;
+                               delete u.purchasedAt;
+                usersUpdated = true;
+            }
+        });
+
+        if (usersUpdated) {
+            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+            console.log("🔄 Users migrated: plan fields removed from users.json");
+        }
+
+        console.log("✅ Users migrated into plan-active.json (legacy plans)");
+    } catch (err) {
+        console.error("❌ Failed to migrate users into plan-active.json", err);
+    }
+}
+
+// ✅ API endpoint to fetch plans (for frontend)
+app.get("/api/plans", (req, res) => {
+    // Always refresh from disk so UI reflects latest plan-price.json edits
+    loadPlans();
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ success: true, plans: PLANS, pricePerTB: PRICE_PER_TB });
+});
+
+// ✅ Reload plans endpoint (called after editing plan-price.json)
+app.post("/admin/reload-plans", verifyToken, isAdmin, (req, res) => {
+    loadPlans();
+    res.json({ success: true, message: "Plans reloaded", plans: PLANS });
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Helper: recursive directory copy (used to grant Cloud+ UI to users)
+function copyDirRecursive(src, dest) {
+    if (!fs.existsSync(src)) return false;
+    if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+            copyDirRecursive(srcPath, destPath);
+        } else if (entry.isFile()) {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+    return true;
+}
+
+// ==================== PURCHASE LOGGING HELPER ====================
+function logPurchase(userData, plan, amount, amountDiscount, discountPercent, finalAmount, paymentMethod, transactionId, proofId = null, cardLast4 = null, notes = "", planDetailsOverride = null) {
+    try {
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        
+        const planDetails = planDetailsOverride || PLANS[plan] || {};
+        const purchaseRecord = {
+            _id: `PURCHASE-${Date.now()}`,
+            uid: userData.uid || null,
+            email: userData.email || null,
+            username: userData.username || null,
+            plan: plan,
+            amount: amount,
+            amountDiscount: amountDiscount,
+            discountApplied: discountPercent,
+            finalAmount: finalAmount,
+            currency: "INR",
+            paymentMethod: paymentMethod, // 'card', 'proof', 'upi'
+            cardLast4: cardLast4 || null,
+            proofId: proofId || null,
+            status: paymentMethod === 'proof' ? 'pending_verification' : 'completed',
+            purchasedAt: new Date().toISOString(),
+            activatedAt: paymentMethod === 'proof' ? null : new Date().toISOString(),
+            expiresAt: planDetails.durationDays === 9999 ? null : new Date(Date.now() + planDetails.durationDays * 24 * 60 * 60 * 1000).toISOString(),
+            durationDays: planDetails.durationDays || 30,
+            storageTB: planDetails.storageTB || 1,
+            transactionId: transactionId,
+            notes: notes,
+            isActive: paymentMethod !== 'proof', // proof becomes active after admin approval
+            isBlocked: false,
+            blockedReason: null,
+            blockedAt: null,
+            renewalAttempts: 0,
+            lastRenewalAttempt: null
+        };
+        
+        purchases.push(purchaseRecord);
+        fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+        
+        // 🔄 AUTO-SYNC: Regenerate plan-active.json when purchase is logged
+        generatePlanActiveData();
+        
+        console.log(`💾 Purchase logged: ${userData.email || userData.uid} → ${plan} (${finalAmount} INR)`);
+        return purchaseRecord;
+    } catch (err) {
+        console.error("❌ Error logging purchase:", err);
+        return null;
+    }
+}
+
+
+app.post("/create-netbanking-session", verifyToken, (req, res) => {
+  const { uid, plan, bank } = req.body;
+
+  if (!uid || !plan || !bank) {
+    return res.status(400).json({
+      success: false,
+      msg: "Missing uid / plan / bank"
+    });
+  }
+
+  console.log(`🏦 NetBanking requested → UID=${uid}, Plan=${plan}, Bank=${bank}`);
+
+  // SIMULATION MODE
+  return res.json({
+    success: true,
+    mode: "card",     // tells frontend to open card modal
+    msg: "NetBanking simulated → fallback to card"
+  });
+});
+
+
+app.post("/process-card", verifyToken, (req, res) => {
+    const { cardNumber, cardName, expiry, cvv, uid, plan, amount, discountedAmount } = req.body;
+
+    if (!cardNumber || !cardName || !expiry || !cvv) {
+        return res.json({ success: false, msg: "Incomplete card details" });
+    }
+
+    // Determine target UID: prefer body.uid, else token uid
+    const targetUid = uid || req.user?.uid;
+
+    console.log(`💳 Card processed (SIMULATED) → UID=${targetUid}, Plan=${plan}, Amount=${amount}`);
+
+    try {
+        let users = JSON.parse(fs.readFileSync(usersFile, "utf8") || "[]");
+        const userIdx = users.findIndex(u => u.uid === targetUid || normalizeEmail(u.email) === normalizeEmail(req.user?.email));
+
+        if (userIdx === -1) {
+            return res.status(404).json({ success: false, msg: "User not found" });
+        }
+
+        const selected = PLANS[plan];
+        if (!selected) {
+            return res.status(400).json({ success: false, msg: "Invalid plan" });
+        }
+
+        const transactionId = "CARD-" + Date.now();
+        const cardLast4 = cardNumber.slice(-4);
+        const finalAmount = discountedAmount || amount;
+        const amountDiscount = amount - finalAmount;
+        const discountPercent = amountDiscount > 0 ? Math.round((amountDiscount / amount) * 100) : 0;
+
+        // Compute expiry for response (persisted via purchases/plan-active, not users.json)
+        const planExpiry = selected.durationDays === 9999 ? null : Date.now() + selected.durationDays * 24 * 60 * 60 * 1000;
+
+        // Copy Cloud+ UI and uiAccess without storing plan fields back into users.json
+        let userMutated = false;
+        if (plan === "ultra") {
+            users[userIdx].uiAccess = "ultra";
+            userMutated = true;
+            try {
+                const userEmailSafe = safeName(users[userIdx].email);
+                const destUi = path.join(uploadsDir, userEmailSafe, 'cloudplus_ui');
+                const srcUi = path.join(__dirname, 'public3');
+                const copied = copyDirRecursive(srcUi, destUi);
+                if (copied) {
+                    users[userIdx].cloudplusUI = `/uploads/${userEmailSafe}/cloudplus_ui/index.html`;
+                }
+            } catch (e) {
+                console.warn('Failed to copy Cloud+ UI for user', e);
+            }
+        }
+
+        if (userMutated) {
+            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+        }
+
+        // Log the purchase
+        logPurchase(
+            users[userIdx],
+            plan,
+            amount,
+            amountDiscount,
+            discountPercent,
+            finalAmount,
+            'card',
+            transactionId,
+            null,
+            cardLast4,
+            `Card payment by ${cardName}`
+        );
+
+        return res.json({ success: true, tx: transactionId, user: { uid: users[userIdx].uid, plan, storageTB: selected.storageTB, planExpiry, cloudplusUI: users[userIdx].cloudplusUI || null } });
+    } catch (err) {
+        console.error('❌ process-card error:', err);
+        return res.status(500).json({ success: false, msg: 'Internal error' });
+    }
+});
+
+
+app.get("/verify-upi", verifyToken, (req, res) => {
+  const { upi } = req.query;
+  if (!upi) {
+    return res.json({ success: false, msg: "UPI missing" });
+  }
+
+  const upiRegex = /^[\w.\-]{2,}@[a-zA-Z]{2,}$/;
+  const validFormat = upiRegex.test(upi);
+
+  return res.json({
+    success: true,
+    validFormat,
+    exists: validFormat,              // simulated
+    matchesConfigured: upi === UPI_ID // exact match check
+  });
+});
+
+
+
+// ----------------- Create Payment QR -----------------
+app.post("/create-qr", async (req, res) => {
+    try {
+        const { uid, plan, coupon, amount: customAmount, requestedStorageTB } = req.body;
+        if (!uid || !plan) return res.json({ success: false, msg: "Missing uid or plan" });
+
+        let selected = PLANS[plan];
+        let customTB = null;
+
+        if (plan === "custom") {
+            customTB = Number(requestedStorageTB || req.body.storageTB || req.body.tb || NaN);
+            let customAmt = Number(customAmount || NaN);
+            if (!Number.isFinite(customTB) || customTB < 1) {
+                return res.json({ success: false, msg: "Invalid custom storage TB" });
+            }
+            if (!Number.isFinite(customAmt) || customAmt <= 0) {
+                customAmt = Math.round(customTB * PRICE_PER_TB);
+            }
+            if (!Number.isFinite(customAmt) || customAmt <= 0) {
+                return res.json({ success: false, msg: "Invalid custom amount" });
+            }
+            selected = {
+                name: `Custom ${customTB} TB`,
+                amount: customAmt,
+                storageTB: customTB,
+                durationDays: 30
+            };
+        }
+
+        if (!selected) return res.json({ success: false, msg: "Invalid plan" });
+
+        let amount = selected.amount;
+
+        // Apply discount if coupon is valid (your VALID_COUPON & DISCOUNT_PERCENT expected in scope)
+        let discountApplied = 0;
+        console.log(`📋 Processing: coupon="${coupon}", VALID_COUPON="${VALID_COUPON}", DISCOUNT_PERCENT=${DISCOUNT_PERCENT}`);
+        if (
+          coupon &&
+          typeof VALID_COUPON !== "undefined" &&
+          coupon.toUpperCase() === VALID_COUPON.toUpperCase() &&
+          typeof DISCOUNT_PERCENT !== "undefined" &&
+          DISCOUNT_PERCENT > 0
+        ) {
+            discountApplied = (amount * DISCOUNT_PERCENT) / 100;
+            amount = amount - discountApplied;
+            console.log(`✅ COUPON VALID! Discount: ₹${discountApplied} (${DISCOUNT_PERCENT}%), Final: ₹${amount}`);
+        } else {
+            if (coupon && coupon.toUpperCase() !== VALID_COUPON.toUpperCase()) {
+                console.log(`❌ COUPON INVALID: "${coupon}" does not match "${VALID_COUPON}"`);
+            }
+        }
+
+        const upiUri = `upi://pay?pa=${UPI_ID}&pn=CloudSpace%20Payment&am=${amount}&cu=INR&tn=${selected.name}%20Plan%20for%20${uid}`;
+        const qrDataUrl = await QRCode.toDataURL(upiUri);
+
+        res.json({
+            success: true,
+            qrDataUrl,
+            amount,
+            upiUri,
+            discountApplied,
+            discountPercent: discountApplied > 0 ? DISCOUNT_PERCENT : 0,
+            requestedStorageTB: customTB
+        });
+    } catch (err) {
+        console.error("❌ QR Generation Error:", err);
+        res.json({ success: false, msg: "QR generation failed" });
+    }
+});
+
+// ----------------- Submit Payment Proof -----------------
+// Proofs are created as "pending" and NOT auto-approved or highlighted.
+const proofStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, paymentProofsDir); // ✅ SUPPORT FOLDER
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+const uploadProof = multer({ storage: proofStorage });
+
+// Submit proof endpoint
+app.post("/submit-proof", uploadProof.single("screenshot"), (req, res) => {
+    try {
+                const {
+                uid,
+                plan,
+                upi_txn_id,
+                notes,
+                coupon,
+                method,
+                card_last4,
+                card_name,
+                card_expiry,
+                amount: customAmount,
+                requestedStorageTB
+                } 
+                = req.body;
+                if (!uid || !plan)
+                {
+                return res.json({ success: false, msg: "Missing UID or plan" });
+                }
+
+        let selected = PLANS[plan];
+        let customTB = null;
+        if (plan === "custom") {
+            customTB = Number(requestedStorageTB || req.body.storageTB || req.body.tb || NaN);
+            let customAmt = Number(customAmount || NaN);
+            if (!Number.isFinite(customTB) || customTB < 1) {
+                return res.json({ success: false, msg: "Invalid custom storage TB" });
+            }
+            if (!Number.isFinite(customAmt) || customAmt <= 0) {
+                customAmt = Math.round(customTB * PRICE_PER_TB);
+            }
+            if (!Number.isFinite(customAmt) || customAmt <= 0) {
+                return res.json({ success: false, msg: "Invalid custom amount" });
+            }
+            selected = {
+                name: `Custom ${customTB} TB`,
+                amount: customAmt,
+                storageTB: customTB,
+                durationDays: 30
+            };
+        }
+
+        if (!selected) {
+            return res.json({ success: false, msg: "Invalid plan" });
+        }
+
+        // 💰 AMOUNT CALCULATION (CORRECT & SAFE)
+const amount = Number(selected.amount);
+
+// defaults
+let discountPercent = 0;
+let discount = 0;
+let finalAmount = amount;
+
+// 🎟️ APPLY DISCOUNT ONLY IF COUPON IS VALID
+if (
+  coupon &&
+  VALID_COUPON &&
+  coupon.toUpperCase() === VALID_COUPON.toUpperCase()
+) {
+  discountPercent = Number(process.env.DISCOUNT_PERCENT || 0);
+
+  if (discountPercent > 0) {
+    discount = Number(
+      ((amount * discountPercent) / 100).toFixed(2)
+    );
+
+    finalAmount = Number(
+      (amount - discount).toFixed(2)
+    );
+}
+
+  // ✅ EXACT CALCULATION (NO ROUNDING)
+  discount = Number(((amount * discountPercent) / 100).toFixed(2));
+  finalAmount = Number((amount - discount).toFixed(2));
+}
+
+
+    let proofs = [];
+    try {
+      proofs = JSON.parse(fs.readFileSync(proofsFile, "utf8") || "[]");
+    } catch {
+      proofs = [];
+    }
+
+    const newProof = {
+  _id: uuidv4(),
+  uid,
+  plan,
+  method: method || "qr",
+
+  amount,                 // 1999
+  discountPercent,        // 75 (or 0)
+  discount,               // 1499.25
+  finalAmount,            // 499.75
+
+  coupon: coupon || null,
+  upi_txn_id: upi_txn_id || "N/A",
+  card: method === "card"
+    ? {
+        holder: card_name || null,
+        last4: card_last4 || null,
+        expiry: card_expiry || null
+      }
+    : null,
+
+  notes: notes || "",
+  screenshot: req.file
+    ? `/support/payments/proofs/${req.file.filename}`
+    : null,
+
+    requestedStorageTB: customTB,
+
+  status: "pending",
+  highlighted: false,
+  submittedAt: new Date().toISOString(),
+  verifiedAt: null,
+  adminNotes: null
+    };
+
+
+    proofs.push(newProof);
+    fs.writeFileSync(proofsFile, JSON.stringify(proofs, null, 2));
+
+    console.log(`🧾 Payment proof saved → UID=${uid}, Original: ₹${amount}, Final: ₹${finalAmount}${coupon ? ` (Coupon: ${coupon}, Discount: ₹${discount})` : ""}`);
+
+    // Get user info for purchase log
+    try {
+        let users = JSON.parse(fs.readFileSync(usersFile, "utf8") || "[]");
+        const user = users.find(u => u.uid === uid);
+        if (user) {
+            // Log the purchase (pending verification)
+            logPurchase(
+                user,
+                plan,
+                amount,
+                discount,
+                discountPercent,
+                finalAmount,
+                method || 'qr',
+                newProof._id,
+                newProof._id,
+                card_last4 || null,
+                `${method === 'card' ? 'Card' : 'QR/UPI'} payment proof submitted - ${notes}`,
+                plan === 'custom' ? selected : null
+            );
+        }
+    } catch (userErr) {
+        console.error("⚠️ Error logging purchase for proof:", userErr);
+    }
+
+    res.json({
+      success: true,
+      msg: "Proof submitted successfully",
+      proof: newProof
+    });
+  } catch (err) {
+    console.error("❌ submit-proof error:", err);
+    res.status(500).json({ success: false, msg: "Internal error" });
+  }
+});
+
+// ----------------- Check Status (READ ONLY) -----------------
+// This endpoint will NOT auto-approve or highlight anything.
+// Frontend may poll, but it will only ever return the stored status.
+app.get("/check-status", (req, res) => {
+    try {
+        const { uid } = req.query;
+        if (!uid) return res.status(400).json({ msg: "UID required" });
+
+        let proofs = [];
+        try {
+            proofs = JSON.parse(fs.readFileSync(proofsFile, "utf8") || "[]");
+        } catch (err) {
+           
+
+            proofs = [];
+        }
+
+        // Find the most recent proof submission for this UID (by submittedAt)
+        const userProofs = proofs.filter((p) => p.uid === uid);
+        if (!userProofs || userProofs.length === 0) return res.json({ status: "none" });
+
+        userProofs.sort((a, b) => {
+            const da = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+            const db = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+            return db - da; // newest first
+        });
+
+        const proof = userProofs[0];
+
+        // Return only recorded fields; do NOT change anything server-side here
+        return res.json({
+            status: proof.status,
+            highlighted: !!proof.highlighted,
+            verified: !!proof.verifiedAt,
+            proof: {
+                _id: proof._id,
+                plan: proof.plan,
+                submittedAt: proof.submittedAt,
+                screenshot: proof.screenshot,
+                adminNotes: proof.adminNotes || null
+            }
+        });
+    } catch (err) {
+        console.error("❌ check-status error:", err);
+        res.status(500).json({ msg: "Internal error" });
+    }
+});
+
+// ----------------- Admin fetch all proofs -----------------
+app.get("/admin/proofs", verifyToken, isAdmin, (req, res) => {
+    try {
+        const proofs = JSON.parse(fs.readFileSync(proofsFile, "utf8") || "[]");
+        res.json({ success: true, proofs });
+    } catch (err) {
+        console.error("❌ admin/proofs error:", err);
+        res.json({ success: false, msg: "Failed to load proofs" });
+    }
+});
+
+// ----------------- Admin update proof status + (only then) activate plan -----------------
+app.post("/admin/update-status", verifyToken, isAdmin, async (req, res) => {
+    try {
+        const { id, status, adminNotes } = req.body;
+        if (!id || !status) return res.json({ success: false, msg: "Missing data" });
+
+        let proofs = JSON.parse(fs.readFileSync(proofsFile, "utf8") || "[]");
+        const idx = proofs.findIndex((p) => p._id === id);
+        if (idx === -1) return res.json({ success: false, msg: "Proof not found" });
+
+        // Update status & admin notes; do NOT auto-approve unless admin sets 'approved'
+        proofs[idx].status = status;
+        proofs[idx].adminNotes = adminNotes || null;
+        proofs[idx].verifiedAt = status === "approved" ? new Date() : null;
+        proofs[idx].highlighted = status === "approved"; // only highlighted when admin approves
+
+        fs.writeFileSync(proofsFile, JSON.stringify(proofs, null, 2));
+        // Emit real-time update to the user room
+        // Real-time socket emit removed. Admin update recorded in proofs.json
+        console.log(`🔔 Proof status updated for UID=${proofs[idx].uid} to '${proofs[idx].status}'`);
+        // If admin approved -> update user plan and send activation email
+        if (status === "approved") {
+            try {
+                const users = JSON.parse(fs.readFileSync(usersFile, "utf8") || "[]");
+                const userIdx = users.findIndex((u) => u.uid === proofs[idx].uid);
+
+                if (userIdx !== -1) {
+                    let selected = PLANS[proofs[idx].plan];
+                    // Fallback for custom or missing plan definitions
+                    if (!selected) {
+                        const tb = proofs[idx].requestedStorageTB || 0;
+                        const duration = 30;
+                        const label = proofs[idx].plan === "custom" ? `Custom ${tb || ""} TB` : (proofs[idx].plan || "Plan");
+                        selected = {
+                            name: label.trim(),
+                            storageTB: tb,
+                            durationDays: duration
+                        };
+                    }
+                    let userMutated = false;
+
+                    // If user approved and plan assigned, for special plans perform extra actions
+                    // (e.g., Cloud+ receives the `public3` UI copied into their uploads folder)
+                    try {
+                        if (proofs[idx].plan === "ultra") {
+                            users[userIdx].uiAccess = "ultra"; // or cloudplus
+                            userMutated = true;
+                        }
+                        
+                        // 🔐 Generate platinum/ultra access token
+                        if (proofs[idx].plan === "platinum" || proofs[idx].plan === "ultra") {
+                            createPlatinumToken(proofs[idx].uid, proofs[idx].plan);
+                        }
+
+                        // Update purchase record status to active
+                        try {
+                            let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+                            const purchaseIdx = purchases.findIndex(p => p._id === proofs[idx]._id || p.proofId === proofs[idx]._id);
+                            if (purchaseIdx !== -1) {
+                                purchases[purchaseIdx].status = 'completed';
+                                purchases[purchaseIdx].activatedAt = new Date().toISOString();
+                                purchases[purchaseIdx].isActive = true;
+                                fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+                                console.log(`💾 Purchase record updated for proof ${proofs[idx]._id}`);
+                                
+                                // 🔄 AUTO-SYNC: Regenerate plan-active.json when purchase status changes
+                                generatePlanActiveData();
+                            }
+                        } catch (purchaseErr) {
+                            console.error("⚠️ Error updating purchase record:", purchaseErr);
+                        }
+
+                        if (userMutated) {
+                            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
+                        }
+
+                        // Send styled mail to notify user of activation (include Platinum UI link for platinum/ultra plans)
+                        let platinumUILink = "";
+                        
+                        // For platinum/ultra plans, fetch the token and create access link
+                        if (proofs[idx].plan === "platinum" || proofs[idx].plan === "ultra") {
+                            try {
+                                const tokenEntry = getTokenByUID(proofs[idx].uid);
+                                if (tokenEntry && tokenEntry.token) {
+                                    const platinumUrl = `http://localhost:5000/platinum-ui-upload.html?uid=${encodeURIComponent(proofs[idx].uid)}&token=${tokenEntry.token}`;
+                                    platinumUILink = `
+                                    <div style="background:#001f3f;border:2px solid #00ffc8;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+                                        <h3 style="color:#00ffc8;">🔐 Your Platinum Portal Access</h3>
+                                        <p>Click the button below to access your exclusive platinum interface:</p>
+                                        <a href="${platinumUrl}" style="
+                                            display:inline-block;
+                                            padding:12px 30px;
+                                            background:linear-gradient(135deg,#00ffc8,#0099ff);
+                                            color:#001f3f;
+                                            text-decoration:none;
+                                            border-radius:8px;
+                                            font-weight:bold;
+                                            margin:15px 0;
+                                            font-size:16px;">
+                                            💎 Access Platinum UI
+                                        </a>
+                                        <p style="font-size:12px;color:#888;margin-top:15px;">
+                                            <b>Your Access Token:</b> ${tokenEntry.token}<br>
+                                            <b>Expires:</b> ${new Date(tokenEntry.expiresAt).toLocaleDateString()}
+                                        </p>
+                                    </div>`;
+                                    console.log(`✅ Platinum access link included in email for ${proofs[idx].uid}`);
+                                }
+                            } catch (tokenErr) {
+                                console.error("⚠️ Could not fetch token for email link:", tokenErr);
+                            }
+                        }
+                        
+                        const uiLink = users[userIdx].cloudplusUI ? `\n<p>Open your Cloud+ UI: <a href="${users[userIdx].cloudplusUI}">${users[userIdx].cloudplusUI}</a></p>` : "";
+                        await sendStyledMail(
+                            users[userIdx].email,
+                            `🎉 ${selected.name} Plan Activated!`,
+                            `
+                            <h2 style="color:#00ffc8;">✨ Payment Verified!</h2>
+                            <p>Hi <b>${users[userIdx].username}</b>, your <b>${selected.name}</b> plan is now active.</p>
+                            <p><b>Storage:</b> ${selected.storageTB} TB<br>
+                               <b>Duration:</b> ${selected.durationDays} Days</p>
+                            ${platinumUILink}
+                            ${uiLink}
+                            <p>Enjoy premium features on <b>CloudSpace+</b> 🚀</p>
+                            `
+                        );
+                        console.log(`📩 Plan activation email sent to ${users[userIdx].email}`);
+                    } catch (mailErr) {
+                        console.error("❌ Email send failed:", mailErr);
+                    }
+                } else {
+                    console.warn("⚠️ Admin approved proof but user not found:", proofs[idx].uid);
+                }
+            } catch (userErr) {
+                console.error("❌ Error updating user after approval:", userErr);
+            }
+        }
+
+        return res.json({ success: true, msg: `Status updated to ${status}`, proof: proofs[idx] });
+    } catch (err) {
+        console.error("❌ admin/update-status error:", err);
+        res.status(500).json({ success: false, msg: "Internal error" });
+    }
+});
+
+// ==================== PURCHASE HISTORY ENDPOINTS ====================
+
+// Get user's purchase history
+app.get("/purchases/:uid", verifyToken, (req, res) => {
+    try {
+        const { uid } = req.params;
+        if (!uid) return res.status(400).json({ success: false, message: "UID required" });
+
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        const userPurchases = purchases.filter(p => p.uid === uid);
+
+        // Sort by purchasedAt descending (newest first)
+        userPurchases.sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt));
+
+        // Calculate summary stats
+        const activePlans = userPurchases.filter(p => p.isActive && !p.isBlocked).length;
+        const totalPayments = userPurchases.length;
+        const totalSpent = userPurchases.reduce((sum, p) => sum + (p.finalAmount || 0), 0);
+
+        res.json({
+            success: true,
+            summary: {
+                totalPayments,
+                activePlans,
+                totalSpent
+            },
+            purchases: userPurchases
+        });
+    } catch (err) {
+        console.error("❌ Error fetching purchases:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Get user purchase summary (total payments and active plans)
+app.get("/purchases/:uid/summary", verifyToken, (req, res) => {
+    try {
+        const { uid } = req.params;
+        if (!uid) return res.status(400).json({ success: false, message: "UID required" });
+
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        const userPurchases = purchases.filter(p => p.uid === uid);
+
+        // Calculate totals
+        const totalPayments = userPurchases.length;
+        const activePlans = userPurchases.filter(p => p.isActive && !p.isBlocked).length;
+        const completedPayments = userPurchases.filter(p => p.status === 'completed').length;
+        const pendingPayments = userPurchases.filter(p => p.status === 'pending_verification').length;
+        const blockedPlans = userPurchases.filter(p => p.isBlocked).length;
+        const totalSpent = userPurchases.reduce((sum, p) => sum + (p.finalAmount || 0), 0);
+        const totalDiscount = userPurchases.reduce((sum, p) => sum + (p.amountDiscount || 0), 0);
+
+        // Get plan breakdown
+        const planBreakdown = {};
+        userPurchases.forEach(p => {
+            if (!planBreakdown[p.plan]) {
+                planBreakdown[p.plan] = {
+                    count: 0,
+                    active: 0,
+                    totalSpent: 0
+                };
+            }
+            planBreakdown[p.plan].count++;
+            if (p.isActive && !p.isBlocked) planBreakdown[p.plan].active++;
+            planBreakdown[p.plan].totalSpent += p.finalAmount || 0;
+        });
+
+        res.json({
+            success: true,
+            uid,
+            totalPayments,
+            activePlans,
+            completedPayments,
+            pendingPayments,
+            blockedPlans,
+            totalSpent,
+            totalDiscount,
+            planBreakdown,
+            purchases: userPurchases.slice(0, 10) // Last 10 purchases
+        });
+    } catch (err) {
+        console.error("❌ Error fetching purchase summary:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Get all purchases (admin only)
+app.get("/admin/purchases", verifyToken, isAdmin, (req, res) => {
+    try {
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+
+        // Sort by purchasedAt descending
+        purchases.sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt));
+
+        res.json({
+            success: true,
+            totalPurchases: purchases.length,
+            totalRevenue: purchases.reduce((sum, p) => sum + (p.finalAmount || 0), 0),
+            purchases
+        });
+    } catch (err) {
+        console.error("❌ Error fetching all purchases:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Get purchase stats (admin only)
+app.get("/admin/purchase-stats", verifyToken, isAdmin, (req, res) => {
+    try {
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+
+        const stats = {
+            totalPurchases: purchases.length,
+            totalRevenue: purchases.reduce((sum, p) => sum + (p.finalAmount || 0), 0),
+            activePlans: purchases.filter(p => p.isActive && !p.isBlocked).length,
+            blockedPlans: purchases.filter(p => p.isBlocked).length,
+            pendingVerification: purchases.filter(p => p.status === 'pending_verification').length,
+            byPlan: {},
+            byPaymentMethod: {}
+        };
+
+        // Count by plan
+        purchases.forEach(p => {
+            stats.byPlan[p.plan] = (stats.byPlan[p.plan] || 0) + 1;
+            stats.byPaymentMethod[p.paymentMethod] = (stats.byPaymentMethod[p.paymentMethod] || 0) + 1;
+        });
+
+        res.json({
+            success: true,
+            stats
+        });
+    } catch (err) {
+        console.error("❌ Error fetching purchase stats:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Block a plan (admin only)
+app.post("/admin/block-plan", verifyToken, isAdmin, (req, res) => {
+    try {
+        const { purchaseId, reason } = req.body;
+        if (!purchaseId || !reason) {
+            return res.status(400).json({ success: false, message: "Purchase ID and reason required" });
+        }
+
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        const purchaseIdx = purchases.findIndex(p => p._id === purchaseId);
+
+        if (purchaseIdx === -1) {
+            return res.status(404).json({ success: false, message: "Purchase not found" });
+        }
+
+        purchases[purchaseIdx].isBlocked = true;
+        purchases[purchaseIdx].blockedReason = reason;
+        purchases[purchaseIdx].blockedAt = new Date().toISOString();
+
+        fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+        generatePlanActiveData();
+
+        res.json({
+            success: true,
+            message: "Plan blocked successfully",
+            purchase: purchases[purchaseIdx]
+        });
+    } catch (err) {
+        console.error("❌ Error blocking plan:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Unblock a plan (admin only)
+app.post("/admin/unblock-plan", verifyToken, isAdmin, (req, res) => {
+    try {
+        const { purchaseId } = req.body;
+        if (!purchaseId) {
+            return res.status(400).json({ success: false, message: "Purchase ID required" });
+        }
+
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        const purchaseIdx = purchases.findIndex(p => p._id === purchaseId);
+
+        if (purchaseIdx === -1) {
+            return res.status(404).json({ success: false, message: "Purchase not found" });
+        }
+
+        purchases[purchaseIdx].isBlocked = false;
+        purchases[purchaseIdx].blockedReason = null;
+        purchases[purchaseIdx].blockedAt = null;
+
+        fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+        generatePlanActiveData();
+
+        res.json({
+            success: true,
+            message: "Plan unblocked successfully",
+            purchase: purchases[purchaseIdx]
+        });
+    } catch (err) {
+        console.error("❌ Error unblocking plan:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Delete a plan/purchase (admin only)
+app.post("/admin/delete-plan", verifyToken, isAdmin, (req, res) => {
+    try {
+        const { purchaseId } = req.body;
+        if (!purchaseId) return res.status(400).json({ success: false, message: "Purchase ID required" });
+
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        const before = purchases.length;
+        purchases = purchases.filter(p => p._id !== purchaseId);
+
+        if (purchases.length === before) {
+            return res.status(404).json({ success: false, message: "Purchase not found" });
+        }
+
+        fs.writeFileSync(purchasesFile, JSON.stringify(purchases, null, 2));
+        generatePlanActiveData();
+
+        res.json({ success: true, message: "Plan deleted" });
+    } catch (err) {
+        console.error("❌ Error deleting plan:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+// ================== SUPPORT CONFIG ==================
+// supportDir already declared at top - reusing it
+const supportDataDir = path.join(supportDir, "data");
+
+const supportFiles = {
+  reasons: path.join(supportDataDir, "contactReasons.json"),
+  priorities: path.join(supportDataDir, "priorities.json"),
+  socials: path.join(supportDataDir, "socials.json"),
+};
+
+const supportDefaults = {
+  reasons: {
+    reasons: [
+      "Technical Issue",
+      "Payment / Billing",
+      "Account Problem",
+      "Feature Request",
+      "Feedback / Review",
+      "Business / Partnership",
+      "Security Concern",
+      "Other"
+    ]
+  },
+  priorities: {
+    priorities: ["Low", "Normal", "High", "Urgent"]
+  },
+  socials: {
+    socials: [
+      { name: "Instagram", icon: "📸", url: "https://instagram.com/YOUR_USERNAME" },
+      { name: "Twitter", icon: "🐦", url: "https://twitter.com/YOUR_USERNAME" },
+      { name: "GitHub", icon: "💻", url: "https://github.com/YOUR_USERNAME" },
+      { name: "Email", icon: "📧", url: "mailto:support@cloudspace.com" }
+    ]
+  }
+};
+
+// ================== ENSURE SUPPORT FILES ==================
+function ensureSupportData() {
+  if (!fs.existsSync(supportDir)) fs.mkdirSync(supportDir);
+  if (!fs.existsSync(supportDataDir)) fs.mkdirSync(supportDataDir);
+
+  if (!fs.existsSync(supportFiles.reasons))
+    fs.writeFileSync(supportFiles.reasons, JSON.stringify(supportDefaults.reasons, null, 2));
+
+  if (!fs.existsSync(supportFiles.priorities))
+    fs.writeFileSync(supportFiles.priorities, JSON.stringify(supportDefaults.priorities, null, 2));
+
+  if (!fs.existsSync(supportFiles.socials))
+    fs.writeFileSync(supportFiles.socials, JSON.stringify(supportDefaults.socials, null, 2));
+}
+
+ensureSupportData();
+
+// ================== SUPPORT API ROUTTES ==================
+app.get("/api/support/reasons", (req, res) => {
+  res.json(JSON.parse(fs.readFileSync(supportFiles.reasons, "utf8")));
+});
+
+app.get("/api/support/priorities", (req, res) => {
+  res.json(JSON.parse(fs.readFileSync(supportFiles.priorities, "utf8")));
+});
+
+app.get("/api/support/socials", (req, res) => {
+  res.json(JSON.parse(fs.readFileSync(supportFiles.socials, "utf8")));
+});
+
+// ================== PLAN ACCESS PROTECTION ==================
+// 🔒 Middleware to check if user has ultra plan
+function checkUltraPlan(req, res, next) {
+    // Require authenticated user
+    if (!req.user || !req.user.email) return res.status(401).send("Unauthorized");
+
+    try {
+        const users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+        const user = users.find(u => normalizeEmail(u.email) === normalizeEmail(req.user.email) || u.uid === req.user.uid);
+
+        if (!user) return res.status(404).send("User not found");
+
+        if (user.plan !== "ultra") {
+            return res.status(403).send(`
+                <html>
+                    <head><title>Plan Required</title></head>
+                    <body style="background:#0d1117;color:#e6edf3;font-family:Arial;text-align:center;padding:50px;">
+                        <h1 style="color:#ff4444;">🚫 Ultra Plan Required</h1>
+                        <p>You currently have the <b>${user.plan || 'free'}</b> plan.</p>
+                        <p>Upgrade to <b>Ultra</b> to access this feature.</p>
+                        <a href="payment.html?uid=${user.uid}" style="
+                            display:inline-block;
+                            padding:12px 30px;
+                            background:linear-gradient(135deg,#00ffcc,#0099ff);
+                            color:#111;
+                            text-decoration:none;
+                            border-radius:8px;
+                            font-weight:bold;
+                            margin:20px 0;">
+                            💳 Upgrade Now
+                        </a><br>
+                        <a href="upload.html" style="color:#00ffcc;text-decoration:none;margin-top:20px;display:block;">← Back to Upload</a>
+                    </body>
+                </html>
+            `);
+        }
+
+        // attach latest user object for downstream handlers
+        req.fullUser = user;
+        next();
+    } catch (err) {
+        console.error("❌ Plan check error:", err);
+        return res.status(500).send("Server error during plan validation");
+    }
+}
+
+// 🔒 Protected routes for premium uploads
+app.get("/ultra-upload.html", verifyToken, checkUltraPlan, (req, res) => {
+    res.sendFile(path.join(publicDir, "ultra-upload.html"));
+});
+
+// 🔐 Save token to JSON file (preserves existing structure and timestamps)
+app.post("/api/save-token", verifyToken, (req, res) => {
+    try {
+        const { token } = req.body;
+        const tokensFile = path.join(supportDir, "tokens.json");
+
+        // Normalize existing data (supports both array and { tokens: [] })
+        let raw = { tokens: [] };
+        if (fs.existsSync(tokensFile)) {
+            try {
+                const parsed = JSON.parse(fs.readFileSync(tokensFile, "utf8"));
+                if (Array.isArray(parsed)) {
+                    raw.tokens = parsed;
+                } else if (parsed && Array.isArray(parsed.tokens)) {
+                    raw = parsed;
+                }
+            } catch (e) {
+                console.warn("⚠️ tokens.json parse error, resetting structure", e.message);
+            }
+        }
+
+        const now = new Date();
+        const expiresAt = new Date(now.getTime());
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1); // 1 year validity
+
+        const tokenEntry = {
+            email: req.user.email,
+            uid: req.user.uid,
+            plan: req.user.plan || "",
+            token: token,
+            createdAt: now.toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            used: false,
+            active: true,
+            ipAddress: req.ip || req.connection?.remoteAddress || ""
+        };
+
+        // Remove old entries for this user (by uid or email)
+        raw.tokens = (raw.tokens || []).filter(t => t.email !== req.user.email && t.uid !== req.user.uid);
+
+        // Add new entry
+        raw.tokens.push(tokenEntry);
+
+        // Keep only last 100 entries
+        if (raw.tokens.length > 100) {
+            raw.tokens = raw.tokens.slice(-100);
+        }
+
+        fs.writeFileSync(tokensFile, JSON.stringify(raw, null, 2));
+        
+        res.json({ success: true, message: "Token saved successfully", token: tokenEntry });
+    } catch (error) {
+        console.error("Token save error:", error);
+        res.status(500).json({ success: false, message: "Failed to save token" });
+    }
+});
+
+// 🔐 Token-validated access route for platinum-ui-upload.html
+app.get("/platinum-ui-upload.html", (req, res) => {
+    try {
+        const token = req.query.token || req.headers['x-access-token'];
+        const uid = req.query.uid || req.user?.uid;
+        
+        // 🔒 First check: Validate token if provided
+        if (token) {
+            const validToken = validateToken(token);
+            if (validToken) {
+                // Token is valid, allow access
+                return res.sendFile(path.join(publicDir, "platinum-ui-upload.html"));
+            } else {
+                // Token provided but invalid
+                return res.status(403).send(`
+                    <html>
+                        <head><title>Invalid Token</title></head>
+                        <body style="background:#0d1117;color:#e6edf3;font-family:Arial;text-align:center;padding:50px;">
+                            <h1 style="color:#ff4444;">⚠️ Invalid or Expired Token</h1>
+                            <p>Your access token is invalid or has expired.</p>
+                            <a href="upgrade-form.html" style="
+                                display:inline-block;
+                                padding:12px 30px;
+                                background:linear-gradient(135deg,#ff6b6b,#ff8e00);
+                                color:#111;
+                                text-decoration:none;
+                                border-radius:8px;
+                                font-weight:bold;
+                                margin:20px 0;">
+                                🔄 Get New Token
+                            </a>
+                        </body>
+                    </html>
+                `);
+            }
+        }
+        
+        // 🔓 Alternative: If no token but has JWT auth, check if user has platinum/ultra plan
+        if (req.user && req.user.uid) {
+            try {
+                const users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
+                const user = users.find(u => u.uid === req.user.uid);
+                const planSnapshot = getActivePlanSnapshot(req.user.uid);
+                
+                // Allow if user has platinum or ultra plan
+                if (planSnapshot.plan === "platinum" || planSnapshot.plan === "ultra") {
+                    return res.sendFile(path.join(publicDir, "platinum-ui-upload.html"));
+                }
+            } catch (err) {
+                console.error("❌ Plan check error:", err);
+            }
+        }
+        
+        // ❌ No valid token or plan - deny access
+        return res.status(401).send(`
+            <html>
+                <head><title>Access Denied</title></head>
+                <body style="background:#0d1117;color:#e6edf3;font-family:Arial;text-align:center;padding:50px;">
+                    <h1 style="color:#ff4444;">🔐 Access Token Required</h1>
+                    <p>You need a valid access token or platinum/ultra plan to view this page.</p>
+                    <p>Please complete your payment to receive your token.</p>
+                    <a href="upgrade-form.html" style="
+                        display:inline-block;
+                        padding:12px 30px;
+                        background:linear-gradient(135deg,#00d4ff,#7c3aed);
+                        color:#fff;
+                        text-decoration:none;
+                        border-radius:8px;
+                        font-weight:bold;
+                        margin:20px 0;">
+                        💳 Purchase Plan
+                    </a>
+                </body>
+            </html>
+        `);
+    } catch (err) {
+        console.error("❌ Platinum token validation error:", err);
+        return res.status(500).send("Server error");
+    }
+});
+
+// Deprecated old route - redirect to token-based
+app.get("/platinum-upload.html", (req, res) => {
+    res.redirect("/platinum-ui-upload.html?token=" + (req.query.token || ""));
+});
+
+// ================== Static ==================
+// Protected Cloud+ UI under uploads - serve only to owner or admins
+app.get('/uploads/:user/cloudplus_ui/*', verifyToken, (req, res) => {
+    try {
+        const reqUser = req.user;
+        const requestedFolder = req.params.user;
+        const users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
+        const owner = users.find(u => safeName(u.email) === requestedFolder);
+
+        if (!owner) return res.status(404).send('Not found');
+
+        const isOwner = normalizeEmail(owner.email) === normalizeEmail(reqUser.email) || owner.uid === reqUser.uid;
+        if (!isOwner && reqUser.role !== 'admin' && reqUser.role !== 'superadmin') {
+            return res.status(403).send('Forbidden');
+        }
+
+        const rest = req.params[0] || '';
+        const filePath = path.join(uploadsDir, requestedFolder, 'cloudplus_ui', rest);
+        if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
+        return res.sendFile(filePath);
+    } catch (err) {
+        console.error('cloudplus serve error', err);
+        return res.status(500).send('Server error');
+    }
+});
+
+app.get('/uploads/:user/cloudplus_ui', verifyToken, (req, res) => {
+    try {
+        const requestedFolder = req.params.user;
+        const indexPath = path.join(uploadsDir, requestedFolder, 'cloudplus_ui', 'index.html');
+        if (!fs.existsSync(indexPath)) return res.status(404).send('Not found');
+        return res.sendFile(indexPath);
+    } catch (err) {
+        console.error('cloudplus index error', err);
+        return res.status(500).send('Server error');
+    }
+});
+
+// General uploads static (after protected cloudplus handlers)
+app.use("/uploads", express.static(uploadsDir));
+app.use(express.static(publicDir));
+app.use("/cloudplus", express.static(path.join(__dirname, "public3")));
+
+// Quiet the default browser request for /favicon.ico to avoid noisy 404s
+app.get("/favicon.ico", (_req, res) => res.status(204).end());
+
+// ================== Default Route ==================
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicDir, "index.html"));
+});
+
+// ================== PLAN-ACTIVE DATA GENERATION ==================
+// Function to generate plan-active.json from purchases.json
+function generatePlanActiveData() {
+    try {
+        let purchases = JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]");
+        const existingPlanActive = readPlanActiveFile();
+
+        // Preserve any migrated-only entries so regenerating from purchases does not drop them
+        const migratedMap = new Map();
+        existingPlanActive.forEach(entry => {
+            const hasMigrated = (entry.plans || []).some((p) => {
+                const tid = (p.transaction?.transactionId) || p.recordId || "";
+                return typeof tid === "string" && tid.startsWith("MIGRATED-");
+            });
+            if (hasMigrated && entry?.self?.uid) {
+                migratedMap.set(entry.self.uid, entry);
+            }
+        });
+
+        // Group purchases by user
+        const userMap = {};
+        
+        // Track added transactions to prevent duplicates
+        const addedTransactions = new Set();
+        
+        purchases.forEach(purchase => {
+            const uid = purchase.uid;
+            const txnId = purchase.transactionId || purchase._id;
+            
+            // Skip duplicates
+            if (addedTransactions.has(txnId)) {
+                console.log(`⚠️ Skipping duplicate transaction: ${txnId}`);
+                return;
+            }
+            addedTransactions.add(txnId);
+            
+            if (!userMap[uid]) {
+                userMap[uid] = {
+                    self: {
+                        uid: purchase.uid,
+                        email: purchase.email,
+                        username: purchase.username
+                    },
+                    plans: [],
+                    summary: {
+                        totalPlans: 0,
+                        activePlans: 0,
+                        blockedPlans: 0,
+                        totalSpent: 0,
+                        totalDiscount: 0,
+                        totalStorage: 0,
+                        totalStorageTB: 0
+                    }
+                };
+            }
+            
+            // Check if this transaction already exists in user's plans
+            const existingPlan = userMap[uid].plans.find(p => 
+                p.transaction?.transactionId === txnId || p.recordId === txnId
+            );
+            if (existingPlan) {
+                console.log(`⚠️ Plan ${txnId} already exists for user ${uid}`);
+                return;
+            }
+            
+            // Add plan details
+            const planRecord = {
+                plan: purchase.plan,
+                planDisplay: purchase.plan.charAt(0).toUpperCase() + purchase.plan.slice(1) + " Plan",
+                planDetails: {
+                    storage: purchase.storageTB,
+                    storageTB: purchase.storageTB,
+                    durationDays: purchase.durationDays,
+                    maxUploadSize: getPlanUploadSize(purchase.plan),
+                    features: getPlanFeatures(purchase.plan, purchase.storageTB, purchase.durationDays)
+                },
+                transaction: {
+                    transactionId: purchase.transactionId,
+                    paymentMethod: purchase.paymentMethod,
+                    currency: purchase.currency || "INR",
+                    amount: purchase.amount,
+                    amountDiscount: purchase.amountDiscount || 0,
+                    discountApplied: purchase.discountApplied || 0,
+                    finalAmount: purchase.finalAmount,
+                    purchasedAt: purchase.purchasedAt,
+                    activatedAt: purchase.activatedAt,
+                    expiresAt: purchase.expiresAt,
+                    status: purchase.status,
+                    notes: purchase.notes
+                },
+                status: {
+                    isActive: purchase.isActive,
+                    isBlocked: purchase.isBlocked,
+                    blockedReason: purchase.blockedReason,
+                    blockedAt: purchase.blockedAt,
+                    planActive: purchase.isActive && !purchase.isBlocked
+                },
+                recordId: purchase._id || txnId
+            };
+            
+            userMap[uid].plans.push(planRecord);
+            userMap[uid].summary.totalPlans++;
+            
+            if (purchase.isActive && !purchase.isBlocked) {
+                userMap[uid].summary.activePlans++;
+            }
+            if (purchase.isBlocked) {
+                userMap[uid].summary.blockedPlans++;
+            }
+            
+            userMap[uid].summary.totalSpent += purchase.finalAmount || 0;
+            userMap[uid].summary.totalDiscount += purchase.amountDiscount || 0;
+            userMap[uid].summary.totalStorage += purchase.storageTB || 0;
+            userMap[uid].summary.totalStorageTB += purchase.storageTB || 0;
+        });
+
+        // Merge migrated entries back so they are not lost
+        migratedMap.forEach((entry, uid) => {
+            if (!userMap[uid]) {
+                userMap[uid] = entry;
+            } else {
+                const existingPlans = userMap[uid].plans || [];
+                const migratedPlans = entry.plans || [];
+                userMap[uid].plans = [...existingPlans, ...migratedPlans];
+            }
+        });
+        
+        // Convert to array and recompute summaries to stay consistent after merge
+        const planActiveData = Object.values(userMap).map((entry) => {
+            // Remove duplicate plans from the same user
+            const seenRecordIds = new Set();
+            const uniquePlans = [];
+            
+            (entry.plans || []).forEach((p) => {
+                const recordId = p.recordId || p.transaction?.transactionId;
+                if (!seenRecordIds.has(recordId)) {
+                    seenRecordIds.add(recordId);
+                    uniquePlans.push(p);
+                }
+            });
+            
+            entry.plans = uniquePlans;
+            
+            const summary = {
+                totalPlans: 0,
+                activePlans: 0,
+                blockedPlans: 0,
+                totalSpent: 0,
+                totalDiscount: 0,
+                totalStorage: 0,
+                totalStorageTB: 0,
+            };
+
+            entry.plans.forEach((p) => {
+                summary.totalPlans += 1;
+                if (p.status?.isActive && !p.status?.isBlocked) summary.activePlans += 1;
+                if (p.status?.isBlocked) summary.blockedPlans += 1;
+                summary.totalSpent += p.transaction?.finalAmount || 0;
+                summary.totalDiscount += p.transaction?.amountDiscount || 0;
+                summary.totalStorage += p.planDetails?.storage || 0;
+                summary.totalStorageTB += p.planDetails?.storageTB || 0;
+            });
+
+            return { ...entry, summary };
+        });
+        
+        // Write to file
+        writePlanActiveFile(planActiveData);
+        
+        console.log("✅ plan-active.json generated with", planActiveData.length, "user(s)");
+        return planActiveData;
+    } catch (err) {
+        console.error("❌ Error generating plan-active.json:", err);
+        return [];
+    }
+}
+
+// Helper function to get upload size by plan
+function getPlanUploadSize(plan) {
+    const uploadSizes = {
+        free: "100MB",
+        silver: "500MB",
+        gold: "2GB",
+        platinum: "10GB",
+        ultra: "50GB"
+    };
+    return uploadSizes[plan] || "100MB";
+}
+
+// Helper function to get plan features
+function getPlanFeatures(plan, storage, duration) {
+    const features = {
+        free: [`${storage}GB Storage`, `${duration} Day Duration`],
+        silver: [`${storage}GB Storage`, `${duration} Day Duration`, "Basic Support"],
+        gold: [`${storage}GB Storage`, `${duration} Day Duration`, "Priority Support", "Bandwidth Boost"],
+        platinum: [`${storage}GB Storage`, `${duration} Day Duration`, "24/7 Support", "Advanced Features", "API Access"],
+        ultra: [`${storage}GB Storage`, `${duration} Day Duration`, "Premium Support", "Full API", "Custom Features", "Dedicated Manager"]
+    };
+    return features[plan] || [`${storage}GB Storage`, `${duration} Day Duration`];
+}
+
+// 🔄 API endpoint to get plan-active data (prefers existing file to preserve manual edits)
+app.get("/api/plan-active", (req, res) => {
+    try {
+        let planActiveData = readPlanActiveFile();
+
+        // If file is empty and purchases exist, generate once
+        if (!planActiveData || planActiveData.length === 0) {
+            const purchases = fs.existsSync(purchasesFile) ? JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]") : [];
+            if (purchases.length > 0) {
+                planActiveData = generatePlanActiveData();
+            } else {
+                planActiveData = [];
+            }
+        }
+
+        res.json({
+            success: true,
+            data: planActiveData,
+            timestamp: new Date().toISOString(),
+            note: "Data returned from plan-active.json (manual edits preserved)"
+        });
+    } catch (err) {
+        console.error("❌ Error reading plan-active data:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// 🔄 API endpoint to get specific user's plan-active data (prefers existing file to preserve manual edits)
+app.get("/api/plan-active/:uid", (req, res) => {
+    try {
+        const { uid } = req.params;
+        if (!uid) return res.status(400).json({ success: false, message: "UID required" });
+        
+        let planActiveData = readPlanActiveFile();
+        if (!planActiveData || planActiveData.length === 0) {
+            const purchases = fs.existsSync(purchasesFile) ? JSON.parse(fs.readFileSync(purchasesFile, "utf8") || "[]") : [];
+            if (purchases.length > 0) {
+                planActiveData = generatePlanActiveData();
+            } else {
+                planActiveData = [];
+            }
+        }
+
+        const userData = planActiveData.find(u => u.self.uid === uid);
+        if (!userData) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.json({
+            success: true,
+            data: userData,
+            timestamp: new Date().toISOString(),
+            note: "Data returned from plan-active.json (manual edits preserved)"
+        });
+    } catch (err) {
+        console.error("❌ Error reading user plan-active data:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// 🔄 Admin endpoint to manually sync plan-active.json
+app.post("/admin/sync-plan-active", (req, res) => {
+    try {
+        const { token } = req.headers;
+        const adminEmail = req.headers["admin-email"];
+        
+        // Verify admin
+        if (!token || (adminEmail !== ADMIN_EMAIL && adminEmail !== SUPER_ADMIN_EMAIL)) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+        
+        // Regenerate plan-active.json from purchases.json
+        let planActiveData = generatePlanActiveData();
+        
+        res.json({
+            success: true,
+            message: "plan-active.json synced successfully",
+            usersUpdated: planActiveData.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error("❌ Error syncing plan-active.json:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ================== ADMIN JSON FILE EDITOR ==================
+// List all JSON files in the project
+app.get("/admin/json-files", verifyToken, isAdmin, (req, res) => {
+    console.log("📄 /admin/json-files endpoint called");
+    try {
+        const jsonFiles = [];
+        const searchDirs = [
+            supportDir,
+            path.join(supportDir, "payments"),
+            path.join(supportDir, "logs"),
+            path.join(supportDir, "data")
+        ];
+
+        console.log("Searching directories:", searchDirs);
+
+        const walkDir = (dir) => {
+            try {
+                if (!fs.existsSync(dir)) return;
+                const files = fs.readdirSync(dir);
+                files.forEach(file => {
+                    const filePath = path.join(dir, file);
+                    const stat = fs.statSync(filePath);
+                    if (file.endsWith(".json")) {
+                        jsonFiles.push({
+                            name: file,
+                            path: filePath,
+                            relativePath: path.relative(__dirname, filePath),
+                            size: stat.size,
+                            modified: stat.mtime
+                        });
+                    } else if (stat.isDirectory() && !file.startsWith(".")) {
+                        walkDir(filePath);
+                    }
+                });
+            } catch (err) {
+                console.error("Error walking directory:", dir, err);
+            }
+        };
+
+        searchDirs.forEach(walkDir);
+        console.log("Found JSON files:", jsonFiles.length);
+        res.json({ success: true, files: jsonFiles });
+    } catch (err) {
+        console.error("❌ Error listing JSON files:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Get single JSON file content
+app.get("/admin/json-file", verifyToken, isAdmin, (req, res) => {
+    try {
+        const { path: filePath } = req.query;
+        if (!filePath) return res.status(400).json({ success: false, message: "path required" });
+
+        // Security: prevent directory traversal
+        const resolvedPath = path.resolve(__dirname, filePath);
+        if (!resolvedPath.startsWith(__dirname)) {
+            return res.status(403).json({ success: false, message: "Access denied" });
+        }
+        if (!fs.existsSync(resolvedPath)) {
+            return res.status(404).json({ success: false, message: "File not found" });
+        }
+        if (!resolvedPath.endsWith(".json")) {
+            return res.status(400).json({ success: false, message: "Only JSON files allowed" });
+        }
+
+        const content = fs.readFileSync(resolvedPath, "utf8");
+        const parsed = JSON.parse(content);
+        res.json({ success: true, content: parsed, filePath });
+    } catch (err) {
+        console.error("Error reading JSON file:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// Save JSON file
+app.post("/admin/json-file", verifyToken, isAdmin, (req, res) => {
+    try {
+        const { path: filePath, content } = req.body;
+        if (!filePath || !content) {
+            return res.status(400).json({ success: false, message: "path and content required" });
+        }
+
+        // Security: prevent directory traversal
+        const resolvedPath = path.resolve(__dirname, filePath);
+        if (!resolvedPath.startsWith(__dirname)) {
+            return res.status(403).json({ success: false, message: "Access denied" });
+        }
+        if (!resolvedPath.endsWith(".json")) {
+            return res.status(400).json({ success: false, message: "Only JSON files allowed" });
+        }
+
+        // Validate JSON
+        let parsed;
+        if (typeof content === "string") {
+            parsed = JSON.parse(content);
+        } else {
+            parsed = content;
+        }
+
+        // Backup original
+        const timestamp = new Date().toISOString().split("T")[0];
+        const backupPath = resolvedPath.replace(".json", `.backup-${timestamp}.json`);
+        if (fs.existsSync(resolvedPath)) {
+            fs.copyFileSync(resolvedPath, backupPath);
+        }
+
+        // Write new content
+        fs.writeFileSync(resolvedPath, JSON.stringify(parsed, null, 2));
+
+        // Log admin action
+        fs.appendFileSync(
+            flagsLog,
+            `${new Date().toISOString()} | 📝 JSON file edited by ${req.user.email}: ${filePath}\n`
+        );
+
+        res.json({ success: true, message: "File saved successfully", backupPath });
+    } catch (err) {
+        console.error("Error saving JSON file:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ================== Start ==================
+// Start server (no Socket.IO)
+// Migrate legacy plan data, then generate plan-active.json on startup
+migrateUsersPlansToPlanActive();
+
+// 🔧 Set AUTO_GENERATE_PLANS=true in .env to auto-generate plans from purchases.json on startup
+// Set to false to prevent automatic plan regeneration (use existing plan-active.json)
+const AUTO_GENERATE_PLANS = process.env.AUTO_GENERATE_PLANS !== "false";
+if (AUTO_GENERATE_PLANS) {
+    // Only auto-generate if plan-active.json DOESN'T EXIST (very first startup only)
+    // Once file is created, preserve it even if empty
+    if (!fs.existsSync(planActiveFile)) {
+        generatePlanActiveData();
+        console.log("✅ Plans auto-generated from purchases.json");
+    } else {
+        try {
+            const existingData = JSON.parse(fs.readFileSync(planActiveFile, "utf8"));
+            console.log("✅ Using existing plan-active.json (" + (existingData.length || 0) + " user(s))");
+        } catch (err) {
+            console.log("⚠️ Could not read plan-active.json, keeping existing file");
+        }
+    }
+} else {
+    console.log("⚙️ Auto-generate plans disabled - using existing plan-active.json");
+}
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
+

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>📂 Uploaded Files</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        /* 🌌 Background */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background-size: 400% 400%;
+            animation: bgShift 12s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* 🌟 Main Container */
+        main {
+            width: 95%;
+            max-width: 800px;
+            background: rgba(15, 25, 40, 0.9);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 0 25px rgba(0, 255, 200, 0.5),
+                inset 0 0 12px rgba(0, 255, 200, 0.2);
+            backdrop-filter: blur(14px);
+            text-align: center;
+            animation: fadeIn 0.6s ease;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 18px;
+            text-shadow: 0 0 12px #00ffcc, 0 0 20px #00ccff;
+            color: #00ffcc;
+        }
+
+        /* 👤 Profile Section */
+        #profile-container {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        #profile-container img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 12px rgba(0, 255, 200, 0.7);
+            object-fit: cover;
+            transition: 0.3s;
+        }
+
+        #profile-container img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 18px #00ffcc;
+        }
+
+        #profile-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 8px #00ffcc;
+        }
+
+        /* Dropdown */
+        #profile-dropdown {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: rgba(10, 20, 30, 0.95);
+            border: 1px solid #00ffcc;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.6);
+            display: none;
+            flex-direction: column;
+            min-width: 160px;
+            z-index: 10;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #profile-dropdown button {
+            background: transparent;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #profile-dropdown button:hover {
+            background: rgba(0, 255, 200, 0.25);
+            color: #00ffcc;
+            border-radius: 6px;
+        }
+
+        /* Loader */
+        #loadingIndicator {
+            margin: 18px auto;
+            padding: 12px 18px;
+            border-radius: 10px;
+            background: rgba(0, 255, 200, 0.08);
+            box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #loadingIndicator span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ffcc;
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        #loadingIndicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        #loadingIndicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Modal */
+        #userModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #userModal .modal-content {
+            background: rgba(15, 25, 35, 0.95);
+            padding: 20px;
+            border-radius: 14px;
+            width: 320px;
+            text-align: left;
+            box-shadow: 0 0 25px #00ffcc;
+            animation: scaleUp 0.4s ease;
+            color: #eee;
+        }
+
+        @keyframes scaleUp {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+
+        #userModal h3 {
+            text-align: center;
+            color: #00ffcc;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px #00ffcc;
+        }
+
+        #userModal button {
+            margin-top: 12px;
+            background: linear-gradient(90deg, #00ffcc, #00ffa3);
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        #userModal button:hover {
+            box-shadow: 0 0 12px #00ffcc;
+        }
+
+        /* File List */
+        .file-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .file-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 255, 200, 0.07);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin: 10px 0;
+            font-size: 14px;
+            border: 1px solid rgba(0, 255, 200, 0.25);
+            box-shadow: 0 0 12px rgba(0, 255, 200, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .file-list li:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+        }
+
+        .file-info {
+            flex: 1;
+            margin-left: 10px;
+            text-align: left;
+        }
+
+        .file-info strong {
+            color: #00ffcc;
+        }
+
+        .file-list a {
+            background: linear-gradient(90deg, #00ffcc, #00ffa3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #111;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .file-list a:hover {
+            box-shadow: 0 0 12px #00ffcc;
+        }
+
+        /* Sort Dropdown */
+        #sortSelect {
+            background: rgba(0, 255, 200, 0.1);
+            border: 1px solid #00ffcc;
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: #00ffcc;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
+        }
+
+        /* Navigation Button */
+        nav a {
+            display: inline-block;
+            margin-top: 20px;
+            background: linear-gradient(90deg, #00ffcc, #00ffa3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #111;
+            font-weight: bold;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            box-shadow: 0 0 18px #00ffcc;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <!-- Profile -->
+        <div id="profile-container" style="display:none;">
+            <span id="profile-name"></span>
+            <img id="profilePic" src="default-avatar.png" alt="Profile Picture">
+            <div id="profile-dropdown">
+                <button id="viewDetails">👤 View Details</button>
+                <button id="logoutBtn">🚪 Logout</button>
+            </div>
+        </div>
+
+        <h1>📂 Uploaded Files</h1>
+
+        <!-- Sorting -->
+        <section class="controls">
+            <label for="sortSelect">Sort files:</label>
+            <select id="sortSelect">
+                <option value="name">Name</option>
+                <option value="size">Size</option>
+                <option value="date" selected>Date (Newest)</option>
+                <option value="type">Type</option>
+            </select>
+        </section>
+
+        <div id="fileError"></div>
+        <div id="loadingIndicator"><span></span><span></span><span></span></div>
+
+        <!-- File List -->
+        <section class="file-list">
+            <ul id="fileList"></ul>
+        </section>
+
+        <nav>
+        <nav>
+            <a href="friends.html" class="view-files-btn">👥 Friends & Coins</a>
+            <a href="upload.html" class="view-files-btn">⬅ Back to Upload</a>
+        </nav>
+        </nav>
+    </main>
+
+    <!-- User Modal -->
+    <div id="userModal">
+        <div class="modal-content">
+            <h3>👤 User Details</h3>
+            <div id="userDetails"></div>
+            <button id="copyUid">📋 Copy UID</button>
+            <button onclick="document.getElementById('userModal').style.display='none'">Close</button>
+        </div>
+    </div>
+    <!-- 🌌 Custom Alert -->
+    <div id="customAlert" style="
+        display: none;
+        position: fixed;
+        bottom: -80px; /* start hidden */
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15,25,40,0.95);
+        padding: 14px 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 18px rgba(0,255,200,0.6);
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 999999999; /* 🚀 on top */
+        min-width: 300px;
+        text-align: left;
+        transition: bottom 0.4s ease; /* smooth slide */
+    ">
+        <span id="alertIcon">ℹ️</span>
+        <span id="alertMessage">Message</span>
+        <div id="alertButtons" style="margin-left:auto; display:flex; gap:10px;">
+            <button onclick="closeAlert()" style="
+                background:transparent;
+                border:none;
+                color:#00ffcc;
+                font-weight:bold;
+                cursor:pointer;
+                font-size:16px;">✖</button>
+        </div>
+    </div>
+
+
+    <script>
+        const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:5000"
+            : window.location.origin;
+
+        const fileList = document.getElementById("fileList");
+        const sortSelect = document.getElementById("sortSelect");
+        const profilePic = document.getElementById("profilePic");
+        const profileContainer = document.getElementById("profile-container");
+        const profileDropdown = document.getElementById("profile-dropdown");
+        const profileName = document.getElementById("profile-name");
+        const userModal = document.getElementById("userModal");
+        const userDetails = document.getElementById("userDetails");
+        const copyBtn = document.getElementById("copyUid");
+
+        function safeName(email = "guest") {
+            return email.replace(/[^a-zA-Z0-9.@_-]/g, "_");
+        }
+
+        function checkAuth() {
+            const email = localStorage.getItem("email");
+            const username = localStorage.getItem("username") || "Guest";
+            if (!email) {
+                showAlert("⚠️ Please login first!", "warn");
+                window.location.href = "login.html";
+                return false;
+            }
+            profileContainer.style.display = "flex";
+            profileName.textContent = username;
+            profilePic.src = localStorage.getItem("profilePic") || "default-avatar.png";
+            return true;
+        }
+
+        async function loadFiles() {
+            if (!checkAuth()) return;
+            const email = localStorage.getItem("email");
+            const safeEmail = safeName(email);
+            const loader = document.getElementById("loadingIndicator");
+            const errorBox = document.getElementById("fileError");
+
+            try {
+                loader.style.display = "flex";
+                fileList.innerHTML = "";
+                errorBox.style.display = "none";
+
+                const res = await fetch(`${API}/files/${safeEmail}`);
+                if (!res.ok) throw new Error(`Server ${res.status}`);
+                const myFiles = await res.json();
+
+                if (myFiles.length === 0) {
+                    fileList.innerHTML = `<li style="text-align:center;color:#ccc;">No files uploaded yet.</li>`;
+                    return;
+                }
+
+                const type = sortSelect.value;
+                myFiles.sort((a, b) => {
+                    if (type === "name") return a.filename.localeCompare(b.filename);
+                    if (type === "size") return a.bytes - b.bytes;
+                    if (type === "date") return new Date(b.created_at) - new Date(a.created_at);
+                    if (type === "type") return (a.format || "").localeCompare(b.format || "");
+                    return 0;
+                });
+
+                myFiles.forEach(f => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+              <span class="file-icon">📄</span>
+              <div class="file-info">
+                <strong>${f.originalname || f.filename}</strong><br>
+                <span>${(f.bytes / 1024 / 1024).toFixed(2)} MB • ${f.format || "N/A"} • ${new Date(f.created_at).toLocaleString()}</span>
+              </div>
+              <a href="${f.secure_url}" download="${f.originalname || f.filename}" class="download-btn">⬇ Download</a>`;
+                    fileList.appendChild(li);
+                });
+            } catch (err) {
+                errorBox.innerHTML = `❌ Could not fetch files.<br><button onclick="loadFiles()">Retry</button>`;
+                errorBox.style.display = "block";
+            } finally {
+                loader.style.display = "none";
+            }
+        }
+
+
+        // Toggle dropdown
+        profilePic.addEventListener("click", () => {
+            profileDropdown.style.display = profileDropdown.style.display === "flex" ? "none" : "flex";
+        });
+        // 🌌 Neon Alert System
+        function showAlert(message, type = "info") {
+            const alertBox = document.getElementById("customAlert");
+            const alertMsg = document.getElementById("alertMessage");
+            const alertIcon = document.getElementById("alertIcon");
+
+            alertMsg.textContent = message;
+
+            if (type === "success") alertIcon.textContent = "✅";
+            else if (type === "error") alertIcon.textContent = "❌";
+            else alertIcon.textContent = "ℹ️";
+
+            alertBox.style.display = "flex";
+            setTimeout(() => alertBox.style.bottom = "20px", 50);
+
+            setTimeout(() => closeAlert(), 4000);
+        }
+
+        function closeAlert() {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.style.bottom = "-80px";
+            setTimeout(() => (alertBox.style.display = "none"), 400);
+        }
+
+
+        // View details
+        document.getElementById("viewDetails").addEventListener("click", async () => {
+            const email = localStorage.getItem("email");
+            const res = await fetch(`${API}/user-details`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const u = data.user;
+                userDetails.innerHTML = `
+            <p><b>UID:</b> ${u.uid}</p>
+            <p><b>Name:</b> ${u.username}</p>
+            <p><b>Email:</b> ${u.email}</p>
+            <p><b>Phone:</b> ${u.phone || "N/A"}</p>
+            <p><b>Role:</b> ${u.role || "user"}</p>
+            <p><b>Joined:</b> ${u.created_at || "Unknown"}</p>`;
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(u.uid);
+                    showAlert("✅ UID copied!", "success");
+                };
+                userModal.style.display = "flex";
+            } else {
+                showAlert("❌ User not found", "error");
+            }
+            profileDropdown.style.display = "none";
+        });
+
+        // Neon Alert
+        function showAlert(message, type = "info", buttons = null) {
+            const alertBox = document.getElementById("customAlert");
+            const alertMsg = document.getElementById("alertMessage");
+            const alertIcon = document.getElementById("alertIcon");
+            const alertBtns = document.getElementById("alertButtons");
+
+            alertMsg.textContent = message;
+
+            if (type === "success") alertIcon.textContent = "✅";
+            else if (type === "error") alertIcon.textContent = "❌";
+            else if (type === "warn") alertIcon.textContent = "⚠️";
+            else alertIcon.textContent = "ℹ️";
+
+            // Reset buttons
+            alertBtns.innerHTML = `
+        <button onclick="closeAlert()" style="
+            background:transparent;
+            border:none;
+            color:#00ffcc;
+            font-weight:bold;
+            cursor:pointer;
+            font-size:16px;">✖</button>
+    `;
+
+            // Add custom buttons if provided
+            if (buttons) {
+                buttons.forEach(btn => {
+                    const b = document.createElement("button");
+                    b.textContent = btn.text;
+                    b.style = `
+                background:${btn.bg || "#00ffcc"};
+                border:none;
+                color:${btn.color || "#111"};
+                padding:6px 12px;
+                border-radius:6px;
+                cursor:pointer;
+                font-weight:bold;
+            `;
+                    b.onclick = btn.onClick;
+                    alertBtns.prepend(b); // before ✖
+                });
+            }
+
+            // Show
+            alertBox.style.display = "flex";
+            setTimeout(() => alertBox.style.bottom = "20px", 50);
+
+            // Auto-close if no custom buttons
+            if (!buttons) {
+                setTimeout(() => closeAlert(), 4000);
+            }
+        }
+
+        function closeAlert() {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.style.bottom = "-80px";
+            setTimeout(() => (alertBox.style.display = "none"), 400);
+        }
+
+        // Logout confirmation
+        function confirmLogout() {
+            showAlert("Are you sure you want to logout?", "warn", [
+                {
+                    text: "OK",
+                    bg: "#00ffcc",
+                    color: "#111",
+                    onClick: () => {
+                        localStorage.clear();
+                        closeAlert();
+                        setTimeout(() => {
+                            showAlert("✅ Logged out successfully!", "success");
+                            window.location.href = "login.html";
+                        }, 500);
+                    }
+                },
+                {
+                    text: "Cancel",
+                    bg: "#ff4444",
+                    color: "#fff",
+                    onClick: () => closeAlert()
+                }
+            ]);
+        }
+
+
+        document.addEventListener("DOMContentLoaded", loadFiles);
+        sortSelect.addEventListener("change", loadFiles);
+    </script>
+</body>
+
+</html>

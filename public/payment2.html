@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>💳 CloudSpace+ Payment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="upload.css">
+
+    <style>
+        /* 🌌 Background */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            /* allows scrolling beyond viewport */
+            display: flex;
+            flex-direction: column;
+            font-family: "Poppins", sans-serif;
+            background: radial-gradient(circle at center, #03141d, #072432, #021014);
+            color: #e0faff;
+            overflow-y: auto;
+            /* enable vertical scroll */
+            align-items: center;
+            /* keep card centered horizontally */
+            padding: 40px 0;
+            /* spacing top/bottom */
+        }
+
+        /* ⚡ Floating Particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00ffee;
+            border-radius: 50%;
+            animation: float 10s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-10vh) translateX(10vw);
+                opacity: 0;
+            }
+        }
+
+
+        /* 💳 Payment Card */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 40px 45px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            max-width: 430px;
+            width: 90%;
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            flex-shrink: 0;
+            /* prevents shrinking inside flex container */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #00ffcc;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px #00ffff;
+        }
+
+        .hint {
+            color: #baffff;
+            font-size: 14px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        /* 🧾 QR Section */
+        .qr-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 16px;
+            margin: 20px auto;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .qr {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            background: transparent;
+            object-fit: contain;
+            display: block;
+        }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffff;
+            margin-top: 10px;
+        }
+
+        hr {
+            opacity: 0.15;
+            margin: 25px 0;
+            border: none;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        /* 🧾 Proof Form */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input,
+        textarea {
+            padding: 10px 14px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            outline: none;
+            font-family: inherit;
+            transition: 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .submit-btn {
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            color: #000;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+
+        .back-btn {
+            margin-top: 16px;
+            background: transparent;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 255, 255, 0.15);
+            box-shadow: 0 0 12px #00ffcc;
+        }
+
+        #status {
+            font-size: 14px;
+            color: #00ffff;
+            margin-top: 8px;
+            min-height: 22px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #b0faff;
+            margin-top: 18px;
+            opacity: 0.8;
+        }
+
+        /* ⚡ Neon Circle Glow */
+        .neon-circle {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.4), transparent 70%);
+            animation: pulse 5s infinite ease-in-out;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        /* 🧠 Verification Tracker */
+        .verification-status {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .step {
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 4px solid transparent;
+            text-align: left;
+            color: #baffff;
+            transition: 0.4s;
+        }
+
+        .step.active {
+            border-left: 4px solid #00ffcc;
+            background: rgba(0, 255, 255, 0.25);
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        /* 🔍 Popup */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            padding: 20px 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            display: none;
+            z-index: 10;
+        }
+
+        .loader {
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            margin: auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .coupon-section {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .coupon-section input {
+            flex: 1;
+        }
+
+        .coupon-section button {
+            background: linear-gradient(90deg, #00ffcc, #0077ff);
+            color: #000;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .coupon-section button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="neon-circle" style="top:10%; left:20%;"></div>
+    <div class="neon-circle" style="bottom:10%; right:15%;"></div>
+
+    <div class="card">
+        <h2 id="title">💎 Pay for Plan</h2>
+        <p class="hint">Scan the QR with your UPI app or just tap if on Mobile View.</p>
+
+        <div class="qr-box" id="qrBox">
+            <img id="qrImg" class="qr" src="" alt="UPI QR Code">
+        </div>
+
+        <div class="price">Amount: ₹<span id="amount">0</span></div>
+        <p id="upiInfo" class="hint"></p>
+
+        <div style="margin-top: 15px;">
+            <button id="downloadQrBtn" class="submit-btn" style="background: linear-gradient(90deg,#ff77ff,#00ffcc);">
+                ⬇️ Download QR
+            </button>
+        </div>
+
+
+        <hr>
+
+        <h3 style="color:#00ffcc; text-shadow:0 0 10px #00ffff;">🧾 Submit Payment Proof</h3>
+        <form id="proofForm" enctype="multipart/form-data">
+            <input type="text" id="upi_txn_id" name="upi_txn_id" placeholder="Enter UPI Transaction ID (UTR)" required>
+            <input type="file" name="screenshot" accept="image/*" required>
+            <textarea name="notes" id="notes" placeholder="Any note (optional)"></textarea>
+            <input type="hidden" id="uid" name="uid">
+            <input type="hidden" id="plan" name="plan">
+            <button type="submit" class="submit-btn">📤 Submit Proof</button>
+
+            <!-- 💸 Discount Coupon -->
+            <div class="coupon-section">
+                <input type="text" id="couponCode" placeholder="Enter Discount Code">
+                <button type="button" id="applyCouponBtn">Apply</button>
+                <p id="couponMsg" class="hint"></p>
+            </div>
+
+        </form>
+
+        <div id="status"></div>
+
+        <!-- ✅ Verification Tracker -->
+        <div class="verification-status" id="verificationSteps">
+            <div class="step active" id="step1">🧾 Proof Submitted</div>
+            <div class="step" id="step2">🔍 Under Review</div>
+            <div class="step" id="step3">✅ Verified</div>
+        </div>
+
+        <!-- 🔙 Back & Footer -->
+        <button class="back-btn" onclick="window.location.href='upload.html'">⬅️ Back to Upload</button>
+        <div class="footer">Your plan will activate once admin verifies via email confirmation ✅</div>
+                <div class="footer">Please stay on this page while your payment is in review ⚠️</div>
+
+    </div>
+
+    <!-- 🧠 Popup -->
+    <div id="verifyingPopup" class="popup">
+        <div class="loader"></div>
+        <p id="popupMsg">Analyzing your payment proof with AI 🤖...</p>
+    </div>
+    <script>
+    // ===== LOGIN CHECK =====
+    const token = localStorage.getItem("token"); // JWT from login
+    if (!token) {
+        alert("⚠️ You must be logged in to access the payment page!");
+        window.location.href = "login.html"; // redirect to login
+    }
+
+    // 🌍 Auto-detect API base
+    const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:5000"
+        : window.location.origin;
+
+    // ✨ Background particles
+    for (let i = 0; i < 25; i++) {
+        const p = document.createElement("div");
+        p.classList.add("particle");
+        p.style.left = Math.random() * 100 + "vw";
+        p.style.animationDuration = 8 + Math.random() * 5 + "s";
+        document.body.appendChild(p);
+    }
+
+    // 🔑 Setup UID + PLAN
+    const uid = localStorage.getItem("uid") || ("USR-" + Math.floor(Math.random() * 1e8));
+    localStorage.setItem("uid", uid);
+
+    const params = new URLSearchParams(location.search);
+    const plan = params.get("plan") || "silver";
+
+    document.getElementById("uid").value = uid;
+    document.getElementById("plan").value = plan;
+    document.getElementById("title").innerText = `💎 Pay for ${plan.toUpperCase()} Plan`;
+
+    let upiUri = "";
+
+    // 🌐 Fetch QR from backend
+    async function fetchQr(coupon = null) {
+        try {
+            const res = await fetch(`${API}/create-qr`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ uid, plan, coupon })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById("qrImg").src = data.qrDataUrl;
+                document.getElementById("amount").innerText = data.amount;
+                upiUri = data.upiUri;
+                document.getElementById("upiInfo").innerText =
+                    "UPI ID: " + (upiUri.match(/pa=([^&]+)/)?.[1] || "Unavailable");
+            } else {
+                document.getElementById("status").innerText = "⚠️ " + (data.msg || "Failed to generate QR.");
+            }
+        } catch (e) {
+            document.getElementById("status").innerText = "❌ Can't reach CloudSpace+ server.";
+        }
+    }
+    fetchQr(); // initial fetch
+
+    // 📱 Tap QR for UPI app
+    document.getElementById("qrBox").addEventListener("click", () => {
+        if (/Android|iPhone/i.test(navigator.userAgent)) {
+            if (!upiUri) return alert("⚠️ UPI not ready yet.");
+            window.location.href = upiUri;
+        } else {
+            alert("📱 Scan or download this QR in your UPI app to complete payment.");
+        }
+    });
+
+    // ----------------------------
+    // Helper: show/hide popup
+    // ----------------------------
+    function showPopup(message = "Analyzing your payment proof with AI 🤖...") {
+        const popup = document.getElementById("verifyingPopup");
+        const msg = document.getElementById("popupMsg");
+        msg.innerText = message;
+        // reset inner HTML for standard loader view
+        popup.innerHTML = `<div class="loader"></div><p id="popupMsg">${message}</p>`;
+        popup.style.display = "block";
+    }
+
+    function hidePopup() {
+        const popup = document.getElementById("verifyingPopup");
+        popup.style.display = "none";
+        // restore original content for future uses
+        popup.innerHTML = `<div class="loader"></div><p id="popupMsg">Analyzing your payment proof with AI 🤖...</p>`;
+    }
+
+    // ----------------------------
+    // Status update UI helpers
+    // ----------------------------
+    function updateStepVisual(status, highlighted = false) {
+        // step 0: submitted, 1: under review, 2: verified
+        if (status === "none") {
+            updateStep(0);
+            document.getElementById("status").innerText = "payment not proced yet";
+            document.getElementById("status").style.color = "#baffff";
+        } else if (status === "pending") {
+            updateStep(1);
+            document.getElementById("status").innerText = "🔍 Under admin review...";
+            document.getElementById("status").style.color = "#00ffff";
+        } else if (status === "approved" || highlighted) {
+            updateStep(2);
+            document.getElementById("status").innerText = "✅ Payment Verified! Check your email 📧";
+            document.getElementById("status").style.color = "#00ff88";
+        } else if (status === "rejected") {
+            updateStep(0);
+            document.getElementById("status").innerText = "❌ Payment Rejected. Please reupload proof.";
+            document.getElementById("status").style.color = "#ff6b6b";
+        } else {
+            document.getElementById("status").innerText = `ℹ️ Status: ${status}`;
+            document.getElementById("status").style.color = "#baffff";
+        }
+    }
+
+    // 💎 Step Animation (0-based: 0=submitted,1=review,2=verified)
+    function updateStep(stepIndex) {
+        const steps = document.querySelectorAll(".step");
+        steps.forEach((step, i) => {
+            step.classList.toggle("active", i === stepIndex);
+            // keep earlier steps slightly dimmed if not active
+            step.style.opacity = i <= stepIndex ? "1" : "0.7";
+        });
+    }
+
+    // ----------------------------
+    // Submit proof (no auto-check afterwards)
+    // ----------------------------
+    const form = document.getElementById("proofForm");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        showPopup("Uploading your payment proof...");
+        const formData = new FormData(form);
+        const status = document.getElementById("status");
+        status.innerText = "⏳ Uploading proof...";
+        status.style.color = "#00ffff";
+
+        try {
+            const res = await fetch(`${API}/submit-proof`, { method: "POST", body: formData });
+            const data = await res.json();
+            hidePopup();
+
+            if (data.success) {
+                // show requested message when user submits proof
+                status.innerText = "payment in review...";
+                form.reset();
+                updateStepVisual("pending", false);
+
+                // show a "Check status" hint + button
+                ensureCheckButtonVisible();
+            } else {
+                status.innerText = "❌ " + (data.msg || "Error submitting proof.");
+            }
+        } catch (err) {
+            hidePopup();
+            status.innerText = "⚠️ Network error, please try again.";
+            console.error("submit-proof error:", err);
+        }
+    });
+
+    // ----------------------------
+    // Manual Check Status
+    // ----------------------------
+    function ensureCheckButtonVisible() {
+        // create check button once if not present
+        if (!document.getElementById("checkStatusBtn")) {
+            const btn = document.createElement("button");
+            btn.id = "checkStatusBtn";
+            btn.className = "submit-btn";
+            btn.style.marginTop = "12px";
+            btn.textContent = "🔁 Check Status";
+            // insert before the verification steps (so visible)
+            const card = document.querySelector(".card");
+            const steps = document.getElementById("verificationSteps");
+            card.insertBefore(btn, steps);
+            btn.addEventListener("click", checkStatusOnce);
+        }
+    }
+
+    async function checkStatusOnce() {
+        const statusEl = document.getElementById("status");
+        statusEl.innerText = "⏳ Checking status...";
+        statusEl.style.color = "#00ffff";
+        try {
+            const res = await fetch(`${API}/check-status?uid=${encodeURIComponent(uid)}`);
+            const data = await res.json();
+
+            // server returns { status, highlighted, proof }
+            if (!data || !data.status || data.status === "none") {
+                // No proof submitted yet
+                updateStepVisual("none", false);
+                statusEl.innerText = "payment not proced yet";
+                statusEl.style.color = "#baffff";
+                return;
+            }
+
+            const highlighted = !!data.highlighted;
+            updateStepVisual(data.status, highlighted);
+
+            if (data.status === "pending") {
+                statusEl.innerText = "payment in review...";
+                statusEl.style.color = "#00ffff";
+            } else if (data.status === "rejected") {
+                statusEl.innerText = "❌ Payment Rejected. Please reupload proof.";
+                statusEl.style.color = "#ff6b6b";
+                showFailurePopup();
+            } else if (data.status === "approved" || highlighted || data.verified) {
+                statusEl.innerText = "✅ Payment Verified! Check your email 📧";
+                statusEl.style.color = "#00ff88";
+                showSuccessPopup();
+            } else {
+                statusEl.innerText = `ℹ️ Status: ${data.status}`;
+                statusEl.style.color = "#baffff";
+            }
+        } catch (err) {
+            console.warn("⚠️ Check-status failed:", err);
+            statusEl.innerText = "⚠️ Can't reach server to check status.";
+        }
+    }
+
+    // ----------------------------
+    // Success / Failure Popups
+    // ----------------------------
+    function showSuccessPopup() {
+        const popup = document.getElementById("verifyingPopup");
+        popup.innerHTML = `
+            <div style="font-size:42px;">✅</div>
+            <p style="color:#00ffcc;font-size:16px;">Payment Verified Successfully!</p>
+            <p style="font-size:13px;color:#baffff;">Your plan has been activated. Enjoy premium features 🚀</p>
+        `;
+        popup.style.display = "block";
+        setTimeout(() => {
+            popup.style.display = "none";
+            // restore content
+            popup.innerHTML = `<div class="loader"></div><p id="popupMsg">Analyzing your payment proof with AI 🤖...</p>`;
+        }, 4500);
+    }
+
+    function showFailurePopup() {
+        const popup = document.getElementById("verifyingPopup");
+        popup.innerHTML = `
+            <div style="font-size:40px;">⚠️</div>
+            <p style="color:#ff6b6b;font-size:16px;">Payment Verification Failed</p>
+            <p style="font-size:13px;color:#ffbdbd;">Please reupload your payment proof or contact support.</p>
+        `;
+        popup.style.display = "block";
+        setTimeout(() => {
+            popup.style.display = "none";
+            popup.innerHTML = `<div class="loader"></div><p id="popupMsg">Analyzing your payment proof with AI 🤖...</p>`;
+        }, 6000);
+    }
+
+    // ----------------------------
+    // Coupon handling (re-uses fetchQr with coupon)
+    // ----------------------------
+    document.getElementById("applyCouponBtn").addEventListener("click", async () => {
+        const couponCode = document.getElementById("couponCode").value.trim();
+        if (!couponCode) return alert("Enter a coupon code!");
+
+        try {
+            await fetchQr(couponCode);
+            // show coupon message (server returns discountPercent if success)
+            // The fetchQr() already updates amount & QR and upiUri; show a small message:
+            const msg = document.getElementById("couponMsg");
+            msg.innerText = "✅ Coupon attempted — check updated amount above.";
+            msg.style.color = "#00ff88";
+        } catch (err) {
+            console.error("coupon error", err);
+            alert("Network error, please try again");
+        }
+    });
+
+    // ----------------------------
+    // Download QR
+    // ----------------------------
+    document.getElementById("downloadQrBtn").addEventListener("click", () => {
+        const qrImg = document.getElementById("qrImg");
+        if (!qrImg.src) return alert("⚠️ QR not generated yet!");
+
+        const link = document.createElement("a");
+        link.href = qrImg.src;
+        link.download = `CloudSpace_QR_${plan}_${uid}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // ----------------------------
+    // On page load: if user has previously submitted a proof, show the check button and latest status
+    // ----------------------------
+    (async function init() {
+        // Try to read current proof status once, but DO NOT auto-poll:
+        try {
+            const res = await fetch(`${API}/check-status?uid=${encodeURIComponent(uid)}`);
+            const data = await res.json();
+            // always show the Check Status button so the user can manually poll
+            ensureCheckButtonVisible();
+            if (data && data.status && data.status !== "none") {
+                updateStepVisual(data.status, !!data.highlighted);
+            } else {
+                // explicitly show default when no submission exists
+                updateStepVisual("none", false);
+            }
+        } catch (err) {
+            // ignore network hiccups here
+            console.warn("init check-status failed", err);
+        }
+    })();
+    
+
+
+</script>
+
+</body>
+
+</html>

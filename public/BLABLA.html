@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔒 Admin Privacy Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #ffff00;
+            --neon-green: #00ff00;
+            --dark-bg: #0a0a1f;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at 20% 20%, #0a0f1f, #000000);
+            color: var(--neon-cyan);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(130deg, #0ff, #00f, #f0f, #f00, #ff0, #0ff);
+            background-size: 600% 600%;
+            animation: gradientShift 15s ease infinite;
+            opacity: 0.15;
+            z-index: -2;
+            filter: blur(80px);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 20s infinite;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        /* PIN Modal */
+        .pin-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .pin-modal.hidden {
+            display: none;
+        }
+
+        .pin-container {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            animation: slideDown 0.5s ease-out;
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.4);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pin-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+            50% { text-shadow: 0 0 40px rgba(255, 0, 255, 0.8); }
+        }
+
+        .pin-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            margin: 20px 0;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            color: var(--neon-cyan);
+            font-size: 1.2em;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 3px;
+        }
+
+        .pin-input:focus {
+            outline: none;
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .pin-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: 700;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .pin-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.6);
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            margin-top: 15px;
+            font-weight: 600;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 31, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            z-index: 100;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-yellow));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.3));
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 107, 107, 0.4));
+            transform: translateX(-5px);
+        }
+
+        .refresh-btn {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.2), rgba(0, 255, 0, 0.3));
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(0, 255, 0, 0.4));
+            transform: scale(1.05);
+        }
+
+        .refresh-btn.refreshing {
+            animation: pulse 1s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .auto-refresh-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--neon-cyan);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px 40px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .stat-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--neon-magenta);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        /* User Cards Grid */
+        .container {
+            padding: 20px 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+
+        .user-card:hover::before {
+            left: 100%;
+        }
+
+        .user-card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 255, 255, 0.4);
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .user-info h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .user-info p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85em;
+        }
+
+        .user-details {
+            position: relative;
+            z-index: 1;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .detail-value {
+            color: var(--neon-cyan);
+            font-weight: 600;
+            font-size: 0.9em;
+            word-break: break-all;
+            max-width: 60%;
+            text-align: right;
+        }
+
+        .password-field {
+            color: var(--neon-yellow);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .plan-free { background: rgba(128, 128, 128, 0.2); color: #aaa; }
+        .plan-silver { background: rgba(192, 192, 192, 0.2); color: #c0c0c0; }
+        .plan-gold { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+        .plan-platinum { background: rgba(229, 228, 226, 0.2); color: var(--neon-cyan); }
+        .plan-ultra { background: rgba(255, 0, 255, 0.2); color: var(--neon-magenta); }
+
+        .expand-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 8px;
+            color: var(--neon-cyan);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .expand-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+        }
+
+        .expanded-details {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .expanded-details.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* Edit Plan Modal */
+        .edit-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+        }
+
+        .edit-modal.hidden {
+            display: none;
+        }
+
+        .edit-container {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: slideDown 0.5s ease-out;
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.4);
+        }
+
+        .edit-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .edit-container .user-email {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+        }
+
+        .plans-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .plan-option {
+            padding: 15px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+        }
+
+        .plan-option:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--neon-cyan);
+            transform: translateY(-3px);
+        }
+
+        .plan-option.selected {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .plan-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            background: var(--neon-magenta);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .plan-name {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .plan-storage {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .edit-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .edit-btn.save {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+            color: #000;
+        }
+
+        .edit-btn.save:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.6);
+        }
+
+        .edit-btn.cancel {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .edit-btn.cancel:hover {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-magenta);
+            font-size: 0.9em;
+            margin: 15px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 0, 255, 0.3);
+        }
+
+        /* Detail Items */
+        .detail-item {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.08), rgba(255, 0, 255, 0.05));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .detail-item:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .detail-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .detail-item-title {
+            color: var(--neon-cyan);
+            font-weight: 700;
+            font-size: 1em;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .detail-item-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .detail-item-row {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .detail-item-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-item-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            min-width: 140px;
+            font-size: 0.85em;
+        }
+
+        .detail-item-value {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 0.85em;
+            word-break: break-word;
+            flex: 1;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(0, 255, 0, 0.1));
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 107, 107, 0.1));
+            color: #ff6b6b;
+            border: 2px solid #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+        }
+
+        .status-verified {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(0, 255, 255, 0.1));
+            color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .status-unverified {
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.3), rgba(255, 165, 0, 0.1));
+            color: #ffa500;
+            border: 2px solid #ffa500;
+            text-shadow: 0 0 10px #ffa500;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-left: 10px;
+            font-family: 'Poppins', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn.verify {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+            color: #000;
+            border-color: var(--neon-green);
+            text-shadow: none;
+        }
+
+        .action-btn.verify:hover {
+            background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.6);
+        }
+
+        .action-btn.unverify {
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.3), rgba(255, 165, 0, 0.1));
+            color: #ffa500;
+            border-color: #ffa500;
+        }
+
+        .action-btn.unverify:hover {
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.5), rgba(255, 165, 0, 0.2));
+            box-shadow: 0 6px 20px rgba(255, 165, 0, 0.6);
+        }
+
+        .action-btn.activate {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.3), rgba(0, 255, 0, 0.1));
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .action-btn.activate:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.5), rgba(0, 255, 0, 0.2));
+            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.6);
+        }
+
+        .action-btn.deactivate {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 107, 107, 0.1));
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .action-btn.deactivate:hover {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.5), rgba(255, 107, 107, 0.2));
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .action-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-magenta);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 100px 20px;
+            font-size: 1.5em;
+            color: var(--neon-cyan);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 255, 255, 0.1);
+            border-top: 4px solid var(--neon-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--neon-cyan);
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 8px;
+        }
+
+        .toggle-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--neon-cyan);
+        }
+
+        .toggle-checkbox label {
+            margin-bottom: 0;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .edit-container {
+                max-width: 90vw;
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particles Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- PIN Modal -->
+    <div class="pin-modal" id="pinModal">
+        <div class="pin-container">
+            <h2>🔒 2FA Authentication</h2>
+            <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px;">Enter 8-digit admin PIN to access privacy dashboard</p>
+            <input type="password" class="pin-input" id="pinInput" placeholder="••••••••" maxlength="20" autofocus>
+            <div id="pinError" class="error-msg" style="display: none;"></div>
+            <button class="pin-btn" onclick="verifyPIN()">🔓 Unlock Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="edit-modal hidden" id="editModal">
+        <div class="edit-container">
+            <h2>✏️ Edit User Details</h2>
+            <div class="user-email" id="editUserEmail"></div>
+            
+            <div id="editFormContainer">
+                <!-- Profile Section -->
+                <div class="section-title">👤 Profile Information</div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="editUsername" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" id="editPhone" placeholder="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="editPassword" placeholder="Leave empty to keep unchanged">
+                </div>
+
+                <!-- Plan Section -->
+                <div class="section-title">📊 Plan Selection</div>
+                <div class="plans-list" id="plansList"></div>
+
+                <!-- Status Section -->
+                <div class="section-title">🔐 Account Status</div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="editRole">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="superadmin">Super Admin</option>
+                    </select>
+                </div>
+
+                <div class="toggle-group">
+                    <div class="toggle-checkbox">
+                        <input type="checkbox" id="editVerified">
+                        <label for="editVerified">Verified Account</label>
+                    </div>
+                    <div class="toggle-checkbox">
+                        <input type="checkbox" id="editBlocked">
+                        <label for="editBlocked">Block Account</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="blockReasonGroup" style="display: none;">
+                    <label>Block Reason (if blocked)</label>
+                    <textarea id="editBlockReason" placeholder="Reason for blocking..." rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <button class="edit-btn save" onclick="saveUserChanges()">✅ Save Changes</button>
+                <button class="edit-btn cancel" onclick="closeEditModal()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header" style="display: none;" id="mainHeader">
+        <div class="header-title">🔒 ADMIN PRIVACY DASHBOARD</div>
+        <div class="header-actions">
+            <div class="auto-refresh-toggle">
+                <input type="checkbox" id="autoRefreshToggle" onchange="toggleAutoRefresh()">
+                <label for="autoRefreshToggle">Auto-refresh (15s)</label>
+            </div>
+            <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="back-btn" onclick="goBack()">🔙 Back to Admin</button>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar" style="display: none;" id="statsBar">
+        <div class="stat-card">
+            <div class="stat-value" id="totalUsers">0</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalStorage">0 GB</div>
+            <div class="stat-label">Total Storage</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalFiles">0</div>
+            <div class="stat-label">Total Files</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalPayments">₹0</div>
+            <div class="stat-label">Total Revenue</div>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="container" style="display: none;" id="mainContainer">
+        <div class="users-grid" id="usersGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                Loading privacy data...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate floating particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particles.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Verify admin auth
+        async function verifyAdminAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+
+            try {
+                const response = await fetch('/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    window.location.href = '/login.html';
+                    return false;
+                }
+
+                const user = await response.json();
+                if (user.role !== 'admin' && user.role !== 'superadmin') {
+                    alert('❌ Access Denied: Admin only!');
+                    window.location.href = '/';
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Auth error:', error);
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        // ========== GLOBAL VARIABLES ==========
+        let autoRefreshInterval = null;
+        let currentPIN = null;
+        let planPricing = {};
+
+        // Verify PIN
+        async function verifyPIN() {
+            const pin = document.getElementById('pinInput').value;
+            const errorDiv = document.getElementById('pinError');
+
+            if (!pin) {
+                errorDiv.textContent = '❌ Please enter PIN';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/privacy-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ pin })
+                });
+
+                if (!response.ok) {
+                    errorDiv.textContent = '❌ Invalid PIN';
+                    errorDiv.style.display = 'block';
+                    document.getElementById('pinInput').value = '';
+                    return;
+                }
+
+                const data = await response.json();
+                
+                // Store PIN for auto-refresh
+                currentPIN = pin;
+                
+                // Hide PIN modal, show dashboard
+                document.getElementById('pinModal').classList.add('hidden');
+                document.getElementById('mainHeader').style.display = 'flex';
+                document.getElementById('statsBar').style.display = 'grid';
+                document.getElementById('mainContainer').style.display = 'block';
+
+                // Load data
+                loadPrivacyData(data);
+            } catch (error) {
+                console.error('PIN verification error:', error);
+                errorDiv.textContent = '❌ Verification failed';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Refresh data manually
+        async function refreshData() {
+            if (!currentPIN) {
+                alert('❌ No active session');
+                return;
+            }
+
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('refreshing');
+            refreshBtn.textContent = '🔄 Refreshing...';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/privacy-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ pin: currentPIN })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const data = await response.json();
+                loadPrivacyData(data);
+                
+                // Show success feedback
+                refreshBtn.textContent = '✅ Refreshed!';
+                setTimeout(() => {
+                    refreshBtn.textContent = '🔄 Refresh Data';
+                    refreshBtn.classList.remove('refreshing');
+                }, 1500);
+            } catch (error) {
+                console.error('Refresh error:', error);
+                refreshBtn.textContent = '❌ Failed';
+                setTimeout(() => {
+                    refreshBtn.textContent = '🔄 Refresh Data';
+                    refreshBtn.classList.remove('refreshing');
+                }, 2000);
+            }
+        }
+
+        // Toggle auto-refresh
+        function toggleAutoRefresh() {
+            const isEnabled = document.getElementById('autoRefreshToggle').checked;
+            
+            if (isEnabled) {
+                // Start auto-refresh every 30 seconds
+                autoRefreshInterval = setInterval(() => {
+                    console.log('Auto-refreshing data...');
+                    refreshData();
+                }, 30000);
+                console.log('✅ Auto-refresh enabled (30s interval)');
+            } else {
+                // Stop auto-refresh
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+                console.log('❌ Auto-refresh disabled');
+            }
+        }
+
+        // Verify PIN
+        async function verifyPIN() {
+            const pin = document.getElementById('pinInput').value;
+            const errorDiv = document.getElementById('pinError');
+
+            if (!pin) {
+                errorDiv.textContent = '❌ Please enter PIN';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/admin/privacy-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ pin })
+                });
+
+                if (!response.ok) {
+                    errorDiv.textContent = '❌ Invalid PIN';
+                    errorDiv.style.display = 'block';
+                    document.getElementById('pinInput').value = '';
+                    return;
+                }
+
+                const data = await response.json();
+                
+                // Store PIN for auto-refresh
+                currentPIN = pin;
+                
+                // Hide PIN modal, show dashboard
+                document.getElementById('pinModal').classList.add('hidden');
+                document.getElementById('mainHeader').style.display = 'flex';
+                document.getElementById('statsBar').style.display = 'grid';
+                document.getElementById('mainContainer').style.display = 'block';
+
+                // Load data
+                loadPrivacyData(data);
+            } catch (error) {
+                console.error('PIN verification error:', error);
+                errorDiv.textContent = '❌ Verification failed';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Load privacy data
+        function loadPrivacyData(data) {
+            console.log('Privacy Data:', data);
+            
+            // Store all data for editing
+            allUsersData = data;
+            
+            // Store plan pricing for edit modal
+            planPricing = data.planPricing || {};
+
+            // Update stats
+            document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+            
+            const totalStorage = data.users.reduce((sum, u) => sum + (u.storage?.totalBytes || 0), 0);
+            document.getElementById('totalStorage').textContent = formatFileSize(totalStorage);
+            
+            const totalFiles = data.users.reduce((sum, u) => sum + (u.storage?.totalFiles || 0), 0);
+            document.getElementById('totalFiles').textContent = totalFiles;
+            
+            const totalRevenue = data.users.reduce((sum, u) => sum + (u.payments?.totalSpent || 0), 0);
+            document.getElementById('totalPayments').textContent = '₹' + totalRevenue.toLocaleString('en-IN');
+
+            // Render user cards
+            const usersGrid = document.getElementById('usersGrid');
+            usersGrid.innerHTML = '';
+
+            data.users.forEach((userData, index) => {
+                const card = createUserCard(userData, index);
+                usersGrid.appendChild(card);
+            });
+        }
+
+        // Create user card
+        function createUserCard(userData, index) {
+            const user = userData.user;
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.style.animationDelay = (index * 0.1) + 's';
+
+            const planClass = `plan-${userData.plan?.currentPlan || 'free'}`;
+            
+            card.innerHTML = `
+                <div class="user-header">
+                    <div class="user-avatar">${user.username ? user.username[0].toUpperCase() : '👤'}</div>
+                    <div class="user-info">
+                        <h3>${user.username || user.email}</h3>
+                        <p>${user.email}</p>
+                    </div>
+                </div>
+
+                <div class="user-details">
+                    <div class="detail-row">
+                        <span class="detail-label">🆔 UID</span>
+                        <span class="detail-value">${user.uid || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">🔑 Password</span>
+                        <span class="detail-value password-field">${user.password || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📱 Phone</span>
+                        <span class="detail-value">${user.phone || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">👑 Role</span>
+                        <span class="detail-value">${user.role || 'user'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📊 Plan</span>
+                        <span class="detail-value"><span class="plan-badge ${planClass}">${userData.plan?.currentPlan || 'free'}</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">💾 Storage</span>
+                        <span class="detail-value">${formatFileSize(userData.storage?.totalBytes || 0)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📁 Files</span>
+                        <span class="detail-value">${userData.storage?.totalFiles || 0}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">💰 Spent</span>
+                        <span class="detail-value">₹${(userData.payments?.totalSpent || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+
+                <button class="expand-btn" onclick="toggleExpand(${index})">
+                    📊 View Full Details
+                </button>
+
+                <button class="expand-btn" style="background: rgba(0, 255, 0, 0.1); border-color: #00ff00; color: #00ff00;" onclick="openEditPlan('${user.email}', '${userData.plan?.currentPlan || 'free'}', ${index})">
+                    ✏️ Edit Plan
+                </button>
+
+                <div class="expanded-details" id="expand-${index}">
+                    <div class="section-title">🔐 Account Status</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Verified</span>
+                        <span class="detail-value">${user.verified ? '✅ Yes' : '❌ No'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Blocked</span>
+                        <span class="detail-value">${user.blocked ? '🚫 Yes' : '✅ No'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created</span>
+                        <span class="detail-value">${new Date(user.created_at).toLocaleDateString()}</span>
+                    </div>
+
+                    <div class="section-title">📊 Activity Stats</div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Logins</span>
+                        <span class="detail-value">${userData.activity?.totalLogins || 0}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Last Login</span>
+                        <span class="detail-value">${userData.activity?.lastLogin ? new Date(userData.activity.lastLogin).toLocaleString() : 'Never'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Account Age</span>
+                        <span class="detail-value">${userData.stats?.accountAge || 0} days</span>
+                    </div>
+
+                    <div class="section-title">💳 Payment Proofs</div>
+                    ${userData.payments?.proofs?.length > 0 ? 
+                        userData.payments.proofs.map((proof, pIdx) => `
+                            <div class="detail-item">
+                                <div class="detail-item-header">
+                                    <span class="detail-item-title">💰 Proof #${pIdx + 1}</span>
+                                    <div>
+                                        <span class="status-badge ${proof.verified ? 'status-verified' : 'status-unverified'}">${proof.verified ? '✅ Verified' : '⚠️ Unverified'}</span>
+                                        <button class="action-btn ${proof.verified ? 'unverify' : 'verify'}" onclick="toggleProofVerification('${user.email}', '${proof.proofId}', ${!proof.verified})">
+                                            ${proof.verified ? '❌ Unverify' : '✅ Verify'}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="detail-item-content">
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📊 Plan:</div>
+                                        <div class="detail-item-value">${proof.plan || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">💵 Amount:</div>
+                                        <div class="detail-item-value">₹${(proof.amount || 0).toLocaleString('en-IN')}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📅 Date:</div>
+                                        <div class="detail-item-value">${proof.submittedAt ? new Date(proof.submittedAt).toLocaleString() : 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">🔖 Transaction ID:</div>
+                                        <div class="detail-item-value">${proof.transactionId || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') 
+                        : '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 10px;">No payment proofs submitted</div>'
+                    }
+
+                    <div class="section-title">🛒 Purchases</div>
+                    ${userData.payments?.purchases?.length > 0 ?
+                        userData.payments.purchases.map((purchase, purIdx) => `
+                            <div class="detail-item">
+                                <div class="detail-item-header">
+                                    <span class="detail-item-title">🎯 ${purchase.planDisplay || purchase.plan || 'Plan'}</span>
+                                    <div>
+                                        <span class="status-badge ${purchase.status?.isActive ? 'status-active' : 'status-inactive'}">${purchase.status?.isActive ? '✅ Active' : '🚫 Inactive'}</span>
+                                        <button class="action-btn ${purchase.status?.isActive ? 'deactivate' : 'activate'}" onclick="togglePurchaseStatus('${user.email}', '${purchase.recordId}', ${!purchase.status?.isActive})">
+                                            ${purchase.status?.isActive ? '🚫 Deactivate' : '✅ Activate'}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="detail-item-content">
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">💾 Storage:</div>
+                                        <div class="detail-item-value">${purchase.planDetails?.storageTB || 0} TB</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">💵 Amount:</div>
+                                        <div class="detail-item-value">₹${(purchase.transaction?.finalAmount || 0).toLocaleString('en-IN')}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📅 Purchased:</div>
+                                        <div class="detail-item-value">${purchase.transaction?.purchasedAt ? new Date(purchase.transaction.purchasedAt).toLocaleString() : 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">🔖 Transaction:</div>
+                                        <div class="detail-item-value">${purchase.transaction?.transactionId || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">💳 Payment Method:</div>
+                                        <div class="detail-item-value">${purchase.transaction?.paymentMethod || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 10px;">No purchases found</div>'
+                    }
+
+                    <div class="section-title">🔑 Access Tokens</div>
+                    ${userData.tokens?.length > 0 ?
+                        userData.tokens.map((token, tIdx) => `
+                            <div class="detail-item">
+                                <div class="detail-item-header">
+                                    <span class="detail-item-title">🔐 Token #${tIdx + 1}</span>
+                                </div>
+                                <div class="detail-item-content">
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">🔑 Token:</div>
+                                        <div class="detail-item-value" style="font-family: 'Courier New', monospace; word-break: break-all;">${token.token || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📅 Created:</div>
+                                        <div class="detail-item-value">${token.createdAt ? new Date(token.createdAt).toLocaleString() : 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📱 Device:</div>
+                                        <div class="detail-item-value">${token.device || 'Unknown'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 10px;">No active tokens</div>'
+                    }
+
+                    <div class="section-title">💬 Feedbacks</div>
+                    ${userData.feedbacks?.length > 0 ?
+                        userData.feedbacks.map((feedback, fIdx) => `
+                            <div class="detail-item">
+                                <div class="detail-item-header">
+                                    <span class="detail-item-title">💭 Feedback #${fIdx + 1}</span>
+                                </div>
+                                <div class="detail-item-content">
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📝 Subject:</div>
+                                        <div class="detail-item-value">${feedback.subject || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">💬 Message:</div>
+                                        <div class="detail-item-value">${feedback.message || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item-row">
+                                        <div class="detail-item-label">📅 Date:</div>
+                                        <div class="detail-item-value">${feedback.submittedAt ? new Date(feedback.submittedAt).toLocaleString() : 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<div style="color: rgba(255,255,255,0.5); text-align: center; padding: 10px;">No feedbacks submitted</div>'
+                    }
+                </div>
+            `;
+
+            return card;
+        }
+        
+
+        function toggleExpand(index) {
+            const expandDiv = document.getElementById(`expand-${index}`);
+            expandDiv.classList.toggle('show');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function goBack() {
+            window.location.href = '/admin.html';
+        }
+
+        // Toggle proof verification
+        async function toggleProofVerification(email, proofId, verify) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/admin/toggle-proof-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ email, proofId, verified: verify })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('❌ ' + (error.error || 'Failed to update proof'));
+                    return;
+                }
+
+                alert(verify ? '✅ Proof verified successfully!' : '❌ Proof unverified');
+                await refreshData();
+            } catch (error) {
+                console.error('Error toggling proof verification:', error);
+                alert('❌ Error updating proof: ' + error.message);
+            }
+        }
+
+        // Toggle purchase status
+        async function togglePurchaseStatus(email, recordId, activate) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/admin/toggle-purchase-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ email, recordId, isActive: activate })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('❌ ' + (error.error || 'Failed to update purchase'));
+                    return;
+                }
+
+                alert(activate ? '✅ Purchase activated!' : '🚫 Purchase deactivated');
+                await refreshData();
+            } catch (error) {
+                console.error('Error toggling purchase status:', error);
+                alert('❌ Error updating purchase: ' + error.message);
+            }
+        }
+
+        // Enter key for PIN
+        document.getElementById('pinInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                verifyPIN();
+            }
+        });
+
+        // Edit Plan Functions
+        let currentEditingEmail = null;
+        let currentEditingIndex = null;
+        let currentEditingData = {};
+
+        function openEditPlan(userEmail, currentPlan, index) {
+            currentEditingEmail = userEmail;
+            currentEditingIndex = index;
+            currentEditingData = {};
+            
+            // Find user data
+            const user = allUsersData.users[index];
+            
+            document.getElementById('editUserEmail').textContent = `📧 Email: ${userEmail}`;
+            document.getElementById('editModal').classList.remove('hidden');
+
+            // Populate form fields
+            document.getElementById('editUsername').value = user.user?.username || '';
+            document.getElementById('editPhone').value = user.user?.phone || 'NULL';
+            document.getElementById('editPassword').value = '';
+            document.getElementById('editRole').value = user.user?.role || 'user';
+            document.getElementById('editVerified').checked = user.user?.verified || false;
+            document.getElementById('editBlocked').checked = user.user?.blocked || false;
+            document.getElementById('editBlockReason').value = '';
+
+            // Handle block reason visibility
+            document.getElementById('editBlocked').addEventListener('change', function() {
+                document.getElementById('blockReasonGroup').style.display = this.checked ? 'block' : 'none';
+            });
+
+            // Render plan options
+            const plansList = document.getElementById('plansList');
+            plansList.innerHTML = '';
+
+            const plans = planPricing.plans || {
+                'silver': { name: 'Silver', storageTB: 5 },
+                'gold': { name: 'Gold', storageTB: 20 },
+                'platinum': { name: 'Platinum', storageTB: 100 },
+                'ultra': { name: 'Ultra', storageTB: 200 }
+            };
+
+            Object.entries(plans).forEach(([key, plan]) => {
+                const planDiv = document.createElement('div');
+                planDiv.className = `plan-option ${currentPlan === key ? 'selected' : ''}`;
+                planDiv.id = `plan-${key}`;
+                planDiv.onclick = () => selectPlan(key);
+                planDiv.innerHTML = `
+                    <div class="plan-name">${plan.name || key.charAt(0).toUpperCase() + key.slice(1)}</div>
+                    <div class="plan-storage">${plan.storageTB || 0} TB Storage</div>
+                `;
+                plansList.appendChild(planDiv);
+            });
+
+            currentEditingData.currentPlan = currentPlan;
+        }
+
+        function selectPlan(planKey) {
+            document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
+            document.getElementById(`plan-${planKey}`).classList.add('selected');
+            currentEditingData.newPlan = planKey;
+        }
+
+        async function saveUserChanges() {
+            const token = localStorage.getItem('token');
+            const selectedPlanElement = document.querySelector('.plan-option.selected');
+            
+            if (!currentEditingEmail) {
+                alert('❌ No user selected');
+                return;
+            }
+
+            // Collect all updated data
+            const updatedData = {
+                username: document.getElementById('editUsername').value || undefined,
+                phone: document.getElementById('editPhone').value || undefined,
+                password: document.getElementById('editPassword').value || undefined,
+                role: document.getElementById('editRole').value || undefined,
+                verified: document.getElementById('editVerified').checked,
+                blocked: document.getElementById('editBlocked').checked,
+                blockReason: document.getElementById('editBlockReason').value || undefined
+            };
+
+            // Remove undefined values
+            Object.keys(updatedData).forEach(key => {
+                if (updatedData[key] === undefined || updatedData[key] === '') {
+                    delete updatedData[key];
+                }
+            });
+
+            try {
+                // Update user profile
+                const userResponse = await fetch('/api/admin/update-user', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email: currentEditingEmail,
+                        updatedData: updatedData
+                    })
+                });
+
+                if (!userResponse.ok) {
+                    const error = await userResponse.json();
+                    alert('❌ ' + (error.error || 'Failed to update user'));
+                    return;
+                }
+
+                // Update plan if selected
+                if (selectedPlanElement && currentEditingData.newPlan) {
+                    const newPlan = selectedPlanElement.id.replace('plan-', '');
+                    if (newPlan !== currentEditingData.currentPlan) {
+                        const planResponse = await fetch('/api/admin/update-user-plan', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                email: currentEditingEmail,
+                                newPlan: newPlan
+                            })
+                        });
+
+                        if (!planResponse.ok) {
+                            const error = await planResponse.json();
+                            console.error('Plan update error:', error);
+                        }
+                    }
+                }
+
+                alert('✅ User updated successfully!');
+                closeEditModal();
+                await refreshData();
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert('❌ Error updating user: ' + error.message);
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            currentEditingEmail = null;
+            currentEditingIndex = null;
+            currentEditingData = {};
+        }
+
+        // Initialize
+        window.addEventListener('load', async () => {
+            const isAdmin = await verifyAdminAuth();
+            if (!isAdmin) return;
+        });
+    </script>
+</body>
+</html>

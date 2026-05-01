@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends System Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            font-size: 1.3em;
+        }
+
+        .nav-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #fff;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #1e3c72;
+            font-size: 2em;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.blue {
+            border-left-color: #2196F3;
+        }
+
+        .stat-card.green {
+            border-left-color: #4CAF50;
+        }
+
+        .stat-card.orange {
+            border-left-color: #ff9800;
+        }
+
+        .stat-card.purple {
+            border-left-color: #9c27b0;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f5f7fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3c72;
+            border-bottom: 2px solid #ddd;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 5px;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .btn-info {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #0b7dda;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 20px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>🛡️ Admin Panel</h2>
+        <div class="nav-item active" onclick="switchSection('overview')">📊 Overview</div>
+        <div class="nav-item" onclick="switchSection('requests')">📨 Friend Requests</div>
+        <div class="nav-item" onclick="switchSection('friendships')">👥 Friendships</div>
+        <div class="nav-item" onclick="switchSection('coins')">💰 Cloud Coins</div>
+        <div class="nav-item" onclick="switchSection('shares')">📤 File Shares</div>
+        <div class="nav-item" onclick="switchSection('users')">🔍 User Activity</div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="header">
+            <h1>📊 Friends System Monitoring</h1>
+            <button class="refresh-btn" onclick="refreshAllData()">🔄 Refresh</button>
+        </div>
+
+        <!-- OVERVIEW SECTION -->
+        <div id="overview" class="content-section active">
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <h3>Friend Requests</h3>
+                    <div class="stat-number" id="totalRequests">0</div>
+                    <p style="color: #999; font-size: 0.9em; margin-top: 5px;">
+                        <span id="pendingRequests">0</span> pending
+                    </p>
+                </div>
+                <div class="stat-card green">
+                    <h3>Active Friendships</h3>
+                    <div class="stat-number" id="activeFriendships">0</div>
+                    <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Total relationships</p>
+                </div>
+                <div class="stat-card orange">
+                    <h3>Cloud Coins</h3>
+                    <div class="stat-number" id="totalCoins">0</div>
+                    <p style="color: #999; font-size: 0.9em; margin-top: 5px;">In circulation</p>
+                </div>
+                <div class="stat-card purple">
+                    <h3>File Shares</h3>
+                    <div class="stat-number" id="activeShares">0</div>
+                    <p style="color: #999; font-size: 0.9em; margin-top: 5px;">Active shares</p>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>📈 System Health</h2>
+                <div id="systemHealth" style="padding: 20px; text-align: center; color: #999;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- REQUESTS SECTION -->
+        <div id="requests" class="content-section">
+            <h2>📨 Friend Requests Management</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTable">
+                        <tr><td colspan="5" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FRIENDSHIPS SECTION -->
+        <div id="friendships" class="content-section">
+            <h2>👥 Friendships Management</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User 1</th>
+                            <th>User 2</th>
+                            <th>Status</th>
+                            <th>Since</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="friendshipsTable">
+                        <tr><td colspan="5" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- COINS SECTION -->
+        <div id="coins" class="content-section">
+            <h2>💰 Cloud Coins System</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Balance</th>
+                            <th>Transactions</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coinsTable">
+                        <tr><td colspan="4" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SHARES SECTION -->
+        <div id="shares" class="content-section">
+            <h2>📤 File Sharing System</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>File ID</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sharesTable">
+                        <tr><td colspan="6" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- USER ACTIVITY SECTION -->
+        <div id="users" class="content-section">
+            <h2>🔍 User Activity Search</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div class="input-group">
+                    <label>Search by User UID</label>
+                    <input type="text" id="searchUID" placeholder="USR-XXXXXXXX">
+                    <button class="btn btn-info" onclick="searchUserActivity()">Search</button>
+                </div>
+            </div>
+
+            <div id="userActivityResult" style="display: none;">
+                <div class="chart-container">
+                    <h3>User Activity Details</h3>
+                    <div id="activityDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION MODAL -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Action Required</div>
+            <div id="actionContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="confirmAction()">Confirm</button>
+                <button class="btn" onclick="closeActionModal()" style="background: #ccc;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:5000/api"
+            : `${window.location.origin}/api`;
+        let currentAction = null;
+
+        function switchSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll(".content-section").forEach(section => {
+                section.classList.remove("active");
+            });
+
+            // Remove active from all nav items
+            document.querySelectorAll(".nav-item").forEach(item => {
+                item.classList.remove("active");
+            });
+
+            // Show selected section
+            document.getElementById(sectionName).classList.add("active");
+            event.target.classList.add("active");
+
+            // Load data
+            if (sectionName === "overview") loadOverview();
+            if (sectionName === "requests") loadRequests();
+            if (sectionName === "friendships") loadFriendships();
+            if (sectionName === "coins") loadCoins();
+            if (sectionName === "shares") loadShares();
+        }
+
+        async function loadOverview() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/friends/system-overview`);
+                const data = await res.json();
+
+                document.getElementById("totalRequests").textContent = data.friendRequests.total;
+                document.getElementById("pendingRequests").textContent = data.friendRequests.pending;
+                document.getElementById("activeFriendships").textContent = data.friendships.active;
+                document.getElementById("totalCoins").textContent = data.cloudCoins.totalCoinsInCirculation;
+                document.getElementById("activeShares").textContent = data.fileSharing.active;
+
+                document.getElementById("systemHealth").innerHTML = `
+                    <div style="text-align: left;">
+                        <p><strong>Friend Requests:</strong> ${data.friendRequests.pending} pending, ${data.friendRequests.accepted} accepted, ${data.friendRequests.rejected} rejected</p>
+                        <p><strong>Friendships:</strong> ${data.friendships.active} active relationships</p>
+                        <p><strong>Cloud Coins:</strong> ${data.cloudCoins.totalTransactions} transactions, ${data.cloudCoins.totalCoinsInCirculation} coins in circulation</p>
+                        <p><strong>File Sharing:</strong> ${data.fileSharing.active} active shares</p>
+                        <p style="margin-top: 20px; font-size: 0.9em; color: #666;">Last updated: ${new Date(data.timestamp).toLocaleString()}</p>
+                    </div>
+                `;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadRequests() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/friends/requests/all`);
+                const data = await res.json();
+
+                const html = data.requests.map(r => `
+                    <tr>
+                        <td>${r.senderUsername} (${r.senderEmail})</td>
+                        <td>${r.receiverEmail}</td>
+                        <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+                        <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            ${r.status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRequest('${r.id}')">Cancel</button>` : ''}
+                        </td>
+                    </tr>
+                `).join("");
+
+                document.getElementById("requestsTable").innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #999;">No requests</td></tr>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadFriendships() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/friends/all`);
+                const data = await res.json();
+
+                const html = data.friendships.map(f => `
+                    <tr>
+                        <td>${f.user1Username}</td>
+                        <td>${f.user2Username}</td>
+                        <td><span class="status-badge status-${f.status}">${f.status}</span></td>
+                        <td>${new Date(f.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            ${f.status === 'active' ? `<button class="btn btn-danger" onclick="revokeFriendship('${f.id}')">Revoke</button>` : ''}
+                        </td>
+                    </tr>
+                `).join("");
+
+                document.getElementById("friendshipsTable").innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #999;">No friendships</td></tr>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadCoins() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/coins/stats`);
+                const data = await res.json();
+                const coinsList = (data.allCoins && data.allCoins.length) ? data.allCoins : (data.topHolders || []);
+
+                const html = coinsList.map(c => {
+                    const displayName = c.username || c.email || c.userUID || 'Unknown';
+                    const displayEmail = c.email ? ` (${c.email})` : '';
+                    return `
+                        <tr>
+                            <td>${displayName}${displayEmail}</td>
+                            <td><strong>${c.balance}</strong> 🪙</td>
+                            <td>${c.transactions?.length || 0}</td>
+                            <td>
+                                <button class="btn btn-warning" onclick="adjustCoins('${c.userUID}')">Adjust</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+                document.getElementById("coinsTable").innerHTML = html || '<tr><td colspan="4" style="text-align: center; color: #999;">No coins data</td></tr>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadShares() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/friends/shares/stats`);
+                const data = await res.json();
+
+                const html = data.shares.map(s => `
+                    <tr>
+                        <td>${s.fileId}</td>
+                        <td>${s.senderUID}</td>
+                        <td>${s.recipientUID}</td>
+                        <td><span class="status-badge status-${s.status}">${s.status}</span></td>
+                        <td>${new Date(s.sharedAt).toLocaleDateString()}</td>
+                        <td></td>
+                    </tr>
+                `).join("");
+
+                document.getElementById("sharesTable").innerHTML = html || '<tr><td colspan="6" style="text-align: center; color: #999;">No shares</td></tr>';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function cancelRequest(requestId) {
+            currentAction = { type: "cancelRequest", requestId };
+            document.getElementById("actionContent").innerHTML = `
+                <p>Are you sure you want to cancel this friend request?</p>
+                <div class="input-group">
+                    <label>Reason (optional)</label>
+                    <textarea id="actionReason" placeholder="Enter reason..."></textarea>
+                </div>
+            `;
+            document.getElementById("actionModal").classList.add("active");
+        }
+
+        function revokeFriendship(friendshipId) {
+            currentAction = { type: "revokeFriendship", friendshipId };
+            document.getElementById("actionContent").innerHTML = `
+                <p>Are you sure you want to revoke this friendship?</p>
+                <div class="input-group">
+                    <label>Reason</label>
+                    <textarea id="actionReason" placeholder="Enter reason for revocation..." required></textarea>
+                </div>
+            `;
+            document.getElementById("actionModal").classList.add("active");
+        }
+
+        function adjustCoins(userUID) {
+            currentAction = { type: "adjustCoins", userUID };
+            document.getElementById("actionContent").innerHTML = `
+                <p>Adjust cloud coins for user ${userUID}</p>
+                <div class="input-group">
+                    <label>Amount (+ or -)</label>
+                    <input type="number" id="coinAmount" placeholder="e.g., +50 or -20" required>
+                </div>
+                <div class="input-group">
+                    <label>Reason</label>
+                    <input type="text" id="adjustReason" placeholder="Why are you adjusting?" required>
+                </div>
+            `;
+            document.getElementById("actionModal").classList.add("active");
+        }
+
+        async function confirmAction() {
+            const reason = document.getElementById("actionReason")?.value || document.getElementById("adjustReason")?.value;
+            
+            try {
+                if (currentAction.type === "cancelRequest") {
+                    await fetch(`${API_BASE}/admin/friends/request/cancel`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ requestId: currentAction.requestId, reason })
+                    });
+                    alert("Request cancelled");
+                    loadRequests();
+                } else if (currentAction.type === "revokeFriendship") {
+                    await fetch(`${API_BASE}/admin/friends/revoke`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ friendshipId: currentAction.friendshipId, reason })
+                    });
+                    alert("Friendship revoked");
+                    loadFriendships();
+                } else if (currentAction.type === "adjustCoins") {
+                    const amount = Number(document.getElementById("coinAmount").value);
+                    if (!Number.isFinite(amount) || amount === 0) {
+                        alert("Please enter a valid non-zero amount (negative values are allowed)");
+                        return;
+                    }
+                    const resp = await fetch(`${API_BASE}/admin/coins/adjust`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userUID: currentAction.userUID, amount, reason })
+                    });
+                    if (!resp.ok) {
+                        const errData = await resp.json().catch(() => ({}));
+                        throw new Error(errData.error || "Failed to adjust coins");
+                    }
+                    const result = await resp.json().catch(() => ({}));
+                    const actionLabel = amount < 0 ? "Coins deducted" : "Coins added";
+                    const amountLabel = Math.abs(amount).toLocaleString();
+                    const balanceLabel = Number(result?.newBalance ?? result?.user?.balance ?? 0).toLocaleString();
+                    alert(`${actionLabel}: ${amountLabel}\nNew Balance: ${balanceLabel}`);
+                    loadCoins();
+                }
+                closeActionModal();
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        function closeActionModal() {
+            document.getElementById("actionModal").classList.remove("active");
+            currentAction = null;
+        }
+
+        async function searchUserActivity() {
+            const uid = document.getElementById("searchUID").value;
+            if (!uid) {
+                alert("Enter a User UID");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/friends/user/${uid}/activity`);
+                const data = await res.json();
+
+                const html = `
+                    <h4>Sent Requests: ${data.sentRequests.length}</h4>
+                    <h4>Friendships: ${data.friendships.length}</h4>
+                    <h4>Coin Balance: ${data.coinBalance?.balance || 0} 🪙</h4>
+                    <h4>Transactions: ${data.coinBalance?.transactions?.length || 0}</h4>
+                    <h4>File Shares: ${data.fileShares.length}</h4>
+                `;
+
+                document.getElementById("activityDetails").innerHTML = html;
+                document.getElementById("userActivityResult").style.display = "block";
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        function refreshAllData() {
+            loadOverview();
+            loadRequests();
+            loadFriendships();
+            loadCoins();
+            loadShares();
+            alert("Data refreshed!");
+        }
+
+        // Load initial data
+        loadOverview();
+    </script>
+</body>
+</html>

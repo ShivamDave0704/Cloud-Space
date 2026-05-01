@@ -1,0 +1,3134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends & File Sharing - CloudSpace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffa5a5 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: slideDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: fadeInScale 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            animation: slideUp 0.8s ease 0.2s both;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            color: white;
+            cursor: pointer;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .tab-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 250, 0.98));
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.4);
+            transition: all 0.4s ease;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.6em;
+            animation: slideRight 0.6s ease;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        @keyframes slideRight {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Add cool subtitle styling */
+        .card p {
+            color: #555;
+            line-height: 1.8;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1em;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        /* Cool prefix input styling */
+        .input-with-prefix {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .input-with-prefix .prefix {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.9em;
+            pointer-events: none;
+            z-index: 2;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            animation: prefixGlow 2s ease-in-out infinite;
+            letter-spacing: 1px;
+        }
+
+        @keyframes prefixGlow {
+            0%, 100% { 
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                transform: translateY(-50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.7);
+                transform: translateY(-50%) scale(1.05);
+            }
+        }
+
+        .input-with-prefix input {
+            padding-left: 85px !important;
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            font-size: 1.05em;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 250, 0.95));
+            border: 2px solid #ddd;
+            transition: all 0.4s ease;
+        }
+
+        .input-with-prefix input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            background: white;
+        }
+
+        .input-with-prefix input::placeholder {
+            letter-spacing: 2px;
+            opacity: 0.5;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #da190b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.6);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.6);
+        }
+
+        .list-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 250, 0.95));
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            animation: slideInLeft 0.5s ease;
+        }
+
+        .list-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-left-width: 6px;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .list-item-info {
+            flex: 1;
+        }
+
+        .list-item-info h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 1.05em;
+            text-shadow: 0 1px 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .list-item-info p {
+            color: #555;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .list-item-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+            color: #667eea;
+            border: 2px solid #667eea;
+            font-weight: 700;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(69, 160, 73, 0.15));
+            color: #2e7d32;
+            border: 2px solid #4CAF50;
+            font-weight: 700;
+        }
+
+        .status-accepted {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(69, 160, 73, 0.15));
+            color: #2e7d32;
+            border: 2px solid #4CAF50;
+            font-weight: 700;
+        }
+
+        .coin-display {
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            transition: all 0.4s ease;
+            animation: scaleIn 0.6s ease;
+        }
+
+        .coin-display:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.6);
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .coin-display h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .coin-amount {
+            font-size: 3em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            animation: popIn 0.6s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .stat-box h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            animation: countUp 0.8s ease;
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1d2e 0%, #16213e 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: min(88vh, 900px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(102, 126, 234, 0.1);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header .close {
+            color: #fff;
+            font-size: 2em;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .modal-header .close:hover {
+            color: #667eea;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .transaction-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+        }
+
+        .transaction-amount.sent {
+            color: #f44336;
+        }
+
+        .transaction-amount.received {
+            color: #4CAF50;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                justify-content: center;
+            }
+
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .list-item-actions {
+                width: 100%;
+            }
+
+            .list-item-actions .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .coin-amount {
+                font-size: 2em;
+            }
+        }
+
+        /* Share File Modal */
+        .file-select-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 250, 0.95));
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-select-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-select-item.selected {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-left-color: #764ba2;
+            border-left-width: 6px;
+        }
+
+        /* Chat Modal */
+        .chat-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at top, rgba(15, 32, 39, 0.95), rgba(0, 0, 0, 0.95));
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+            padding: 20px;
+        }
+
+        .chat-modal-overlay.active {
+            display: flex;
+        }
+
+        .chat-modal {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 900px;
+            height: 85vh;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3), 0 0 60px rgba(0, 255, 136, 0.2);
+            animation: slideUpBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        @keyframes slideUpBounce {
+            0% {
+                transform: translateY(150px) scale(0.8);
+                opacity: 0;
+            }
+            60% {
+                transform: translateY(-10px) scale(1.02);
+            }
+            80% {
+                transform: translateY(5px) scale(0.98);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .chat-modal-header {
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .chat-modal-header::before {
+            display: none;
+        }
+
+        .chat-modal-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: #fff;
+        }
+
+        .chat-close-btn {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chat-close-btn:hover {
+            background: rgba(255, 0, 0, 0.4);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .chat-messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages-container::-webkit-scrollbar-thumb {
+            background: #00ffee;
+            border-radius: 10px;
+        }
+
+        .chat-message {
+            display: flex;
+            margin-bottom: 16px;
+            animation: pop 0.3s ease;
+        }
+
+        @keyframes pop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .chat-message.mine {
+            justify-content: flex-end;
+        }
+
+        .chat-message.theirs {
+            justify-content: flex-start;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.mine .chat-bubble {
+            background: linear-gradient(135deg, #00f2ff, #00ff88);
+            color: #000;
+            border-top-right-radius: 0;
+        }
+
+        .chat-message.theirs .chat-bubble {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-top-left-radius: 0;
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        .chat-sender {
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #00ff88;
+        }
+
+        .chat-time {
+            font-size: 0.7em;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+
+        .typing-indicator {
+            font-size: 12px;
+            color: #00ff88;
+            padding: 8px 16px;
+            animation: blink 1s infinite;
+            font-style: italic;
+        }
+
+        @keyframes blink {
+            0%, 100% {
+                opacity: 0.3;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 14px;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: none;
+            outline: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .chat-send-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00f2ff, #00ff88);
+            color: #000;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Chat Reply Styles */
+        .chat-reply-preview {
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 3px solid #00ff88;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            gap: 8px;
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .reply-indicator {
+            width: 3px;
+            background: #00ff88;
+            border-radius: 2px;
+        }
+
+        .reply-content {
+            flex: 1;
+        }
+
+        .reply-text {
+            color: #00ff88;
+            font-style: italic;
+        }
+
+        .chat-reply-bar {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 12px 18px;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .reply-bar-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reply-bar-label {
+            color: #00ff88;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .reply-bar-text {
+            color: #fff;
+            font-style: italic;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .reply-bar-close {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .reply-bar-close:hover {
+            background: rgba(255, 0, 0, 0.4);
+            transform: scale(1.15);
+        }
+
+        /* Message Dropdown Menu */
+        .chat-message {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .chat-message:hover {
+            transform: scale(1.02);
+        }
+
+        .message-dropdown-menu {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            z-index: 3000;
+            overflow: hidden;
+            animation: dropdownSlide 0.3s ease;
+            min-width: 160px;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                transform: translateY(-10px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:hover {
+            background: rgba(0, 255, 255, 0.15);
+            padding-left: 24px;
+            color: #00ff88;
+        }
+
+        .menu-icon {
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+        }
+
+        /* Info Modal */
+        .info-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 4000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .info-modal {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+            animation: pop 0.4s ease;
+            overflow: hidden;
+        }
+
+        .info-modal-header {
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(0, 255, 136, 0.2));
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .info-modal-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .info-close-btn {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .info-close-btn:hover {
+            background: rgba(255, 0, 0, 0.4);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .info-modal-body {
+            padding: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .info-value {
+            color: #fff;
+            text-align: right;
+        }
+
+        .info-value.info-na {
+            color: #999;
+            font-style: italic;
+        }
+
+        .info-status-indicator {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        .info-status-indicator.seen {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .info-status-indicator.unseen {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            color: #FFA500;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* Emoji Reactions */
+        .chat-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .reaction-bubble {
+            background: rgba(0, 255, 255, 0.15);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .reaction-bubble:hover {
+            background: rgba(0, 255, 255, 0.25);
+            border-color: #00ffee;
+            transform: scale(1.1);
+        }
+
+        /* Emoji Picker Popup */
+        .emoji-picker-popup {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            z-index: 3000;
+            animation: pop 0.3s ease;
+        }
+
+        .emoji-option {
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+        }
+
+        .emoji-option:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.3) rotate(10deg);
+        }
+
+        /* Nickname Editor Modal */
+        .nickname-editor-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .nickname-editor-overlay.active {
+            display: flex;
+        }
+
+        .nickname-editor {
+            background: linear-gradient(135deg, #1a1d2e 0%, #16213e 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(102, 126, 234, 0.1);
+            animation: slideUpBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .nickname-editor h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nickname-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.6);
+            border-radius: 12px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .nickname-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .nickname-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.12);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2), inset 0 0 0 1px rgba(102, 126, 234, 0.2);
+        }
+
+        .nickname-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nickname-buttons button {
+            flex: 1;
+        }
+
+        .friend-nickname-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 700;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .friend-nickname-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .friend-nickname-badge.edit-icon::after {
+            content: ' ✏️';
+            font-size: 0.8em;
+        }
+
+        .friend-status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 8px;
+            background: #ff3b3b;
+            box-shadow: 0 0 6px rgba(255, 59, 59, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .friend-status-dot.online {
+            background: #00ff66;
+            box-shadow: 0 0 8px rgba(0, 255, 102, 0.9);
+            animation: statusPulse 1.6s infinite;
+        }
+
+        .friend-status-dot.offline {
+            background: #ff3b3b;
+            box-shadow: 0 0 6px rgba(255, 59, 59, 0.7);
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, #00f2ff, #00ff88);
+            color: #000;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .chat-send-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Confirmation Alert */
+        .confirm-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .confirm-alert-overlay.active {
+            display: flex;
+        }
+
+        .confirm-alert {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirm-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            animation: pulse 1s ease infinite;
+        }
+
+        .confirm-alert h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+
+        .confirm-alert p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Friends & File Sharing</h1>
+            <p>Connect with friends and share files!</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('friends')">👥 Friends</button>
+            <button class="tab-btn" onclick="switchTab('requests')">📨 Requests</button>
+            <button class="tab-btn" onclick="switchTab('chat')">💬 Chat</button>
+            <button class="tab-btn" onclick="switchTab('shares')">📤 Shared Files</button>
+        </div>
+
+        <!-- FRIENDS TAB -->
+        <div id="friends" class="tab-content active">
+            <div class="card">
+                <h2>👥 My Friends</h2>
+                <div id="friendsList"></div>
+            </div>
+
+            <div class="card">
+                <h2>➕ Add New Friend</h2>
+                <p style="color: #666; margin-bottom: 20px; font-size: 0.95em;">
+                    Enter your friend's unique ID to send them a friend request
+                </p>
+                <div class="input-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <span>Friend's UID</span>
+                        <span style="background: rgba(102, 126, 234, 0.1); color: #667eea; padding: 4px 10px; border-radius: 8px; font-size: 0.8em; font-weight: 700;">Required</span>
+                    </label>
+                    <div class="input-with-prefix">
+                        <span class="prefix">USR-</span>
+                        <input 
+                            type="text" 
+                            id="friendUID" 
+                            placeholder="XXXXXXX" 
+                            maxlength="25" 
+                            oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+                        >
+                    </div>
+                    <small style="color: #999; margin-top: 8px; display: block; font-size: 0.85em;">
+                        💡 Tip: Only enter the part after "USR-" (e.g., RTU6F45P)
+                    </small>
+                </div>
+                <button class="btn btn-primary" onclick="sendFriendRequest()" style="width: 100%; padding: 14px; font-size: 1.05em;">
+                    📤 Send Friend Request
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>🎁 Referral Friends</h2>
+                <p style="color: #666; margin-bottom: 18px; font-size: 0.95em;">
+                    Share your referral link so friends can quickly add you using your UID.
+                </p>
+
+                <div class="input-group">
+                    <label>Your Referral UID</label>
+                    <input type="text" id="referralUID" readonly>
+                </div>
+
+                <div class="input-group">
+                    <label>Your Referral Link</label>
+                    <input type="text" id="referralLink" readonly>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="copyReferralLink()">🔗 Copy Link</button>
+                    <button class="btn btn-success" onclick="copyReferralUID()">🆔 Copy UID</button>
+                    <button class="btn btn-secondary" onclick="shareReferralLink()">📨 Share Invite</button>
+                    <button class="btn btn-secondary" onclick="showReferredUsers()">👥 Referred Users</button>
+                </div>
+                <small style="display: block; margin-top: 12px; color: #999; font-size: 0.85em;">
+                    Tip: opening a referral link auto-fills the Friend UID field.
+                </small>
+            </div>
+        </div>
+
+        <!-- REQUESTS TAB -->
+        <div id="requests" class="tab-content">
+            <div class="card" id="requestsCard">
+                <h2>📨 Pending Requests</h2>
+                <div id="requestsList"></div>
+            </div>
+        </div>
+
+
+
+        <!-- CHAT TAB -->
+        <div id="chat" class="tab-content">
+            <div class="card">
+                <h2>💬 Friend Chat & Admin Messages</h2>
+                <div class="input-group">
+                    <label>Select Friend</label>
+                    <select id="chatFriendSelect"></select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                    <!-- Friend Messages Column -->
+                    <div>
+                        <h3 style="color: var(--neon-cyan); margin-bottom: 8px;">👥 Friend Messages</h3>
+                        <div id="chatMessages" class="list" style="max-height: 320px; overflow-y: auto;"></div>
+                    </div>
+                    <!-- Admin Messages Column (RED) -->
+                    <div>
+                        <h3 style="color: #ff4444; margin-bottom: 8px;">🔴 Admin Messages</h3>
+                        <div id="adminMessages" class="list" style="max-height: 320px; overflow-y: auto; border: 2px solid #ff4444; border-radius: 8px; padding: 10px;"></div>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                    <label>Message</label>
+                    <input type="text" id="chatMessageInput" placeholder="Type your message...">
+                </div>
+                <button class="btn btn-primary" onclick="sendChatMessage()">📨 Send</button>
+            </div>
+        </div>
+
+        <!-- SHARES TAB -->
+        <div id="shares" class="tab-content">
+            <div class="card">
+                <h2>📤 Shared Files</h2>
+                <div id="sharedFilesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS/ERROR MODAL -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <div id="messageContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeMessageModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:5000/api"
+            : `${window.location.origin}/api`;
+        const FILES_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:5000"
+            : window.location.origin;
+
+        function authHeaders(extra = {}) {
+            const currentToken = localStorage.getItem("token");
+            return {
+                ...extra,
+                ...(currentToken && currentToken !== "null" && currentToken !== "undefined" ? { "Authorization": `Bearer ${currentToken}` } : {})
+            };
+        }
+
+        let friendsStatusInterval = null;
+
+        function switchTab(tabName, evt) {
+            // Hide all tabs
+            document.querySelectorAll(".tab-content").forEach(tab => {
+                tab.classList.remove("active");
+            });
+
+            // Remove active from all buttons
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.remove("active");
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add("active");
+
+            // Add active to clicked button
+            const trigger = evt || window.event;
+            if (trigger && trigger.target) {
+                trigger.target.classList.add("active");
+            } else {
+                const btn = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
+                if (btn) btn.classList.add("active");
+            }
+
+            // Load data
+            if (tabName === "friends") {
+                loadFriends();
+                if (friendsStatusInterval) clearInterval(friendsStatusInterval);
+                friendsStatusInterval = setInterval(loadFriendsStatusOnly, 15000);
+            } else {
+                if (friendsStatusInterval) {
+                    clearInterval(friendsStatusInterval);
+                    friendsStatusInterval = null;
+                }
+            }
+            if (tabName === "requests") loadRequests();
+            if (tabName === "chat") {
+                loadChatFriends();
+                loadChatMessages();
+                startChatPolling();
+            } else {
+                stopChatPolling();
+            }
+            if (tabName === "shares") loadSharedFiles();
+        }
+
+        async function sendFriendRequest() {
+            const uidPart = document.getElementById("friendUID").value.trim();
+            if (!uidPart) {
+                showMessage("Please enter a UID", "error");
+                return;
+            }
+
+            // Auto-prepend USR- if not present
+            const fullUID = uidPart.startsWith('USR-') ? uidPart : `USR-${uidPart}`;
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/request/send`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ targetUID: fullUID })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage(`✅ Friend request sent to ${fullUID}!`, "success");
+                    document.getElementById("friendUID").value = "";
+                } else {
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        async function loadFriends() {
+            try {
+                const res = await fetch(`${API_BASE}/friends/list`, {
+                    headers: authHeaders()
+                });
+                const friends = await res.json();
+
+                const html = friends.length === 0 
+                    ? '<div class="empty-state">No friends yet. Add one above!</div>'
+                    : friends.map(f => {
+                        const isUser1 = f.user1UID === getUserUID();
+                        const friendUID = isUser1 ? f.user2UID : f.user1UID;
+                        const friendEmail = isUser1 ? f.user2Email : f.user1Email;
+                        const friendUsername = isUser1 ? f.user2Username : f.user1Username;
+                        const bondname = f.bondname;
+                        const displayName = bondname || friendUsername;
+                        
+                        return `
+                        <div class="list-item">
+                            <div class="list-item-info">
+                                <h3>
+                                    ${displayName}
+                                    <span class="friend-status-dot offline" id="friendStatus-${friendUID}"></span>
+                                    <span class="friend-nickname-badge edit-icon" onclick="openNicknameEditor('${f.id}', '${displayName}', '${friendUID}')" style="cursor: pointer; font-size: 0.8em;"></span>
+                                </h3>
+                                <p style="font-size: 0.9em; color: #999;">@${friendUsername}</p>
+                                <p>UID: ${friendUID}</p>
+                                <p>${friendEmail}</p>
+                                <p style="font-size: 0.85em; color: #999;">Friends since ${new Date(f.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div class="list-item-actions">
+                                <button class="btn btn-primary" onclick="openShareModal('${friendUID}')">📤 Share File</button>
+                                <button class="btn btn-success" onclick="openChatModal('${friendUID}', '${displayName}')">💬 Chat</button>
+                                <button class="btn btn-danger" onclick="confirmRemoveFriend('${f.id}', '${displayName}')">🗑️ Remove</button>
+                            </div>
+                        </div>
+                        `;
+                    }).join("");
+
+                document.getElementById("friendsList").innerHTML = html;
+                await updateFriendStatusDots(friends);
+            } catch (err) {
+                document.getElementById("friendsList").innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+            }
+        }
+
+        async function updateFriendStatusDots(friends) {
+            if (!Array.isArray(friends)) return;
+            await Promise.all(friends.map(async (f) => {
+                const isUser1 = f.user1UID === getUserUID();
+                const friendUID = isUser1 ? f.user2UID : f.user1UID;
+                const dot = document.getElementById(`friendStatus-${friendUID}`);
+                if (!dot) return;
+
+                try {
+                    const res = await fetch(`${API_BASE}/users/status/${friendUID}`, { headers: authHeaders() });
+                    const data = await res.json();
+                    const isOnline = !!data?.isOnline;
+                    dot.classList.toggle("online", isOnline);
+                    dot.classList.toggle("offline", !isOnline);
+                    dot.title = isOnline ? "online" : "offline";
+                } catch (err) {
+                    dot.classList.remove("online");
+                    dot.classList.add("offline");
+                    dot.title = "offline";
+                }
+            }));
+        }
+
+        async function loadFriendsStatusOnly() {
+            try {
+                const res = await fetch(`${API_BASE}/friends/list`, { headers: authHeaders() });
+                const friends = await res.json();
+                await updateFriendStatusDots(friends);
+            } catch (err) {
+                // silent
+            }
+        }
+
+        async function loadRequests() {
+            try {
+                const res = await fetch(`${API_BASE}/friends/requests/pending`, {
+                    headers: authHeaders()
+                });
+                const requests = await res.json();
+
+                const requestsCard = document.getElementById("requestsCard");
+                const userEmail = (getUserEmail() || "").toLowerCase();
+                const userUID = getUserUID();
+
+                if (!Array.isArray(requests) || requests.length === 0) {
+                    if (requestsCard) requestsCard.style.display = "none";
+                    document.getElementById("requestsList").innerHTML = "";
+                    return;
+                }
+
+                if (requestsCard) requestsCard.style.display = "block";
+
+                const html = requests.map(r => {
+                    const senderEmail = (r.senderEmail || "").toLowerCase();
+                    const receiverEmail = (r.receiverEmail || "").toLowerCase();
+                    const isSender = r.senderUID === userUID || senderEmail === userEmail;
+
+                    if (isSender) {
+                        return `
+                        <div class="list-item">
+                            <div class="list-item-info">
+                                <h3>📤 Sent to ${r.receiverEmail}</h3>
+                                <p>Status: Pending</p>
+                                <p style="font-size: 0.85em; color: #999;">Sent ${new Date(r.createdAt).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="list-item">
+                            <div class="list-item-info">
+                                <h3>${r.senderUsername}</h3>
+                                <p>${r.senderEmail}</p>
+                                <p style="font-size: 0.85em; color: #999;">Sent ${new Date(r.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div class="list-item-actions">
+                                <button class="btn btn-success" onclick="acceptRequest('${r.id}')">✅ Accept</button>
+                                <button class="btn btn-danger" onclick="rejectRequest('${r.id}')">❌ Reject</button>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                document.getElementById("requestsList").innerHTML = html;
+            } catch (err) {
+                document.getElementById("requestsList").innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+            }
+        }
+
+        async function acceptRequest(requestId) {
+            try {
+                const res = await fetch(`${API_BASE}/friends/request/accept`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ requestId })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("✅ Friend request accepted!", "success");
+                    loadRequests();
+                    loadFriends();
+                } else {
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        async function rejectRequest(requestId) {
+            try {
+                const res = await fetch(`${API_BASE}/friends/request/reject`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ requestId })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("❌ Friend request rejected", "success");
+                    loadRequests();
+                } else {
+                    showMessage(`Error: ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        async function removeFriend(friendshipId) {
+            if (!confirm("Are you sure you want to remove this friend?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/remove`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ friendshipId })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("Friend removed", "success");
+                    loadFriends();
+                } else {
+                    showMessage(`Error: ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        let chatPollTimer = null;
+
+        function startChatPolling() {
+            if (chatPollTimer) return;
+            chatPollTimer = setInterval(loadChatMessages, 3000);
+        }
+
+        function stopChatPolling() {
+            if (chatPollTimer) {
+                clearInterval(chatPollTimer);
+                chatPollTimer = null;
+            }
+        }
+
+        function openChat(friendUID) {
+            const chatSelect = document.getElementById("chatFriendSelect");
+            if (chatSelect) {
+                chatSelect.value = friendUID;
+            }
+            switchTab('chat');
+        }
+
+        async function loadChatFriends() {
+            try {
+                const res = await fetch(`${API_BASE}/friends/list`, { headers: authHeaders() });
+                const friends = await res.json();
+                const chatSelect = document.getElementById("chatFriendSelect");
+                if (!chatSelect) return;
+
+                if (!Array.isArray(friends) || friends.length === 0) {
+                    chatSelect.innerHTML = `<option value="">No friends available</option>`;
+                    return;
+                }
+
+                chatSelect.innerHTML = friends.map(f => {
+                    const isUser1 = f.user1UID === getUserUID();
+                    const friendUID = isUser1 ? f.user2UID : f.user1UID;
+                    const friendUsername = isUser1 ? f.user2Username : f.user1Username;
+                    return `<option value="${friendUID}">${friendUsername} (${friendUID})</option>`;
+                }).join("");
+
+                if (!chatSelect.value) {
+                    chatSelect.value = chatSelect.options[0].value;
+                }
+            } catch (err) {
+                console.error("Chat friends load error:", err);
+            }
+        }
+
+        async function loadChatMessages() {
+            const chatSelect = document.getElementById("chatFriendSelect");
+            const chatMessages = document.getElementById("chatMessages");
+            const adminMessages = document.getElementById("adminMessages");
+            if (!chatSelect || !chatMessages || !chatSelect.value) return;
+
+            try {
+                // Load friend messages
+                const res = await fetch(`${API_BASE}/friends/chat/${chatSelect.value}`, { headers: authHeaders() });
+                const messages = await res.json();
+
+                if (!Array.isArray(messages) || messages.length === 0) {
+                    chatMessages.innerHTML = `<div class="empty-state">No messages yet.</div>`;
+                } else {
+                    const uid = getUserUID();
+                    chatMessages.innerHTML = messages.map(m => {
+                        const isMine = m.senderUID === uid;
+                        return `
+                            <div class="list-item" style="background:${isMine ? '#e6fff6' : '#f4f6ff'};">
+                                <div class="list-item-info">
+                                    <h3>${isMine ? 'You' : 'Friend'}</h3>
+                                    <p>${m.message}</p>
+                                    <p style="font-size: 0.85em; color: #999;">${new Date(m.createdAt).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join("");
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+
+                // Load admin messages
+                try {
+                    const adminRes = await fetch(`${API_BASE}/chat/admin-messages`, { headers: authHeaders() });
+                    const adminMsgs = await adminRes.json();
+
+                    if (!Array.isArray(adminMsgs) || adminMsgs.length === 0) {
+                        adminMessages.innerHTML = `<div class="empty-state" style="color: #ff4444;">No admin messages yet</div>`;
+                    } else {
+                        adminMessages.innerHTML = adminMsgs.map(m => `
+                            <div class="list-item" style="background: rgba(255, 68, 68, 0.1); border-left: 3px solid #ff4444;">
+                                <div class="list-item-info">
+                                    <h3 style="color: #ff4444;">🔴 ADMIN</h3>
+                                    <p style="color: #ff4444; font-weight: 500;">${m.message}</p>
+                                    <p style="font-size: 0.85em; color: #999;">${new Date(m.timestamp).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        `).join("");
+                        adminMessages.scrollTop = adminMessages.scrollHeight;
+                    }
+                } catch (err) {
+                    adminMessages.innerHTML = `<p style="color: #ff4444;">Error loading admin messages</p>`;
+                }
+            } catch (err) {
+                chatMessages.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+            }
+        }
+
+        async function sendChatMessage() {
+            const chatSelect = document.getElementById("chatFriendSelect");
+            const input = document.getElementById("chatMessageInput");
+            if (!chatSelect || !input || !chatSelect.value) return;
+
+            const message = input.value.trim();
+            if (!message) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/chat/send`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ friendUID: chatSelect.value, message })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    input.value = "";
+                    loadChatMessages();
+                } else {
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        const chatSelectEl = document.getElementById("chatFriendSelect");
+        if (chatSelectEl) {
+            chatSelectEl.addEventListener("change", loadChatMessages);
+        }
+
+        function resolveSharedFileUrl(rawUrl) {
+            if (!rawUrl || typeof rawUrl !== "string") return null;
+
+            const trimmed = rawUrl.trim();
+            if (!trimmed) return null;
+
+            if (/^https?:\/\//i.test(trimmed)) {
+                return trimmed;
+            }
+
+            if (trimmed.startsWith("/")) {
+                return `${FILES_BASE}${trimmed}`;
+            }
+
+            return `${FILES_BASE}/${trimmed.replace(/^\/+/, "")}`;
+        }
+
+        function downloadSharedFile(fileUrl, fileName) {
+            const resolvedUrl = resolveSharedFileUrl(fileUrl);
+            if (!resolvedUrl) {
+                showMessage("❌ Download link is missing for this shared file", "error");
+                return;
+            }
+
+            const anchor = document.createElement("a");
+            anchor.href = resolvedUrl;
+            anchor.download = fileName || "shared-file";
+            anchor.target = "_blank";
+            anchor.rel = "noopener";
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+        }
+
+
+        async function loadSharedFiles() {
+            try {
+                const res = await fetch(`${API_BASE}/friends/shared-files`, {
+                    headers: authHeaders()
+                });
+                const shares = await res.json();
+                const shareList = Array.isArray(shares) ? shares : [];
+
+                const html = shareList.length === 0
+                    ? '<div class="empty-state">No files shared with you yet</div>'
+                    : shareList.map(s => {
+                        const fileLabel = s.fileName || s.fileId || "Unknown";
+                        const fileDownloadUrl = s.fileUrl || s.fileId || "";
+                        const safeFileName = escapeHtml(fileLabel);
+                        const safeDownloadUrl = escapeHtml(fileDownloadUrl);
+                        const sharedDate = new Date(s.sharedAt || s.createdAt).toLocaleDateString();
+                        const permissions = (Array.isArray(s.permissions) ? s.permissions : ["read"]).join(", ");
+
+                        return `
+                        <div class="list-item">
+                            <div class="list-item-info">
+                                <h3>File: ${safeFileName}</h3>
+                                <p>Shared on ${sharedDate}</p>
+                                <p>Permissions: ${escapeHtml(permissions)}</p>
+                            </div>
+                            <div class="list-item-actions">
+                                <button class="btn btn-primary btn-download-shared" data-file-url="${safeDownloadUrl}" data-file-name="${safeFileName}">📥 Download</button>
+                            </div>
+                        </div>
+                    `;
+                    }).join("");
+
+                document.getElementById("sharedFilesList").innerHTML = html;
+
+                document.querySelectorAll("#sharedFilesList .btn-download-shared").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        const fileUrl = btn.dataset.fileUrl || "";
+                        const fileName = btn.dataset.fileName || "shared-file";
+                        downloadSharedFile(fileUrl, fileName);
+                    });
+                });
+            } catch (err) {
+                document.getElementById("sharedFilesList").innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+            }
+        }
+
+        function showMessage(message, type = "info") {
+            const modal = document.getElementById("messageModal");
+            const content = document.getElementById("messageContent");
+            
+            const bgClass = {
+                success: "alert-success",
+                error: "alert-error",
+                info: "alert-info"
+            }[type];
+
+            content.innerHTML = `<div class="alert ${bgClass}">${message}</div>`;
+            modal.classList.add("active");
+        }
+
+        function closeMessageModal() {
+            document.getElementById("messageModal").classList.remove("active");
+        }
+
+        function getUserUID() {
+            // This would be retrieved from localStorage/session
+            return localStorage.getItem("uid") || "USR-DEFAULT";
+        }
+
+        function getUserEmail() {
+            return localStorage.getItem("email") || "";
+        }
+
+        function buildReferralLink() {
+            const uid = getUserUID();
+            return `${window.location.origin}/upload.html?ref=${encodeURIComponent(uid)}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        async function fetchUserByUID(uid) {
+            if (!uid) return null;
+            try {
+                const res = await fetch(`${FILES_BASE}/user-by-uid/${encodeURIComponent(uid)}`);
+                if (!res.ok) return null;
+                const data = await res.json();
+                return data?.success ? data.user : null;
+            } catch {
+                return null;
+            }
+        }
+
+        async function showReferredUsers() {
+            const uid = getUserUID();
+            if (!uid || uid === "USR-DEFAULT") {
+                showMessage("❌ Please login to view referred users", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/referrals/my-referred`, {
+                    headers: authHeaders()
+                });
+                const raw = await res.text();
+                let data = null;
+                try {
+                    data = raw ? JSON.parse(raw) : null;
+                } catch {
+                    data = null;
+                }
+
+                if (!res.ok || !data?.success) {
+                    showMessage(`❌ ${data?.error || "Could not load referred users"}`, "error");
+                    return;
+                }
+
+                const referredUsers = Array.isArray(data.referredUsers) ? data.referredUsers : [];
+                const successfulCount = Number(data.successfulCount) || 0;
+                const totalReferred = Number(data.totalReferred) || referredUsers.length;
+                const pendingCount = Number(data.pendingCount) || Math.max(0, totalReferred - successfulCount);
+                const milestoneTarget = Number(data.milestoneTarget) || 10;
+                const progress = Math.max(0, Math.min(100, (successfulCount / milestoneTarget) * 100));
+
+                const listHtml = referredUsers.length === 0
+                    ? `<div class="empty-state" style="margin-top: 12px;">No referred users yet.</div>`
+                    : referredUsers.map((entry, index) => `
+                        <div class="list-item" style="margin-top: 10px; background: #f4f8ff; border-left: 4px solid #4f6dff; box-shadow: 0 4px 14px rgba(79,109,255,0.18);">
+                            <div class="list-item-info">
+                                <h3 style="color: #2f49cc;">${index + 1}. ${escapeHtml(entry.username)}</h3>
+                                <p style="color: #10243f;">UID: ${escapeHtml(entry.uid)}</p>
+                                <p style="color: #10243f;">${escapeHtml(entry.email)}</p>
+                                <p style="color: #183764; font-weight: 600;">Status: ${entry.successfulPurchaseCounted ? "✅ Successful purchase" : "⏳ Registered (purchase pending)"}</p>
+                            </div>
+                        </div>
+                    `).join("");
+
+                const messageContent = `
+                    <div class="alert alert-info" style="text-align: left; background: #eaf4ff; color: #0b2d57; border: 1px solid #a9cfff;">
+                        <h3 style="margin-bottom: 8px; color: #103f7a;">👥 Referred Users</h3>
+                        <p style="margin-bottom: 12px; color: #0b2d57; font-weight: 600;">
+                            Total referred: <strong>${totalReferred}</strong> | Successful purchases: <strong>${successfulCount}</strong> | Pending: <strong>${pendingCount}</strong>
+                        </p>
+                        <div style="height: 8px; border-radius: 999px; background: rgba(16,45,87,0.18); overflow: hidden; margin-bottom: 12px;">
+                            <div style="height: 100%; width: ${progress.toFixed(1)}%; background: linear-gradient(90deg, #00f2ff, #667eea);"></div>
+                        </div>
+                        <div style="max-height: 52vh; overflow-y: auto; padding-right: 6px; overscroll-behavior: contain;">
+                            ${listHtml}
+                        </div>
+                    </div>
+                `;
+
+                const modal = document.getElementById("messageModal");
+                const content = document.getElementById("messageContent");
+                content.innerHTML = messageContent;
+                modal.classList.add("active");
+            } catch (err) {
+                showMessage(`❌ Could not load referred users: ${err.message}`, "error");
+            }
+        }
+
+        async function referralUIDExists(fullUID) {
+            if (!fullUID) return false;
+            try {
+                const res = await fetch(`${FILES_BASE}/user-by-uid/${encodeURIComponent(fullUID)}`);
+                if (!res.ok) return false;
+                const data = await res.json();
+                return !!data?.success;
+            } catch {
+                return false;
+            }
+        }
+
+        async function initReferralOption() {
+            const uid = getUserUID();
+            const referralUIDInput = document.getElementById("referralUID");
+            const referralLinkInput = document.getElementById("referralLink");
+
+            if (referralUIDInput) referralUIDInput.value = uid;
+            if (referralLinkInput) referralLinkInput.value = buildReferralLink();
+
+            // If user opened a referral link, auto-fill Add Friend field.
+            const ref = new URLSearchParams(window.location.search).get("ref");
+            if (!ref) return;
+
+            const normalizedRef = String(ref).trim().toUpperCase();
+            const fullUID = normalizedRef.startsWith("USR-") ? normalizedRef : `USR-${normalizedRef}`;
+            const validRef = await referralUIDExists(fullUID);
+            if (!validRef) {
+                showMessage(`❌ Invalid referral UID: ${fullUID}`, "error");
+                return;
+            }
+
+            localStorage.setItem("pendingReferralUID", fullUID);
+
+            const currentToken = localStorage.getItem("token");
+            const hasAuth = !!(currentToken && currentToken !== "null" && currentToken !== "undefined" && uid && uid !== "USR-DEFAULT");
+            if (!hasAuth) {
+                window.location.href = `login.html?ref=${encodeURIComponent(fullUID)}`;
+                return;
+            }
+
+            const input = document.getElementById("friendUID");
+            if (!input) return;
+
+            // Persist referral context so upgrade forms can offer REFERRED coupon activation.
+            if (fullUID && fullUID !== uid) {
+                localStorage.setItem("pendingReferralUID", fullUID);
+            }
+
+            input.value = fullUID.replace(/^USR-/, "");
+            input.style.borderColor = "#00ff88";
+            input.style.boxShadow = "0 0 12px rgba(0, 255, 136, 0.35)";
+            showMessage(`🎯 Referral detected. Ready to add: ${fullUID}`, "info");
+        }
+
+        async function copyReferralLink() {
+            const value = document.getElementById("referralLink")?.value || buildReferralLink();
+            try {
+                await navigator.clipboard.writeText(value);
+                showMessage("✅ Referral link copied", "success");
+            } catch {
+                showMessage("❌ Could not copy referral link", "error");
+            }
+        }
+
+        async function copyReferralUID() {
+            const value = document.getElementById("referralUID")?.value || getUserUID();
+            try {
+                await navigator.clipboard.writeText(value);
+                showMessage("✅ Referral UID copied", "success");
+            } catch {
+                showMessage("❌ Could not copy referral UID", "error");
+            }
+        }
+
+        async function shareReferralLink() {
+            const link = document.getElementById("referralLink")?.value || buildReferralLink();
+            const text = `Join me on CloudSpace Friends: ${link}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: "CloudSpace Friends Invite",
+                        text,
+                        url: link
+                    });
+                    return;
+                } catch {
+                    // fall through to copy fallback
+                }
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                showMessage("✅ Invite text copied. Paste and send it to your friend.", "success");
+            } catch {
+                showMessage("❌ Could not share invite", "error");
+            }
+        }
+
+        // Load initial data
+        document.addEventListener("DOMContentLoaded", () => {
+            loadFriends();
+            loadRequests();
+            initReferralOption();
+            startPresencePing();
+            if (friendsStatusInterval) clearInterval(friendsStatusInterval);
+            friendsStatusInterval = setInterval(loadFriendsStatusOnly, 15000);
+        });
+
+        window.addEventListener("beforeunload", () => {
+            stopPresencePing();
+        });
+
+        window.addEventListener("pagehide", () => {
+            stopPresencePing();
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                stopPresencePing();
+            } else {
+                startPresencePing();
+            }
+        });
+
+        // ============ SHARE FILE MODAL ============
+        async function openShareModal(friendUID) {
+            try {
+                // Fetch user's uploaded files
+                const res = await fetch(`${FILES_BASE}/files/my-files`, {
+                    headers: authHeaders()
+                });
+                const files = await res.json();
+
+                if (!Array.isArray(files) || files.length === 0) {
+                    showMessage("❌ You don't have any uploaded files to share", "error");
+                    return;
+                }
+
+                const modal = document.getElementById("shareFileModal");
+                const fileList = document.getElementById("shareFileList");
+                
+                fileList.innerHTML = files.map(f => `
+                    <div class="file-select-item" data-file-id="${f.filename}" onclick="selectFileToShare(this)">
+                        <div>
+                            <strong>${f.filename}</strong>
+                            <p style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                                ${(((f.bytes ?? f.size) || 0) / 1024 / 1024).toFixed(2)} MB • ${new Date(f.created_at || f.uploadedAt || Date.now()).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <span style="font-size: 1.5em;">📄</span>
+                    </div>
+                `).join("");
+
+                modal.dataset.friendUid = friendUID;
+                modal.classList.add("active");
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        let selectedFileId = null;
+
+        function selectFileToShare(element) {
+            // Remove selected class from all items
+            document.querySelectorAll(".file-select-item").forEach(item => {
+                item.classList.remove("selected");
+            });
+            // Add selected class to clicked item
+            element.classList.add("selected");
+            selectedFileId = element.dataset.fileId;
+        }
+
+        function closeShareModal() {
+            document.getElementById("shareFileModal").classList.remove("active");
+            selectedFileId = null;
+        }
+
+        async function shareSelectedFile() {
+            if (!selectedFileId) {
+                showMessage("❌ Please select a file to share", "error");
+                return;
+            }
+
+            const modal = document.getElementById("shareFileModal");
+            const friendUID = modal.dataset.friendUid;
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/share`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ fileId: selectedFileId, friendUID })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("✅ File shared successfully!", "success");
+                    closeShareModal();
+                } else {
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        // ============ CHAT MODAL ============
+        let activeChatUID = null;
+        let chatPollInterval = null;
+        let chatPresenceInterval = null;
+        let presenceInterval = null;
+
+        async function setPresence(status = "online", keepalive = false) {
+            try {
+                await fetch(`${API_BASE}/auth/presence`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ status }),
+                    keepalive
+                });
+            } catch (err) {
+                // Silent fail
+            }
+        }
+
+        function startPresencePing() {
+            setPresence("online");
+            if (presenceInterval) clearInterval(presenceInterval);
+            presenceInterval = setInterval(() => setPresence("online"), 30000);
+        }
+
+        function stopPresencePing() {
+            if (presenceInterval) {
+                clearInterval(presenceInterval);
+                presenceInterval = null;
+            }
+            setPresence("offline", true);
+        }
+
+        async function updateChatPresenceStatus(friendUID) {
+            const statusEl = document.getElementById("chatPresenceStatus");
+            if (!statusEl) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/users/status/${friendUID}`, {
+                    headers: authHeaders()
+                });
+                const data = await res.json();
+
+                if (data && data.isOnline) {
+                    statusEl.textContent = "online";
+                    statusEl.style.color = "#00ff88";
+                    statusEl.title = "Online now";
+                } else {
+                    statusEl.textContent = "offline";
+                    statusEl.style.color = "#aaa";
+                    statusEl.title = "Offline";
+                }
+            } catch (err) {
+                statusEl.textContent = "offline";
+                statusEl.style.color = "#aaa";
+            }
+        }
+
+        function openChatModal(friendUID, friendName) {
+            activeChatUID = friendUID;
+            const modal = document.getElementById("chatModal");
+            const header = document.getElementById("chatModalHeader");
+            
+            header.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #00f2ff, #00ff88);"></div>
+                    <div>
+                        <h3 style="margin: 0; margin-bottom: 2px;">💬 ${friendName || friendUID}</h3>
+                        <span id="chatPresenceStatus" style="font-size: 0.8em; color: #aaa;">offline</span>
+                    </div>
+                </div>
+                <button class="chat-close-btn" onclick="closeChatModal()">×</button>
+            `;
+
+            modal.classList.add("active");
+            loadChatMessagesModal();
+
+            updateChatPresenceStatus(friendUID);
+            if (chatPresenceInterval) clearInterval(chatPresenceInterval);
+            chatPresenceInterval = setInterval(() => updateChatPresenceStatus(friendUID), 15000);
+
+            // Poll for new messages every 3 seconds
+            if (chatPollInterval) clearInterval(chatPollInterval);
+            chatPollInterval = setInterval(loadChatMessagesModal, 3000);
+        }
+
+        function closeChatModal() {
+            document.getElementById("chatModal").classList.remove("active");
+            activeChatUID = null;
+            if (chatPollInterval) {
+                clearInterval(chatPollInterval);
+                chatPollInterval = null;
+            }
+            if (chatPresenceInterval) {
+                clearInterval(chatPresenceInterval);
+                chatPresenceInterval = null;
+            }
+        }
+
+        async function loadChatMessagesModal() {
+            if (!activeChatUID) return;
+            updateChatPresenceStatus(activeChatUID);
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/chat/${activeChatUID}`, {
+                    headers: authHeaders()
+                });
+                const messages = await res.json();
+
+                const container = document.getElementById("chatMessagesContainer");
+                const userUID = getUserUID();
+
+                if (!Array.isArray(messages) || messages.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #999; padding: 40px;">
+                            <p style="font-size: 3em;">💬</p>
+                            <p>No messages yet. Start the conversation!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = messages.map(m => {
+                    const isMine = m.senderUID === userUID;
+                    const replyToMsg = m.replyTo ? messages.find(rm => rm.id === m.replyTo) : null;
+                    const reactions = m.reactions || [];
+                    const reactionGroups = {};
+                    reactions.forEach(r => {
+                        if (!reactionGroups[r.emoji]) reactionGroups[r.emoji] = [];
+                        reactionGroups[r.emoji].push(r.userUID);
+                    });
+                    const seenStatus = m.seenAt ? `Seen at ${new Date(m.seenAt).toLocaleString()}` : 'Not seen yet';
+                    
+                    return `
+                        <div class="chat-message ${isMine ? 'mine' : 'theirs'}" data-message-id="${m.id}" onclick="toggleMessageMenu(event, '${m.id}', '${m.message.replace(/'/g, "&apos;").substring(0, 30)}', ${isMine}, '${seenStatus}')">
+                            <div class="chat-bubble">
+                                ${!isMine ? `<div class="chat-sender">Friend</div>` : ''}
+                                ${replyToMsg ? `
+                                    <div class="chat-reply-preview">
+                                        <div class="reply-indicator"></div>
+                                        <div class="reply-content">
+                                            <div class="reply-text">${replyToMsg.message.substring(0, 50)}${replyToMsg.message.length > 50 ? '...' : ''}</div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                <div>${m.message}</div>
+                                <div class="chat-time">${new Date(m.createdAt).toLocaleTimeString()} ${isMine && m.seenAt ? '✓✓' : isMine ? '✓' : ''}</div>
+                                ${Object.keys(reactionGroups).length > 0 ? `
+                                    <div class="chat-reactions" onclick="event.stopPropagation()">
+                                        ${Object.keys(reactionGroups).map(emoji => `
+                                            <span class="reaction-bubble" onclick="toggleReaction('${m.id}', '${emoji}')">
+                                                ${emoji} ${reactionGroups[emoji].length}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                // Mark messages as seen
+                const unseenMessages = messages.filter(m => m.recipientUID === userUID && !m.seenAt).map(m => m.id);
+                if (unseenMessages.length > 0) {
+                    markMessagesAsSeen(unseenMessages);
+                }
+
+                // Scroll to bottom
+                container.scrollTop = container.scrollHeight;
+            } catch (err) {
+                console.error("Chat load error:", err);
+            }
+        }
+
+        let replyingToMessage = null;
+        let currentMessageMenu = null;
+
+        function toggleMessageMenu(event, messageId, messageText, isMine, seenStatus) {
+            event.stopPropagation();
+            
+            // Remove existing menu
+            if (currentMessageMenu) {
+                currentMessageMenu.remove();
+                currentMessageMenu = null;
+            }
+            
+            // Create dropdown menu
+            const menu = document.createElement('div');
+            menu.className = 'message-dropdown-menu';
+            menu.innerHTML = `
+                <div class="menu-item" onclick="showMessageInfo('${messageId}', '${seenStatus}', ${isMine})">
+                    <span class="menu-icon">ℹ️</span>
+                    <span>Info</span>
+                </div>
+                <div class="menu-item" onclick="showEmojiPickerFromMenu('${messageId}')">
+                    <span class="menu-icon">😊</span>
+                    <span>React</span>
+                </div>
+                <div class="menu-item" onclick="replyToMessageFromMenu('${messageId}', '${messageText}')">
+                    <span class="menu-icon">↩️</span>
+                    <span>Reply</span>
+                </div>
+            `;
+            
+            // Position menu
+            const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageEl) {
+                const rect = messageEl.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = (rect.bottom + 5) + 'px';
+                menu.style.left = rect.left + 'px';
+            }
+            
+            document.body.appendChild(menu);
+            currentMessageMenu = menu;
+            
+            // Close on outside click
+            setTimeout(() => {
+                const closeHandler = (e) => {
+                    if (!menu.contains(e.target)) {
+                        menu.remove();
+                        currentMessageMenu = null;
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                document.addEventListener('click', closeHandler);
+            }, 100);
+        }
+
+        function showMessageInfo(messageId, seenStatus, isMine) {
+            if (currentMessageMenu) currentMessageMenu.remove();
+            
+            const modal = document.createElement('div');
+            modal.className = 'info-modal-overlay';
+            modal.innerHTML = `
+                <div class="info-modal">
+                    <div class="info-modal-header">
+                        <h3>📊 Message Info</h3>
+                        <button class="info-close-btn" onclick="this.closest('.info-modal-overlay').remove()">×</button>
+                    </div>
+                    <div class="info-modal-body">
+                        <div class="info-item">
+                            <span class="info-label">Message ID:</span>
+                            <span class="info-value">${messageId}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value ${isMine ? '' : 'info-na'}">${isMine ? seenStatus : 'You received this message'}</span>
+                        </div>
+                        ${isMine ? `
+                            <div class="info-status-indicator ${seenStatus.includes('Seen') ? 'seen' : 'unseen'}">
+                                ${seenStatus.includes('Seen') ? '✓✓ Message seen by recipient' : '✓ Message sent, not seen yet'}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function replyToMessageFromMenu(messageId, messageText) {
+            if (currentMessageMenu) currentMessageMenu.remove();
+            replyingToMessage = messageId;
+            const replyBar = document.getElementById('chatReplyBar');
+            const replyText = document.getElementById('chatReplyText');
+            
+            replyText.textContent = messageText;
+            replyBar.style.display = 'flex';
+            document.getElementById('chatModalInput').focus();
+        }
+
+        function cancelReply() {
+            replyingToMessage = null;
+            document.getElementById('chatReplyBar').style.display = 'none';
+        }
+
+        function showEmojiPickerFromMenu(messageId) {
+            if (currentMessageMenu) currentMessageMenu.remove();
+            showEmojiPicker(messageId);
+        }
+
+        function showEmojiPicker(messageId) {
+            const emojis = ['❤️', '👍', '😂', '😮', '😢', '😡', '🎉', '🔥'];
+            const picker = document.createElement('div');
+            picker.className = 'emoji-picker-popup';
+            picker.innerHTML = emojis.map(emoji => 
+                `<span class="emoji-option" onclick="addReaction('${messageId}', '${emoji}')">${emoji}</span>`
+            ).join('');
+            
+            // Position near the message
+            const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageEl) {
+                const rect = messageEl.getBoundingClientRect();
+                picker.style.position = 'fixed';
+                picker.style.top = (rect.bottom + 5) + 'px';
+                picker.style.left = rect.left + 'px';
+            }
+            
+            document.body.appendChild(picker);
+            
+            setTimeout(() => {
+                const closeHandler = (e) => {
+                    if (!picker.contains(e.target)) {
+                        picker.remove();
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                document.addEventListener('click', closeHandler);
+            }, 100);
+        }
+
+        async function markMessagesAsSeen(messageIds) {
+            try {
+                await fetch(`${API_BASE}/friends/chat/mark-seen`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ messageIds })
+                });
+            } catch (err) {
+                console.error('Mark seen error:', err);
+            }
+        }
+
+        async function addReaction(messageId, emoji) {
+            try {
+                const res = await fetch(`${API_BASE}/friends/chat/react`, {
+                    method: 'POST',
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ messageId, emoji })
+                });
+
+                if (res.ok) {
+                    loadChatMessagesModal();
+                    // Remove emoji picker
+                    document.querySelectorAll('.emoji-picker-popup').forEach(el => el.remove());
+                }
+            } catch (err) {
+                console.error('Reaction error:', err);
+            }
+        }
+
+        async function toggleReaction(messageId, emoji) {
+            await addReaction(messageId, emoji);
+        }
+
+        async function sendChatMessageModal() {
+            const input = document.getElementById("chatModalInput");
+            const message = input.value.trim();
+
+            if (!message || !activeChatUID) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/chat/send`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ 
+                        friendUID: activeChatUID, 
+                        message,
+                        replyToId: replyingToMessage 
+                    })
+                });
+
+                if (res.ok) {
+                    input.value = "";
+                    cancelReply();
+                    loadChatMessagesModal();
+                } else {
+                    const data = await res.json();
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        // Enter key to send
+        document.addEventListener("DOMContentLoaded", () => {
+            const chatInput = document.getElementById("chatModalInput");
+            if (chatInput) {
+                chatInput.addEventListener("keypress", (e) => {
+                    if (e.key === "Enter") {
+                        sendChatMessageModal();
+                    }
+                });
+            }
+        });
+
+        // ============ REMOVE FRIEND CONFIRMATION ============
+        let pendingRemovalId = null;
+
+        function confirmRemoveFriend(friendshipId, friendName) {
+            pendingRemovalId = friendshipId;
+            const modal = document.getElementById("confirmAlert");
+            const content = document.getElementById("confirmAlertContent");
+
+            content.innerHTML = `
+                <div class="confirm-icon">⚠️</div>
+                <h3>Remove Friend?</h3>
+                <p>Are you sure you want to remove <strong>${friendName || 'this friend'}</strong> from your friends list?</p>
+            `;
+
+            modal.classList.add("active");
+        }
+
+        function closeConfirmAlert() {
+            document.getElementById("confirmAlert").classList.remove("active");
+            pendingRemovalId = null;
+        }
+
+        async function confirmRemoval() {
+            if (!pendingRemovalId) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/remove`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ friendshipId: pendingRemovalId })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("✅ Friend removed", "success");
+                    closeConfirmAlert();
+                    loadFriends();
+                } else {
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        // Nickname Editor Functions
+        let pendingNicknameUpdate = { friendshipId: null, friendUID: null };
+
+        function openNicknameEditor(friendshipId, currentName, friendUID) {
+            pendingNicknameUpdate = { friendshipId, friendUID };
+            
+            const modal = document.getElementById('nicknameEditorModal');
+            const input = document.getElementById('nicknameInput');
+            const label = document.getElementById('nicknameLabel');
+            
+            input.value = currentName || '';
+            label.textContent = `Edit nickname for ${friendUID}`;
+            modal.style.display = 'flex';
+            
+            setTimeout(() => input.focus(), 100);
+            
+            // Enter key to save
+            input.onkeyup = (e) => {
+                if (e.key === 'Enter') saveNickname();
+            };
+        }
+
+        function closeNicknameEditor() {
+            document.getElementById('nicknameEditorModal').style.display = 'none';
+            pendingNicknameUpdate = { friendshipId: null, friendUID: null };
+        }
+
+        async function saveNickname() {
+            if (!pendingNicknameUpdate.friendshipId) return;
+
+            const newNickname = document.getElementById('nicknameInput').value.trim();
+
+            if (newNickname.length > 50) {
+                showMessage("❌ Nickname too long (max 50 characters)", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/friends/update-nickname`, {
+                    method: "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify({ 
+                        friendshipId: pendingNicknameUpdate.friendshipId,
+                        nickname: newNickname 
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showMessage("✅ Nickname updated!", "success");
+                    closeNicknameEditor();
+                    loadFriends();
+                } else {
+                    showMessage(`❌ ${data.error}`, "error");
+                }
+            } catch (err) {
+                showMessage(`Error: ${err.message}`, "error");
+            }
+        }
+
+        // Close nickname modal on background click
+        document.addEventListener('DOMContentLoaded', () => {
+            const nicknameModal = document.getElementById('nicknameEditorModal');
+            if (nicknameModal) {
+                nicknameModal.addEventListener('click', (e) => {
+                    if (e.target === nicknameModal) closeNicknameEditor();
+                });
+            }
+        });
+    </script>
+
+    <!-- Share File Modal -->
+    <div id="shareFileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">📤 Share File</div>
+            <p style="color: #666; margin-bottom: 15px;">Select a file from your uploads to share:</p>
+            <div id="shareFileList" style="max-height: 400px; overflow-y: auto;"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="shareSelectedFile()">✅ Share</button>
+                <button class="btn btn-danger" onclick="closeShareModal()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chatModal" class="chat-modal-overlay">
+        <div class="chat-modal">
+            <div id="chatModalHeader" class="chat-modal-header"></div>
+            <div id="chatMessagesContainer" class="chat-messages-container"></div>
+            <div id="chatReplyBar" class="chat-reply-bar" style="display: none;">
+                <div class="reply-bar-content">
+                    <div class="reply-bar-label">↩️ Replying to:</div>
+                    <div id="chatReplyText" class="reply-bar-text"></div>
+                </div>
+                <button class="reply-bar-close" onclick="cancelReply()">✕</button>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatModalInput" class="chat-input" placeholder="Type your message...">
+                <button class="chat-send-btn" onclick="sendChatMessageModal()">📨</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Alert -->
+    <div id="confirmAlert" class="confirm-alert-overlay">
+        <div class="confirm-alert">
+            <div id="confirmAlertContent"></div>
+            <div class="confirm-buttons">
+                <button class="btn btn-danger" onclick="confirmRemoval()">Yes, Remove</button>
+                <button class="btn btn-primary" onclick="closeConfirmAlert()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nickname Editor Modal -->
+    <div id="nicknameEditorModal" class="modal">
+        <div class="modal-content" style="width: 450px; animation: slideUpBounce 0.6s ease-out;">
+            <div class="modal-header">
+                <h2 style="color: #fff; margin-bottom: 0;">✨ Customize Friend Nickname</h2>
+                <span class="close" onclick="closeNicknameEditor()">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <label id="nicknameLabel" style="display: block; color: #fff; font-size: 0.95em; font-weight: 500; margin-bottom: 15px;">Friend UID</label>
+                <input 
+                    type="text" 
+                    id="nicknameInput" 
+                    class="nickname-input" 
+                    placeholder="Enter a cool nickname..."
+                    maxlength="50"
+                />
+                <small style="color: #999; display: block; margin-bottom: 20px;">✨ Tip: Make it fun and memorable!</small>
+                <div class="nickname-buttons">
+                    <button class="btn btn-primary" onclick="saveNickname()">💾 Save Nickname</button>
+                    <button class="btn btn-secondary" onclick="closeNicknameEditor()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

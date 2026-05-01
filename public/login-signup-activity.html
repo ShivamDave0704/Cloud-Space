@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>📊 Login & Signup Activity | CloudSpace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .tab-btn.active {
+            background: linear-gradient(90deg, #00ffcc, #0099ff);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+        }
+        .tab-btn:hover:not(.active) {
+            background: rgba(0, 255, 255, 0.2);
+        }
+        .section {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+        }
+        .section.active {
+            display: block;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .stat-card h3 {
+            color: #00ffcc;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1em;
+            outline: none;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00ffcc, #0099ff);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 200, 0.6);
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        th {
+            background: rgba(0, 255, 255, 0.15);
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #00ffcc;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .badge.success {
+            background: rgba(0, 255, 200, 0.2);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+        }
+        .badge.failed {
+            background: rgba(255, 80, 80, 0.2);
+            color: #ff5050;
+            border: 1px solid #ff5050;
+        }
+        .badge.verified {
+            background: rgba(0, 255, 200, 0.2);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+        }
+        .badge.unverified {
+            background: rgba(255, 200, 0, 0.2);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #00ffcc;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        .empty-state h3 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+        /* Cool Alert System */
+        .cool-alert {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(20, 20, 30, 0.95);
+            color: #fff;
+            padding: 18px 28px;
+            border-radius: 14px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.6);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000;
+            font-weight: 600;
+        }
+        .cool-alert.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .cool-alert.success {
+            border-left: 5px solid #00ffcc;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.7);
+        }
+        .cool-alert.error {
+            border-left: 5px solid #ff3366;
+            box-shadow: 0 0 30px rgba(255, 51, 102, 0.7);
+        }
+        .cool-alert.warning {
+            border-left: 5px solid #ffd500;
+            box-shadow: 0 0 30px rgba(255, 213, 0, 0.7);
+        }
+        .cool-alert .icon {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="coolAlertContainer"></div>
+    <div class="container">
+        <h1>📊 Login & Signup Activity</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('login')">🔑 Login History</button>
+            <button class="tab-btn" onclick="switchTab('signup')">📝 Signup History</button>
+            <button class="tab-btn" onclick="window.location.href='admin.html'">⬅️ Back to Admin</button>
+        </div>
+
+        <!-- LOGIN SECTION -->
+        <div id="loginSection" class="section active">
+            <div class="stats" id="loginStats">
+                <div class="stat-card">
+                    <h3>Total Logins</h3>
+                    <div class="number" id="totalLogins">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>✅ Successful</h3>
+                    <div class="number" id="successfulLogins">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>❌ Failed</h3>
+                    <div class="number" id="failedLogins">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Success Rate</h3>
+                    <div class="number" id="loginSuccessRate">-</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <input type="text" class="search-box" id="loginSearch" placeholder="🔍 Search by UID, Email, Username, Reason...">
+                <button class="btn" onclick="refreshLogin()">🔄 Refresh</button>
+                <button class="btn" onclick="downloadLoginJson()">💾 Download</button>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="loading" id="loginLoading">
+                    <span class="spinner">🔄</span> Loading login history...
+                </div>
+                <table id="loginTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>UID</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loginTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SIGNUP SECTION -->
+        <div id="signupSection" class="section">
+            <div class="stats" id="signupStats">
+                <div class="stat-card">
+                    <h3>Total Signups</h3>
+                    <div class="number" id="totalSignups">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>✅ Verified</h3>
+                    <div class="number" id="verifiedSignups">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>⏳ Unverified</h3>
+                    <div class="number" id="unverifiedSignups">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Verification Rate</h3>
+                    <div class="number" id="signupVerifyRate">-</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <input type="text" class="search-box" id="signupSearch" placeholder="🔍 Search by UID, Email, Username, Phone...">
+                <button class="btn" onclick="refreshSignup()">🔄 Refresh</button>
+                <button class="btn" onclick="downloadSignupJson()">💾 Download</button>
+            </div>
+
+            <div class="table-wrapper">
+                <div class="loading" id="signupLoading">
+                    <span class="spinner">🔄</span> Loading signup history...
+                </div>
+                <table id="signupTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>UID</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="signupTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000' 
+            : window.location.origin;
+
+        let allLogins = [];
+        let allSignups = [];
+        let loginSearchQuery = '';
+        let signupSearchQuery = '';
+
+        // Cool Alert Function
+        function showCoolAlert(message, type = 'success') {
+            const container = document.getElementById('coolAlertContainer');
+            const alert = document.createElement('div');
+            alert.className = `cool-alert ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            
+            alert.innerHTML = `
+                <span class="icon">${icons[type] || icons.success}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(alert);
+            
+            setTimeout(() => alert.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 400);
+            }, 4000);
+        }
+
+        // TAB SWITCHING
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+
+            if (tab === 'login') {
+                document.querySelector('.tab-btn:first-child').classList.add('active');
+                document.getElementById('loginSection').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:last-child').classList.add('active');
+                document.getElementById('signupSection').classList.add('active');
+            }
+        }
+
+        // FETCH LOGIN DATA
+        async function fetchLogins() {
+            try {
+                const response = await fetch(`${API}/api/auth/login-history`);
+                if (!response.ok) throw new Error('Failed to fetch login history');
+                const data = await response.json();
+                allLogins = (data.logins || []).reverse(); // Newest first
+                updateLoginStats();
+                renderLoginTable();
+                document.getElementById('loginLoading').style.display = 'none';
+                document.getElementById('loginTable').style.display = 'table';
+            } catch (error) {
+                document.getElementById('loginLoading').innerHTML = `
+                    ❌ Error loading data: ${error.message}<br>
+                    <button class="btn" onclick="refreshLogin()" style="margin-top: 15px;">🔄 Retry</button>
+                `;
+            }
+        }
+
+        function updateLoginStats() {
+            const successful = allLogins.filter(l => l.success).length;
+            const failed = allLogins.filter(l => !l.success).length;
+            const rate = allLogins.length > 0 ? ((successful / allLogins.length) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalLogins').textContent = allLogins.length;
+            document.getElementById('successfulLogins').textContent = successful;
+            document.getElementById('failedLogins').textContent = failed;
+            document.getElementById('loginSuccessRate').textContent = rate + '%';
+        }
+
+        function renderLoginTable() {
+            const tbody = document.getElementById('loginTableBody');
+            tbody.innerHTML = '';
+
+            const filtered = allLogins.filter(login => {
+                if (!loginSearchQuery) return true;
+                const query = loginSearchQuery.toLowerCase();
+                return (
+                    login.uid?.toLowerCase().includes(query) ||
+                    login.email?.toLowerCase().includes(query) ||
+                    login.username?.toLowerCase().includes(query) ||
+                    login.reason?.toLowerCase().includes(query) ||
+                    login.role?.toLowerCase().includes(query)
+                );
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <h3>📭</h3>
+                                <p>No login activity found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(login => {
+                const row = document.createElement('tr');
+                const timestamp = new Date(login.timestamp).toLocaleString();
+                const statusBadge = login.success 
+                    ? '<span class="badge success">✅ Success</span>'
+                    : '<span class="badge failed">❌ Failed</span>';
+
+                row.innerHTML = `
+                    <td>${timestamp}</td>
+                    <td>${login.uid || 'N/A'}</td>
+                    <td>${login.email || 'N/A'}</td>
+                    <td>${login.username || 'N/A'}</td>
+                    <td>${login.role || 'user'}</td>
+                    <td>${statusBadge}</td>
+                    <td>${login.reason || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // FETCH SIGNUP DATA
+        async function fetchSignups() {
+            try {
+                const response = await fetch(`${API}/api/auth/signup-history`);
+                if (!response.ok) throw new Error('Failed to fetch signup history');
+                const data = await response.json();
+                allSignups = (data.signups || []).reverse(); // Newest first
+                updateSignupStats();
+                renderSignupTable();
+                document.getElementById('signupLoading').style.display = 'none';
+                document.getElementById('signupTable').style.display = 'table';
+            } catch (error) {
+                document.getElementById('signupLoading').innerHTML = `
+                    ❌ Error loading data: ${error.message}<br>
+                    <button class="btn" onclick="refreshSignup()" style="margin-top: 15px;">🔄 Retry</button>
+                `;
+            }
+        }
+
+        function updateSignupStats() {
+            const verified = allSignups.filter(s => s.verified).length;
+            const unverified = allSignups.filter(s => !s.verified).length;
+            const rate = allSignups.length > 0 ? ((verified / allSignups.length) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalSignups').textContent = allSignups.length;
+            document.getElementById('verifiedSignups').textContent = verified;
+            document.getElementById('unverifiedSignups').textContent = unverified;
+            document.getElementById('signupVerifyRate').textContent = rate + '%';
+        }
+
+        function renderSignupTable() {
+            const tbody = document.getElementById('signupTableBody');
+            tbody.innerHTML = '';
+
+            const filtered = allSignups.filter(signup => {
+                if (!signupSearchQuery) return true;
+                const query = signupSearchQuery.toLowerCase();
+                return (
+                    signup.uid?.toLowerCase().includes(query) ||
+                    signup.email?.toLowerCase().includes(query) ||
+                    signup.username?.toLowerCase().includes(query) ||
+                    signup.phone?.toLowerCase().includes(query) ||
+                    signup.role?.toLowerCase().includes(query)
+                );
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <h3>📭</h3>
+                                <p>No signup activity found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(signup => {
+                const row = document.createElement('tr');
+                const timestamp = new Date(signup.timestamp).toLocaleString();
+                const statusBadge = signup.verified 
+                    ? '<span class="badge verified">✅ Verified</span>'
+                    : '<span class="badge unverified">⏳ Unverified</span>';
+
+                row.innerHTML = `
+                    <td>${timestamp}</td>
+                    <td>${signup.uid || 'N/A'}</td>
+                    <td>${signup.email || 'N/A'}</td>
+                    <td>${signup.username || 'N/A'}</td>
+                    <td>${signup.phone || 'N/A'}</td>
+                    <td>${statusBadge}</td>
+                    <td>${signup.role || 'user'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // SEARCH FUNCTIONALITY
+        document.getElementById('loginSearch').addEventListener('input', (e) => {
+            loginSearchQuery = e.target.value.trim();
+            renderLoginTable();
+        });
+
+        document.getElementById('signupSearch').addEventListener('input', (e) => {
+            signupSearchQuery = e.target.value.trim();
+            renderSignupTable();
+        });
+
+        // REFRESH FUNCTIONS
+        function refreshLogin() {
+            document.getElementById('loginLoading').style.display = 'block';
+            document.getElementById('loginTable').style.display = 'none';
+            fetchLogins();
+        }
+
+        function refreshSignup() {
+            document.getElementById('signupLoading').style.display = 'block';
+            document.getElementById('signupTable').style.display = 'none';
+            fetchSignups();
+        }
+
+        // DOWNLOAD FUNCTIONS
+        function downloadLoginJson() {
+            const dataStr = JSON.stringify(allLogins, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `login-history-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadSignupJson() {
+            const dataStr = JSON.stringify(allSignups, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `signup-history-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // INITIALIZE
+        (async function() {
+            // Admin verification
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showCoolAlert('Admin access required. Redirecting to login...', 'error');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+                return;
+            }
+
+            try {
+                const meResponse = await fetch(`${API}/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!meResponse.ok) {
+                    showCoolAlert('Session expired. Redirecting to login...', 'error');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    return;
+                }
+
+                const me = await meResponse.json();
+                if (me.role !== 'admin' && me.role !== 'superadmin') {
+                    showCoolAlert('This page is for admins only!', 'warning');
+                    setTimeout(() => window.location.href = 'upload.html', 2000);
+                    return;
+                }
+
+                // Load data after admin verification
+                fetchLogins();
+                fetchSignups();
+            } catch (error) {
+                console.error('Admin verification failed:', error);
+                showCoolAlert('Authentication error. Please login again.', 'error');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            }
+        })();
+    </script>
+</body>
+</html>

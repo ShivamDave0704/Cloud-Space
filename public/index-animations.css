@@ -1,0 +1,81 @@
+/* ============== ENHANCED SIGNUP ANIMATIONS ============== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: rotate(-10deg) scale(1); }
+    50% { transform: rotate(10deg) scale(1.2); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Captcha Success Glow */
+.captcha-box canvas.success {
+    animation: successGlow 0.5s ease;
+    border: 2px solid #00ff99 !important;
+}
+
+@keyframes successGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 153, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 153, 0.8); }
+}
+
+/* Enhanced Button Effects */
+.verify-btn:active {
+    transform: translateY(0) scale(0.95) !important;
+}
+
+#refreshCaptcha:active {
+    transform: rotate(180deg) scale(0.9) !important;
+}
+
+/* Enhanced Input Focus */
+input:focus {
+    animation: inputFocus 0.3s ease !important;
+}
+
+@keyframes inputFocus {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🔐 Auth Records | CloudSpace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #00ffcc;
+            text-shadow: 0 0 15px #00ffff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .stat-card h3 {
+            color: #00ffcc;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1em;
+            outline: none;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00ffcc, #0099ff);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 200, 0.6);
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active {
+            background: linear-gradient(90deg, #00ffcc, #0099ff);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.6);
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        th {
+            background: rgba(0, 255, 255, 0.15);
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #00ffcc;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .badge.verified {
+            background: rgba(0, 255, 200, 0.2);
+            color: #00ffcc;
+            border: 1px solid #00ffcc;
+        }
+        .badge.unverified {
+            background: rgba(255, 200, 0, 0.2);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+        }
+        .badge.blocked {
+            background: rgba(255, 80, 80, 0.2);
+            color: #ff5050;
+            border: 1px solid #ff5050;
+        }
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .role-superadmin {
+            background: linear-gradient(90deg, #ff4d4d, #ff9900);
+            color: #000;
+        }
+        .role-admin {
+            background: linear-gradient(90deg, #00ffcc, #0099ff);
+            color: #000;
+        }
+        .role-user {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .json-view {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .json-view h3 {
+            color: #00ffcc;
+            margin-bottom: 15px;
+        }
+        .json-content {
+            background: #0a0a0a;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .json-content::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        .json-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .json-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.5);
+            border-radius: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #00ffcc;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        /* Cool Alert System */
+        .cool-alert {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(20, 20, 30, 0.95);
+            color: #fff;
+            padding: 18px 28px;
+            border-radius: 14px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.6);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 10000;
+            font-weight: 600;
+        }
+        .cool-alert.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .cool-alert.success {
+            border-left: 5px solid #22c55e;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.7);
+        }
+        .cool-alert.error {
+            border-left: 5px solid #ef4444;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
+        }
+        .cool-alert.warning {
+            border-left: 5px solid #fbbf24;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.7);
+        }
+        .cool-alert .icon {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="coolAlertContainer"></div>
+    <div class="container">
+        <h1>🔐 Authentication Records</h1>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>👥 Total Users</h3>
+                <div class="number" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>✅ Verified</h3>
+                <div class="number" id="verifiedUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>⏳ Unverified</h3>
+                <div class="number" id="unverifiedUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>🚫 Blocked</h3>
+                <div class="number" id="blockedUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>👨‍💼 Admins</h3>
+                <div class="number" id="adminCount">-</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search by UID, Email, Username, Phone...">
+            <button class="btn" onclick="refreshData()">🔄 Refresh</button>
+            <button class="btn" onclick="toggleJsonView()">📋 View JSON</button>
+            <button class="btn" onclick="downloadJson()">💾 Download</button>
+        </div>
+
+        <div class="controls">
+            <button class="filter-btn active" onclick="filterUsers('all', this)">All</button>
+            <button class="filter-btn" onclick="filterUsers('verified', this)">✅ Verified</button>
+            <button class="filter-btn" onclick="filterUsers('unverified', this)">⏳ Unverified</button>
+            <button class="filter-btn" onclick="filterUsers('blocked', this)">🚫 Blocked</button>
+            <button class="filter-btn" onclick="filterUsers('admin', this)">👨‍💼 Admins</button>
+        </div>
+
+        <div class="table-wrapper">
+            <div class="loading" id="loading">
+                <span class="spinner">🔄</span> Loading authentication records...
+            </div>
+            <table id="usersTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="json-view" id="jsonView" style="display: none;">
+            <h3>📋 Raw JSON Data</h3>
+            <pre class="json-content" id="jsonContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000' 
+            : window.location.origin;
+
+        let allUsers = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // Cool Alert System Function
+        function showCoolAlert(message, type = 'success') {
+            const container = document.getElementById('coolAlertContainer') || document.body;
+            const alert = document.createElement('div');
+            alert.className = `cool-alert ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            };
+            
+            alert.innerHTML = `
+                <span class="icon">${icons[type] || icons.success}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(alert);
+            
+            setTimeout(() => alert.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 400);
+            }, 4000);
+        }
+
+        // Admin Verification
+        async function verifyAdmin() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showCoolAlert('❌ Admin access required. Please login.', 'error');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API}/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    showCoolAlert('❌ Session expired. Please login again.', 'error');
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                    return false;
+                }
+
+                const user = await response.json();
+                if (user.role !== 'admin' && user.role !== 'superadmin') {
+                    showCoolAlert('⚠️ This page is for admins only.', 'warning');
+                    setTimeout(() => window.location.href = 'upload.html', 2000);
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Admin verification failed:', error);
+                showCoolAlert('❌ Authentication error. Please login again.', 'error');
+                setTimeout(() => window.location.href = 'login.html', 2000);
+                return false;
+            }
+        }
+
+        async function fetchUsers() {
+            const isAdmin = await verifyAdmin();
+            if (!isAdmin) return;
+
+            try {
+                const response = await fetch(`${API}/api/auth/all-users`);
+                if (!response.ok) throw new Error('Failed to fetch users');
+                const data = await response.json();
+                allUsers = data.users || [];
+                updateStats();
+                renderTable();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('usersTable').style.display = 'table';
+            } catch (error) {
+                document.getElementById('loading').innerHTML = `
+                    ❌ Error loading data: ${error.message}<br>
+                    <button class="btn" onclick="refreshData()" style="margin-top: 15px;">🔄 Retry</button>
+                `;
+            }
+        }
+
+        function updateStats() {
+            const verified = allUsers.filter(u => u.verified).length;
+            const unverified = allUsers.filter(u => !u.verified).length;
+            const blocked = allUsers.filter(u => u.blocked || u.permanentBan).length;
+            const admins = allUsers.filter(u => u.role === 'admin' || u.role === 'superadmin').length;
+
+            document.getElementById('totalUsers').textContent = allUsers.length;
+            document.getElementById('verifiedUsers').textContent = verified;
+            document.getElementById('unverifiedUsers').textContent = unverified;
+            document.getElementById('blockedUsers').textContent = blocked;
+            document.getElementById('adminCount').textContent = admins;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const filtered = allUsers.filter(user => {
+                // Apply filter
+                if (currentFilter === 'verified' && !user.verified) return false;
+                if (currentFilter === 'unverified' && user.verified) return false;
+                if (currentFilter === 'blocked' && !user.blocked && !user.permanentBan) return false;
+                if (currentFilter === 'admin' && user.role !== 'admin' && user.role !== 'superadmin') return false;
+
+                // Apply search
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    return (
+                        user.uid?.toLowerCase().includes(query) ||
+                        user.email?.toLowerCase().includes(query) ||
+                        user.username?.toLowerCase().includes(query) ||
+                        user.phone?.toLowerCase().includes(query)
+                    );
+                }
+                return true;
+            });
+
+            filtered.forEach(user => {
+                const row = document.createElement('tr');
+                
+                const statusBadge = user.blocked || user.permanentBan 
+                    ? '<span class="badge blocked">🚫 Blocked</span>'
+                    : user.verified 
+                        ? '<span class="badge verified">✅ Verified</span>'
+                        : '<span class="badge unverified">⏳ Unverified</span>';
+
+                const roleBadge = user.role === 'superadmin' 
+                    ? '<span class="role-badge role-superadmin">👑 SUPER ADMIN</span>'
+                    : user.role === 'admin'
+                        ? '<span class="role-badge role-admin">👨‍💼 ADMIN</span>'
+                        : '<span class="role-badge role-user">👤 USER</span>';
+
+                const createdDate = user.created_at 
+                    ? new Date(user.created_at).toLocaleString()
+                    : 'N/A';
+
+                row.innerHTML = `
+                    <td>${user.uid || 'N/A'}</td>
+                    <td>${user.username || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${user.phone || 'N/A'}</td>
+                    <td>${roleBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td>${createdDate}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
+                            🔍 No users found matching your criteria
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function filterUsers(type, button) {
+            currentFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderTable();
+        }
+
+        function refreshData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('usersTable').style.display = 'none';
+            fetchUsers();
+        }
+
+        function toggleJsonView() {
+            const jsonView = document.getElementById('jsonView');
+            const isVisible = jsonView.style.display !== 'none';
+            
+            if (isVisible) {
+                jsonView.style.display = 'none';
+            } else {
+                document.getElementById('jsonContent').textContent = JSON.stringify(allUsers, null, 2);
+                jsonView.style.display = 'block';
+            }
+        }
+
+        function downloadJson() {
+            const dataStr = JSON.stringify(allUsers, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `auth-records-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            renderTable();
+        });
+
+        // Initialize
+        fetchUsers();
+    </script>
+</body>
+</html>
