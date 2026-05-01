@@ -1,0 +1,18 @@
+# Minimal Python requirements - Install what you need
+
+# REQUIRED: Core dependencies
+python-dotenv==1.0.0
+
+# OPTIONAL: Image processing (only if using image_processor.py)
+# Pillow>=10.0.0
+
+# OPTIONAL: Database access (only if using analytics/cleanup scripts)
+# Install manually if needed: pip install psycopg2-binary --only-binary :all:
+# psycopg2-binary>=2.9.0
+
+# OPTIONAL: PDF reports (only if generating PDF reports)
+# reportlab>=4.0.0
+
+# OPTIONAL: Data analysis (only if doing complex analytics)
+# pandas>=2.0.0
+# numpy>=1.24.0

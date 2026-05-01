@@ -1,0 +1,7 @@
+# Windows-friendly requirements with pre-built wheels
+
+python-dotenv==1.0.0
+Pillow>=10.0.0
+
+# For Windows - install separately:
+# pip install psycopg2-binary --only-binary :all:

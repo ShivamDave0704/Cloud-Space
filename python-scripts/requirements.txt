@@ -1,0 +1,17 @@
+# Core dependencies
+python-dotenv==1.0.0
+
+# Database drivers (choose based on your needs)
+# For PostgreSQL - use ONE of these:
+# psycopg2-binary>=2.9.0  # Precompiled (easier on Windows)
+# OR install from wheel: pip install psycopg2-binary --only-binary :all:
+
+# Image processing
+Pillow>=10.0.0
+
+# PDF generation (optional - only if you need reports)
+# reportlab>=4.0.0
+
+# Data analysis (optional - only if you need analytics)
+# pandas>=2.0.0
+# numpy>=1.24.0
