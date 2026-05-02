@@ -1,10 +1,17 @@
-<h1 align="center">☁️ Cloud-Space</h1>
-
+<!-- 🔥 Animated Banner -->
 <p align="center">
-  <b>🚀 Full-Stack Cloud Storage System</b><br>
-  <i>Secure • Scalable • Modern</i>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00ffcc,100:0A192F&height=220&section=header&text=Cloud-Space&fontSize=45&fontColor=ffffff&animation=fadeIn"/>
 </p>
 
+<!-- 🔥 Title -->
+<h1 align="center">☁️ Cloud-Space</h1>
+
+<!-- 🔥 Typing Animation -->
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?color=00FFC6&size=22&center=true&vCenter=true&width=500&lines=Full-Stack+Cloud+Storage;Secure+File+Management;Modern+Web+Application;Built+With+Node+%2B+MongoDB"/>
+</p>
+
+<!-- 🔥 Badges -->
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Active-00ffcc?style=for-the-badge&logo=cloudflare">
   <img src="https://img.shields.io/badge/Backend-Node.js-0A192F?style=for-the-badge&logo=node.js">
@@ -12,13 +19,23 @@
   <img src="https://img.shields.io/badge/Frontend-JS%20%7C%20CSS%20%7C%20HTML-ff9800?style=for-the-badge">
 </p>
 
+<!-- 🔥 Quick Links -->
+<p align="center">
+  <a href="https://shivamdave0704.github.io/Cloud-Space/public/">
+    <img src="https://img.shields.io/badge/🌐 Live Demo-Click Here-00ffcc?style=for-the-badge">
+  </a>
+  <a href="https://github.com/ShivamDave0704/Cloud-Space">
+    <img src="https://img.shields.io/badge/📂 Repository-View Code-blue?style=for-the-badge">
+  </a>
+</p>
+
 <hr>
 
 <h2 align="center">🚀 Overview</h2>
 
-<p align="center" width="80%">
-Cloud-Space is a modern <b>full-stack cloud storage platform</b> where users can upload, manage, and access files securely.
-Designed with <b>scalability, performance, and security</b> in mind.
+<p align="center">
+Cloud-Space is a <b>modern full-stack cloud storage platform</b> that allows users to upload, manage, and access files securely.
+Built with scalability, speed, and security at its core.
 </p>
 
 <hr>
@@ -26,7 +43,7 @@ Designed with <b>scalability, performance, and security</b> in mind.
 <h2 align="center">✨ Features</h2>
 
 <p align="center">
-🔐 Authentication • 📁 File Upload • ☁️ Cloud Storage <br>
+🔐 Authentication • 📁 Upload/Download • ☁️ Cloud Storage <br>
 ⚡ Fast Backend • 🛡️ Secure System • 📱 Responsive UI
 </p>
 
@@ -44,15 +61,55 @@ Designed with <b>scalability, performance, and security</b> in mind.
 
 <h2 align="center">📸 Preview</h2>
 
-<p align="center">
-  <img src="Login-Animation.png" width="45%">
-  <img src="Signup.png" width="45%">
-</p>
+<h3 align="center">🔐 Authentication</h3>
 
 <p align="center">
-  <img src="Logout-Animation.png" width="45%">
-  <img src="Mail-OTP-Verification.png" width="45%">
+  <img src="Login.png" width="30%">
+  <img src="Signup.png" width="30%">
+  <img src="2fa-Signup.png" width="30%">
 </p>
+
+<h3 align="center">✨ Animations</h3>
+
+<p align="center">
+  <img src="Login-Animation.png" width="45%">
+  <img src="Logout-Animation.png" width="45%">
+</p>
+
+<h3 align="center">📩 Verification</h3>
+
+<p align="center">
+  <img src="Mail-OTP-Verification.png" width="60%">
+</p>
+
+<h3 align="center">☁️ Features</h3>
+
+<p align="center">
+  <img src="Upload-image.png" width="45%">
+  <img src="Update-Profile.png" width="45%">
+</p>
+
+<hr>
+
+<h2 align="center">📂 Project Structure</h2>
+
+<pre>
+Cloud-Space/
+│── backend/
+│   ├── routes/
+│   ├── controllers/
+│   ├── models/
+│   └── server.js
+│
+│── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+│
+│── uploads/
+│── .env
+│── package.json
+</pre>
 
 <hr>
 
@@ -78,8 +135,20 @@ npm start
 
 <p align="center">
   <a href="https://shivamdave0704.github.io/Cloud-Space/public/" target="_blank">
-    🔗 Click Here to View Live Project
+    🚀 Click Here to View Live Project
   </a>
+</p>
+
+<hr>
+
+<h2 align="center">📊 GitHub Stats</h2>
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=ShivamDave0704&show_icons=true&theme=tokyonight">
+</p>
+
+<p align="center">
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=ShivamDave0704&theme=tokyonight">
 </p>
 
 <hr>
@@ -101,6 +170,7 @@ npm start
 
 <hr>
 
+<!-- 🔥 Footer Banner -->
 <p align="center">
-  💙 <b>Made with Passion</b> | Cloud-Space © 2026
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00ffcc,100:0A192F&height=120&section=footer"/>
 </p>
