@@ -96,7 +96,7 @@ npm start
 <h2>📸 Preview</h2>
 
 <p align="center">
-  <img src="https://via.placeholder.com/800x400.png?text=Cloud+Space+Preview" width="80%">
+  <img src="[https://via.placeholder.com/800x400.png?text=Cloud+Space+Preview](https://shivamdave0704.github.io/Cloud-Space/public/)" width="80%">
 </p>
 
 <hr>
